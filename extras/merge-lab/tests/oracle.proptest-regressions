@@ -1,0 +1,7 @@
+# Seeds for failure cases proptest has generated in the past. It is
+# automatically read and these particular cases re-run before any
+# novel cases are generated.
+#
+# It is recommended to check this file in to source control so that
+# everyone who runs the test benefits from these saved cases.
+cc 5950fa1a7980fdbfc8f097ac5f3b3c9d49525d323285e289835e9abcab066c23 # shrinks to (num, ops) = (1, [RemovePap(0), Levels(0, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 116, 168, 196, 5, 121, 153, 18, 185, 223, 52, 140]), Pap(0, [71, 104, 231, 125, 252, 95, 136, 148, 12, 178, 201, 227, 224, 211, 41, 244, 137, 72, 83, 100, 212, 234, 187, 4, 145, 209, 254, 111, 42, 83, 2, 10, 86, 181, 222, 107, 49, 131, 205, 134, 134, 146, 222, 116, 169, 155, 115, 179, 12])])

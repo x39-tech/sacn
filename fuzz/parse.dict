@@ -1,0 +1,31 @@
+# libFuzzer dictionary for the sACN packet parser.
+#
+# The codec opens with a fixed 16-byte ACN preamble and dispatches on several
+# fixed vector/layout fields; a coverage-guided fuzzer is very unlikely to
+# synthesize those magic bytes by mutation alone. These tokens let libFuzzer
+# splice them in so it can reach the deep parsing paths even when it mutates
+# away from the seed corpus. Pass with `-dict=fuzz/parse.dict`.
+
+# ACN root-layer preamble (offsets 0-15): preamble size 0x0010, post-amble size
+# 0x0000, then the ACN packet identifier.
+acn_preamble="\x00\x10\x00\x00ASC-E1.17\x00\x00\x00"
+acn_packet_id="ASC-E1.17"
+
+# Root-layer vectors, big-endian (offsets 18-21).
+root_vector_data="\x00\x00\x00\x04"
+root_vector_extended="\x00\x00\x00\x08"
+
+# Framing-layer vectors, big-endian (offsets 40-43): data packet (0x02), and the
+# extended sync (0x01) / discovery (0x02) vectors.
+framing_vector_data="\x00\x00\x00\x02"
+framing_vector_sync="\x00\x00\x00\x01"
+
+# Universe discovery layer vector, big-endian.
+discovery_list_vector="\x00\x00\x00\x01"
+
+# DMP layer fixed fields (offsets 117-122): SET_PROPERTY vector 0x02, address &
+# data type 0xa1, first property address 0x0000, address increment 0x0001.
+dmp_fixed_fields="\x02\xa1\x00\x00\x00\x01"
+
+# The 0x7 flags nibble shared by every PDU's flags-and-length field.
+pdu_flags="\x70"

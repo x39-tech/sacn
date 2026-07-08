@@ -1,0 +1,30 @@
+[package]
+name = "merge-lab"
+version = "0.0.0"
+edition = "2021"
+rust-version = "1.85"
+publish = false
+description = "Throwaway benchmark/correctness lab for the sACN DMX merger. Not part of the published crate."
+
+[features]
+# Build and link the reference ETC sACN DMX merger (C) for head-to-head
+# comparison. Requires cmake + a C toolchain.
+etc = []
+# Enable the hand-written SIMD full-re-merge candidate: NEON on aarch64, and
+# AVX2 (with an SSE2 fallback) on x86_64. A no-op on other targets.
+simd = []
+
+[dependencies]
+fastrand = "2.3.0"
+# The production merger, driven through the lab's `Merger` trait by `SacnMerger`
+# so the oracle and benchmarks can treat the shipped code as one more candidate.
+# Only the merger is needed, so the std/adapter layers are turned off.
+x39-sacn = { path = "../..", default-features = false, features = ["alloc"] }
+
+[dev-dependencies]
+proptest = "1.11.0"
+criterion = "0.8.2"
+
+[[bench]]
+name = "merge"
+harness = false

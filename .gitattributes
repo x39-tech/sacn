@@ -1,0 +1,5 @@
+# Normalize line endings to LF on checkout for every platform.
+#
+# Fixes problems with the public-api snapshot test on Windows, and potentially other similar
+# issues.
+* text=auto eol=lf

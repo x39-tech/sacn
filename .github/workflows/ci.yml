@@ -1,0 +1,179 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+  RUSTFLAGS: -D warnings
+
+jobs:
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    env:
+      CARGO_HACK_ARGS: >-
+        --feature-powerset
+        --features "embassy-net?/medium-ethernet"
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy,rustfmt
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo install cargo-hack
+      - run: cargo fmt --all --check
+      - run: cargo hack clippy $CARGO_HACK_ARGS
+      - run: cargo clippy --all-targets --all-features --features "embassy-net/medium-ethernet"
+
+  test:
+    name: test (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        include:
+          - os: ubuntu-latest
+            features: default,embassy,tracing,log,uuid,embassy-net/medium-ethernet
+          - os: macos-latest
+            features: default,embassy,tracing,log,uuid,embassy-net/medium-ethernet
+          - os: windows-latest
+            features: default,tracing,log,uuid
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo test --features ${{ matrix.features }}
+      - run: cargo test --no-default-features --features alloc
+
+  no_std:
+    name: no_std embedded build
+    runs-on: ubuntu-latest
+    env:
+      CARGO_HACK_ARGS: >-
+        --feature-powerset
+        --exclude-features default,std,tokio,tracing
+        --features "embassy-net?/medium-ethernet"
+        --target thumbv7em-none-eabi
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: thumbv7em-none-eabi
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo install cargo-hack
+      - run: cargo hack build $CARGO_HACK_ARGS
+      - run: cargo hack clippy $CARGO_HACK_ARGS
+
+  msrv:
+    name: MSRV (1.91)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@1.91.0
+        with:
+          targets: thumbv7em-none-eabi
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo check --no-default-features --target thumbv7em-none-eabi
+      - run: cargo check --no-default-features --features alloc
+      - run: cargo check --all-features --features "embassy-net?/medium-ethernet"
+
+  public-api:
+    name: public API snapshot
+    runs-on: ubuntu-latest
+    env:
+      RUN_PUBLIC_API_TEST: "1"
+      PUBLIC_API_TOOLCHAIN: nightly-2026-07-01
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@stable
+      - run: rustup toolchain install ${{ env.PUBLIC_API_TOOLCHAIN }} --profile minimal
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo test --test public_api
+
+  fuzz:
+    name: fuzz smoke (parser)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      # cargo-fuzz needs nightly (it builds with `-Zsanitizer`); the detached
+      # `fuzz/` crate is built only here.
+      - uses: dtolnay/rust-toolchain@nightly
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            .
+            fuzz
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-fuzz
+      # A short, time-boxed run over the committed seed corpus. This is a
+      # regression gate (does the target still build, do the seeds still parse
+      # and round-trip, has a previously-fixed crash returned?) -- not a search
+      # for new bugs, which belongs in a longer scheduled run.
+      - name: Smoke-run the parser fuzz target
+        run: |
+          mkdir -p fuzz/corpus/parse
+          cp fuzz/seed_corpus/parse/* fuzz/corpus/parse/
+          cargo fuzz run parse --target x86_64-unknown-linux-gnu -- \
+            -max_total_time=60 -max_len=1144 -use_value_profile=1 \
+            -dict=fuzz/parse.dict
+
+  coverage:
+    name: coverage
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v6
+      # cargo-llvm-cov drives the LLVM tools shipped by `llvm-tools-preview`.
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: llvm-tools-preview
+      - uses: Swatinem/rust-cache@v2
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-llvm-cov
+      - name: Collect coverage
+        run: cargo llvm-cov --all-features --features "embassy-net/medium-ethernet" --no-report
+      - name: Write summary
+        run: |
+          {
+            echo '### Test coverage (advisory)'
+            echo
+            echo '```'
+            cargo llvm-cov report --summary-only
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: HTML report
+        run: cargo llvm-cov report --html
+      - uses: actions/upload-artifact@v7
+        with:
+          name: coverage-html
+          path: target/llvm-cov/html/
+
+  merge-lab:
+    name: merge-lab (${{ matrix.os }})
+    # Run on each major platform to make sure it works for consumers
+    # and that both SIMD candidates are covered, NEON on arm64 (macOS),
+    # AVX2/SSE2 on x86_64 (Linux, Windows).
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    env:
+      SACN_GIT_REF: 7470a8063889cb7f24ed58494f715a40d471a073
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - uses: Swatinem/rust-cache@v2
+      # For ETC sACN
+      - if: matrix.os == 'ubuntu-latest'
+        run: DEBIAN_FRONTEND=noninteractive sudo apt update && sudo apt install -y uuid-dev
+      - run: cargo clippy -p merge-lab --all-targets --features etc,simd
+      - run: cargo test -p merge-lab --features etc,simd

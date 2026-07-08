@@ -1,0 +1,10 @@
+# Seeds for failure cases proptest has generated in the past. It is
+# automatically read and these particular cases re-run before any
+# novel cases are generated.
+#
+# It is recommended to check this file in to source control so that
+# everyone who runs the test benefits from these saved cases.
+cc 07ecd6e8e87f6786ad4f3fd2953a230b98fb46904bd63dd4804a805dbfdd1dd3 # shrinks to config = ReceiverConfig { sample_period: 0ns, extra_hold_time: 0ns, pap_handling: true, pap_wait: 0ns, source_limit: None, filter_preview: false }, ops = [Listen { universe: 2, ifaces: [0] }, Advance { ms: 0 }, Packet { universe: 2, cid: 2, start_code: Null, terminated: false }, Packet { universe: 2, cid: 2, start_code: Other, terminated: false }, Advance { ms: 2500 }]
+cc 34db44c95db7f85d75c588eb4816cb042ea313cbe4d5b75466bf29984155cc7b # shrinks to config = ReceiverConfig { sample_period: 0ns, extra_hold_time: 0ns, pap_handling: true, pap_wait: 0ns, source_limit: None, filter_preview: false }, ops = [Listen { universe: 1, ifaces: [0] }, Advance { ms: 0 }, Packet { universe: 1, cid: 2, start_code: Null, terminated: false }, Packet { universe: 1, cid: 2, start_code: Other, terminated: false }, Advance { ms: 2500 }]
+cc 8544040d608f6c1c71646beefa5aec963f507a0168cefac5f286eaa5122cf3ac # shrinks to config = ReceiverConfig { sample_period: 0ns, extra_hold_time: 0ns, pap_handling: false, pap_wait: 0ns, allowed_start_codes: {23}, source_limit: None, filter_preview: false }, ops = [Listen { universe: 3, ifaces: [0] }, Packet { universe: 3, cid: 0, start_code: Null, terminated: false }]
+cc d6c0d2c8f18b7383f755f8a89f5b7fe5b5e8ff8575ec4645df7b59db695a1403 # shrinks to config = ReceiverConfig { sample_period: 0ns, extra_hold_time: 0ns, pap_handling: false, pap_wait: 0ns, allowed_start_codes: {23}, source_limit: None, filter_preview: false }, ops = [Listen { universe: 1, ifaces: [0] }, Packet { universe: 1, cid: 0, start_code: Null, terminated: false }]
