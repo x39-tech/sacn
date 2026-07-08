@@ -83,10 +83,10 @@ fn system_multicast_interfaces() -> Vec<MulticastInterface> {
         if iface.is_loopback() || !iface.is_oper_up() {
             continue;
         }
-        if let if_addrs::IfAddr::V4(v4) = iface.addr {
-            if seen.insert(iface.name) {
-                interfaces.push(MulticastInterface::V4(v4.ip));
-            }
+        if let if_addrs::IfAddr::V4(v4) = iface.addr
+            && seen.insert(iface.name)
+        {
+            interfaces.push(MulticastInterface::V4(v4.ip));
         }
     }
     interfaces

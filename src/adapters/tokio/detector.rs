@@ -9,11 +9,11 @@ use tokio::time::Instant as TokioInstant;
 use crate::adapters::net::ToMulticastInterfaces;
 use crate::adapters::{AdapterError, MulticastInterface};
 use crate::detector::{SourceDetector as Core, SourceDetectorConfig, SourceDetectorEvent};
-use crate::packet::{Packet, MAX_PACKET_SIZE};
+use crate::packet::{MAX_PACKET_SIZE, Packet};
 use crate::proto::{DISCOVERY_UNIVERSE, SACN_PORT};
 use crate::time::Instant;
 
-use super::{bind_socket, io_error, join, leave, system_multicast_interfaces, JoinPolicy};
+use super::{JoinPolicy, bind_socket, io_error, join, leave, system_multicast_interfaces};
 
 #[cfg(test)]
 #[path = "detector_tests.rs"]

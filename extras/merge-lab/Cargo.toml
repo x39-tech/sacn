@@ -6,6 +6,9 @@ rust-version = "1.85"
 publish = false
 description = "Throwaway benchmark/correctness lab for the sACN DMX merger. Not part of the published crate."
 
+[package.metadata.release]
+release = false
+
 [features]
 # Build and link the reference ETC sACN DMX merger (C) for head-to-head
 # comparison. Requires cmake + a C toolchain.

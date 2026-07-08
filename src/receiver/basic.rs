@@ -12,7 +12,7 @@ use crate::types::{NetintId, Universe};
 use super::event::{ListenOutcome, SourceInfoRef, StopOutcome, UniverseDataRef};
 use super::loss;
 use super::source::TrackedSource;
-use super::{BasicReceiverStorage, ReceiverConfig, DMX_NULL_START_CODE, PAP_START_CODE};
+use super::{BasicReceiverStorage, DMX_NULL_START_CODE, PAP_START_CODE, ReceiverConfig};
 
 mod event;
 

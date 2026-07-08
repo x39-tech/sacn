@@ -14,8 +14,8 @@ mod common;
 use std::{thread, time::Duration};
 
 use common::{
-    init_tui_logging, is_quit_event, render_chrome, render_level_grid, valid_universe, Event,
-    PickerOutcome, UniversePicker, SLOTS,
+    Event, PickerOutcome, SLOTS, UniversePicker, init_tui_logging, is_quit_event, render_chrome,
+    render_level_grid, valid_universe,
 };
 use crossterm::event::{self, Event as TermEvent, KeyCode, KeyEvent, KeyModifiers};
 use layout::Flex;

@@ -956,7 +956,7 @@ impl<'a> sacn::packet::UniverseList<'a>
 pub const fn sacn::packet::UniverseList<'a>::as_bytes(&self) -> &'a [u8]
 pub const fn sacn::packet::UniverseList<'a>::from_bytes(&'a [u8]) -> Self
 pub const fn sacn::packet::UniverseList<'a>::is_empty(&self) -> bool
-pub fn sacn::packet::UniverseList<'a>::iter(&self) -> impl core::iter::traits::iterator::Iterator<Item = u16> + 'a
+pub fn sacn::packet::UniverseList<'a>::iter(&self) -> impl core::iter::traits::iterator::Iterator<Item = u16> + 'a + use<'a>
 pub const fn sacn::packet::UniverseList<'a>::len(&self) -> usize
 impl core::fmt::Debug for sacn::packet::UniverseList<'_>
 pub fn sacn::packet::UniverseList<'_>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
@@ -1919,7 +1919,7 @@ impl<T> core::convert::From<T> for sacn::receiver::StopOutcome
 pub fn sacn::receiver::StopOutcome::from(T) -> T
 pub struct sacn::receiver::SyncRelease<'r, S: sacn::receiver::ReceiverStorage>
 impl<'r, S: sacn::receiver::ReceiverStorage> sacn::receiver::SyncRelease<'r, S>
-pub fn sacn::receiver::SyncRelease<'r, S>::merged_frames(&self) -> impl core::iter::traits::iterator::Iterator<Item = sacn::receiver::MergedDataRef<'r, S>> + 'r
+pub fn sacn::receiver::SyncRelease<'r, S>::merged_frames(&self) -> impl core::iter::traits::iterator::Iterator<Item = sacn::receiver::MergedDataRef<'r, S>> + 'r + use<'r, S>
 impl<'r, S: sacn::receiver::ReceiverStorage> core::clone::Clone for sacn::receiver::SyncRelease<'r, S>
 pub fn sacn::receiver::SyncRelease<'r, S>::clone(&self) -> Self
 impl<'r, S: sacn::receiver::ReceiverStorage> core::marker::Copy for sacn::receiver::SyncRelease<'r, S>

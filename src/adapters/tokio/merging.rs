@@ -8,13 +8,13 @@ use tokio::time::Instant as TokioInstant;
 
 use crate::adapters::net::ToMulticastInterfaces;
 use crate::adapters::{AdapterError, MulticastInterface};
-use crate::packet::{Packet, MAX_PACKET_SIZE};
+use crate::packet::{MAX_PACKET_SIZE, Packet};
 use crate::proto::SACN_PORT;
 use crate::receiver::{Receiver as Core, ReceiverConfig, ReceiverEvent, ReceiverPollEvent};
 use crate::time::Instant;
 use crate::types::{NetintId, Universe};
 
-use super::{bind_socket, execute_listen, io_error, system_multicast_interfaces, JoinPolicy};
+use super::{JoinPolicy, bind_socket, execute_listen, io_error, system_multicast_interfaces};
 
 #[cfg(test)]
 #[path = "merging_tests.rs"]

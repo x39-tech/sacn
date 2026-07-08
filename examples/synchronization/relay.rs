@@ -3,12 +3,12 @@
 //! overall picture.
 
 use std::net::SocketAddr;
-use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 use std::time::Duration;
 
-use sacn::packet::Payload;
 use sacn::Packet;
+use sacn::packet::Payload;
 use tokio::net::UdpSocket;
 
 use crate::UNIVERSES;

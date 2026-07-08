@@ -127,14 +127,14 @@ async fn merges_two_sources_by_priority() {
     // Drain events until we see a merged result reflecting both sources.
     let mut _saw_matching_event = false;
     loop {
-        if let ReceiverEvent::MergedData(data) = next_event(&mut rx).await {
-            if data.active_sources().count() == 2 {
-                assert_eq!(&data.levels()[..2], &[5, 6]);
-                let owner = data.source(data.owners()[0]).map(|s| s.cid);
-                assert_eq!(owner, Some(cid(2)));
-                _saw_matching_event = true;
-                break;
-            }
+        if let ReceiverEvent::MergedData(data) = next_event(&mut rx).await
+            && data.active_sources().count() == 2
+        {
+            assert_eq!(&data.levels()[..2], &[5, 6]);
+            let owner = data.source(data.owners()[0]).map(|s| s.cid);
+            assert_eq!(owner, Some(cid(2)));
+            _saw_matching_event = true;
+            break;
         }
     }
     assert!(_saw_matching_event);
@@ -234,11 +234,11 @@ async fn synchronization_holds_and_releases_over_the_wire() {
     // The withheld frame is only revealed by the second sync, delivered as a
     // coherent synchronized release.
     loop {
-        if let ReceiverEvent::SyncMergedData(frames) = next_event(&mut rx).await {
-            if let Some(data) = frames.iter().find(|d| d.levels()[0] == 42) {
-                assert_eq!(data.universe, universe);
-                break;
-            }
+        if let ReceiverEvent::SyncMergedData(frames) = next_event(&mut rx).await
+            && let Some(data) = frames.iter().find(|d| d.levels()[0] == 42)
+        {
+            assert_eq!(data.universe, universe);
+            break;
         }
     }
 }

@@ -24,7 +24,7 @@ use std::time::Duration;
 
 use sacn::tokio::Source;
 use sacn::{Cid, OnSyncLoss, SourceConfig, Universe, UniverseConfig};
-use tracing::{info, warn, Level};
+use tracing::{Level, info, warn};
 use uuid::Uuid;
 
 /// The number of DMX slots in a full universe.

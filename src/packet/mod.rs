@@ -257,7 +257,7 @@ impl<'a> UniverseList<'a> {
     }
 
     /// Iterates the universes as `u16` values.
-    pub fn iter(&self) -> impl Iterator<Item = u16> + 'a {
+    pub fn iter(&self) -> impl Iterator<Item = u16> + 'a + use<'a> {
         self.bytes.chunks_exact(2).map(chunk_to_u16)
     }
 }
@@ -315,7 +315,7 @@ impl<'a> Packet<'a> {
                         layer: VectorLayer::Root,
                         value: other,
                     },
-                ))
+                ));
             }
         };
 

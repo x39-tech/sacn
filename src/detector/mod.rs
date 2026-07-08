@@ -2,7 +2,7 @@
 
 use crate::log::{debug, warning};
 use crate::packet::{Packet, Payload};
-use crate::storage::{coherence_check, HeapStorage, MapLike, VecLike};
+use crate::storage::{HeapStorage, MapLike, VecLike, coherence_check};
 use crate::time::{Duration, Instant};
 use crate::types::{Cid, SourceName};
 

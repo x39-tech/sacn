@@ -584,9 +584,11 @@ fn pap_handling_disabled_still_forwards_pap_and_never_loses_it() {
     // stops, levels continue past the PAP timeout) produces no such event here,
     // and the levels are still forwarded.
     let events = dmx(&mut rx, 2600, cid(1), 1, 2);
-    assert!(!events
-        .iter()
-        .any(|e| matches!(e, BasicReceiverEvent::SourcePapLost { .. })));
+    assert!(
+        !events
+            .iter()
+            .any(|e| matches!(e, BasicReceiverEvent::SourcePapLost { .. }))
+    );
     assert_eq!(data_events(&events).len(), 1);
 }
 
@@ -833,11 +835,13 @@ fn unknown_source_online_resolves_grouped_loss() {
 
     // Source 1 is reported as offline now that all other sources' states are resolved.
     let events = poll_events(&mut rx, instant(2710));
-    assert!(events
-        .iter()
-        .any(|event| matches!(event, BasicReceiverEvent::SourcesLost {
+    assert!(
+        events
+            .iter()
+            .any(|event| matches!(event, BasicReceiverEvent::SourcesLost {
         sources, ..
-    } if sources.len() == 1 && sources[0].cid == cid(1))));
+    } if sources.len() == 1 && sources[0].cid == cid(1)))
+    );
 }
 
 #[test]
@@ -873,9 +877,11 @@ fn extra_hold_time_delays_loss_and_lets_a_returning_source_cancel_it() {
     // forwarded, and the following poll reports no loss.
     let mut events = dmx(&mut rx, 2600, cid(1), 1, 1);
     events.extend(poll_events(&mut rx, instant(2700)));
-    assert!(!events
-        .iter()
-        .any(|e| matches!(e, BasicReceiverEvent::SourcesLost { .. })));
+    assert!(
+        !events
+            .iter()
+            .any(|e| matches!(e, BasicReceiverEvent::SourcesLost { .. }))
+    );
     assert_eq!(data_events(&events).len(), 1); // the returning packet was forwarded
 }
 

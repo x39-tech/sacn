@@ -44,9 +44,11 @@ fn addr() -> SocketAddr {
 /// it emits at `t = 0` copied out for parsing.
 fn source_with_data() -> (Source<Caps>, Vec<(Route, Vec<u8>)>) {
     let mut source: Source<Caps> = Source::with_config(SourceConfig::new(cid(9), "static"));
-    assert!(source
-        .add_universe(UniverseConfig::new(uni(1)))
-        .expect("should have capacity"));
+    assert!(
+        source
+            .add_universe(UniverseConfig::new(uni(1)))
+            .expect("should have capacity")
+    );
     source.update_levels(uni(1), &[4, 5, 6]);
 
     let mut packets = Vec::new();
