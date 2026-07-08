@@ -7,7 +7,7 @@
 
 use sacn::tokio::SourceDetector;
 use sacn::{SourceDetectorConfig, SourceDetectorEvent};
-use tracing::{info, Level};
+use tracing::{Level, info};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {

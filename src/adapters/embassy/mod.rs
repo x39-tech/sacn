@@ -29,7 +29,7 @@ pub use source::Source;
 use embassy_net::{IpAddress, IpEndpoint, Stack};
 use embassy_time::Duration as EmbassyDuration;
 
-use crate::proto::{ipv4_multicast, ipv6_multicast, DISCOVERY_UNIVERSE, SACN_PORT};
+use crate::proto::{DISCOVERY_UNIVERSE, SACN_PORT, ipv4_multicast, ipv6_multicast};
 use crate::source::Route;
 use crate::time::Duration;
 

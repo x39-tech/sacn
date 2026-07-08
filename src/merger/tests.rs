@@ -15,8 +15,8 @@ use proptest::collection::vec;
 use proptest::prelude::*;
 
 use super::{
-    universe_priority_to_pap, MergeSourceEntry, OutBuf, SlotOwner, SourceId, SourceTable,
-    MAX_SLOTS, NO_OWNER,
+    MAX_SLOTS, MergeSourceEntry, NO_OWNER, OutBuf, SlotOwner, SourceId, SourceTable,
+    universe_priority_to_pap,
 };
 use crate::error::Error;
 use crate::static_storage;

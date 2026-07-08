@@ -19,7 +19,7 @@ mod source;
 
 use crate::merger::MergerStorage;
 use crate::packet::{DMX_NULL_START_CODE, PAP_START_CODE};
-use crate::storage::{coherence_check, HeapStorage, MapLike, VecLike};
+use crate::storage::{HeapStorage, MapLike, VecLike, coherence_check};
 use crate::time::{Duration, Instant};
 use crate::types::{Cid, Universe};
 

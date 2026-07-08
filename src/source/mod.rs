@@ -10,12 +10,12 @@ mod transmit;
 use crate::error::{CodecError, CodecErrorKind, Error};
 use crate::log::debug;
 use crate::packet::{
-    DataPacket, Packet, Payload, SyncPacket, UniverseDiscoveryPacket, UniverseList,
-};
-use crate::packet::{
     DMX_NULL_START_CODE, MAX_PACKET_SIZE, MAX_SLOTS, MAX_UNIVERSES_PER_PAGE, PAP_START_CODE,
 };
-use crate::storage::{coherence_check, HeapStorage, MapLike, VecLike};
+use crate::packet::{
+    DataPacket, Packet, Payload, SyncPacket, UniverseDiscoveryPacket, UniverseList,
+};
+use crate::storage::{HeapStorage, MapLike, VecLike, coherence_check};
 use crate::time::{Duration, Instant};
 use crate::types::{Cid, Priority, SequenceNumber, SourceName, StartCode, Universe};
 
@@ -906,10 +906,11 @@ impl<S: SourceStorage> Source<S> {
                 let queued = poll_universe(state, config, now, pending);
                 // A terminating universe advertises `sync_address = 0`, so it is
                 // no longer a member of its group and must not (re)arm it.
-                if queued && !state.terminating {
-                    if let Ok(sync_universe) = Universe::new(state.sync_universe) {
-                        arm_sync_group(sync_groups, sync_universe, now, config.sync_delay);
-                    }
+                if queued
+                    && !state.terminating
+                    && let Ok(sync_universe) = Universe::new(state.sync_universe)
+                {
+                    arm_sync_group(sync_groups, sync_universe, now, config.sync_delay);
                 }
             }
         }

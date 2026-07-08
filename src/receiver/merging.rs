@@ -11,8 +11,8 @@ use crate::types::{Cid, NetintId, Priority, SourceName, Universe};
 
 use super::event::{ListenOutcome, SourceInfoRef, StopOutcome, UniverseDataRef};
 use super::{
-    BasicReceiver, LostSource, PacketOutcome, ReceiverConfig, ReceiverStorage, DMX_NULL_START_CODE,
-    PAP_START_CODE, SOURCE_LOSS_TIMEOUT,
+    BasicReceiver, DMX_NULL_START_CODE, LostSource, PAP_START_CODE, PacketOutcome, ReceiverConfig,
+    ReceiverStorage, SOURCE_LOSS_TIMEOUT,
 };
 
 mod event;
@@ -263,10 +263,8 @@ impl<S: ReceiverStorage> UniverseMerge<S> {
         // Mark a levels source as level-contributing before recomputing
         // agreement, so its declared sync address is counted this frame.
         // (`apply_levels` sets the same flag, but only after the recompute.)
-        if is_levels {
-            if let Some(src) = self.sources.get_mut(&cid) {
-                src.levels_active = true;
-            }
+        if is_levels && let Some(src) = self.sources.get_mut(&cid) {
+            src.levels_active = true;
         }
         self.recompute_sync_agreement();
 
@@ -588,7 +586,7 @@ impl<S: ReceiverStorage> Receiver<S> {
             PacketOutcome::Ignored => return MergedPacketOutcome::Ignored,
             PacketOutcome::Sync { sync_address, .. } => return self.on_sync(now, sync_address),
             PacketOutcome::LimitExceeded { universe } => {
-                return MergedPacketOutcome::LimitExceeded { universe }
+                return MergedPacketOutcome::LimitExceeded { universe };
             }
             PacketOutcome::Data {
                 universe,
@@ -621,10 +619,10 @@ impl<S: ReceiverStorage> Receiver<S> {
 
         // Apply the packet to the universe's merge, honoring the hold.
         let mut merged_changed = false;
-        if let Some(cid) = pap_lost_cid {
-            if um.revert_pap(cid) {
-                merged_changed = true;
-            }
+        if let Some(cid) = pap_lost_cid
+            && um.revert_pap(cid)
+        {
+            merged_changed = true;
         }
         let mut passthrough: Option<UniverseDataRef<'p>> = None;
         if let Some(data) = data {

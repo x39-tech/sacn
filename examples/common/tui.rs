@@ -243,10 +243,10 @@ impl UniversePicker {
                     None => String::new(),
                 };
                 entry.push(ch);
-                if let Ok(new) = entry.parse() {
-                    if valid_universe(new).is_some() {
-                        self.value = Some(new);
-                    }
+                if let Ok(new) = entry.parse()
+                    && valid_universe(new).is_some()
+                {
+                    self.value = Some(new);
                 }
                 PickerOutcome::Pending
             }

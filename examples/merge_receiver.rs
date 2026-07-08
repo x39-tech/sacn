@@ -13,8 +13,8 @@ use std::{
 };
 
 use common::{
-    display_source, init_tui_logging, is_quit_event, render_chrome, render_level_grid,
-    valid_universe, AppLogBuf, Event, PickerOutcome, UniversePicker, SLOTS,
+    AppLogBuf, Event, PickerOutcome, SLOTS, UniversePicker, display_source, init_tui_logging,
+    is_quit_event, render_chrome, render_level_grid, valid_universe,
 };
 use crossterm::event::{self, Event as TermEvent, KeyCode, KeyEvent};
 use ratatui::{
@@ -103,10 +103,10 @@ impl App {
         initial_universe: u16,
         log: Arc<Mutex<AppLogBuf>>,
     ) -> Self {
-        if let Some(universe) = valid_universe(initial_universe) {
-            if let Err(e) = receiver.listen(universe).await {
-                error!("Listening on universe {initial_universe} failed: {e}");
-            }
+        if let Some(universe) = valid_universe(initial_universe)
+            && let Err(e) = receiver.listen(universe).await
+        {
+            error!("Listening on universe {initial_universe} failed: {e}");
         }
 
         Self {
@@ -169,10 +169,10 @@ impl App {
             AppMode::UniversePicker(picker) => match picker.handle_key(code) {
                 PickerOutcome::Confirmed(universe) => {
                     self.mode = AppMode::Normal;
-                    if let Some(universe) = universe {
-                        if universe != self.universe {
-                            self.switch_universe(universe).await;
-                        }
+                    if let Some(universe) = universe
+                        && universe != self.universe
+                    {
+                        self.switch_universe(universe).await;
                     }
                 }
                 PickerOutcome::Cancelled => self.mode = AppMode::Normal,
@@ -185,13 +185,13 @@ impl App {
         let Some(new_universe) = valid_universe(universe) else {
             return;
         };
-        if let Some(old_universe) = valid_universe(self.universe) {
-            if let Err(e) = self.receiver.stop_listening(old_universe).await {
-                warn!(
-                    "Error stopping listening on universe {}: {e}",
-                    self.universe
-                );
-            }
+        if let Some(old_universe) = valid_universe(self.universe)
+            && let Err(e) = self.receiver.stop_listening(old_universe).await
+        {
+            warn!(
+                "Error stopping listening on universe {}: {e}",
+                self.universe
+            );
         }
 
         match self.receiver.listen(new_universe).await {

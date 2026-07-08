@@ -102,10 +102,10 @@ fn removed_at<S: super::SourceStorage>(
 fn universe_data_packets(txs: &[OwnedTx]) -> Vec<DataPacket<'_>> {
     let mut packets = Vec::new();
     for t in txs {
-        if matches!(t.route, Route::Universe(_)) {
-            if let Payload::Data(data) = Packet::parse(&t.bytes).unwrap().payload {
-                packets.push(data);
-            }
+        if matches!(t.route, Route::Universe(_))
+            && let Payload::Data(data) = Packet::parse(&t.bytes).unwrap().payload
+        {
+            packets.push(data);
         }
     }
     packets
@@ -150,9 +150,11 @@ fn no_universes_emits_nothing() {
 #[test]
 fn universe_without_levels_emits_nothing() {
     let mut source = test_source();
-    assert!(source
-        .add_universe(UniverseConfig::new(univ(1)))
-        .expect("should have capacity"));
+    assert!(
+        source
+            .add_universe(UniverseConfig::new(univ(1)))
+            .expect("should have capacity")
+    );
     let (deadline, txs) = poll_at(&mut source, at(0));
     assert_eq!(txs.len(), 0);
     assert_eq!(deadline, None);
@@ -483,10 +485,10 @@ fn discovery_announces_active_universes() {
     let (_deadline, txs) = poll_at(&mut source, at(0));
     let mut discovery_universes = None;
     for t in &txs {
-        if matches!(t.route, Route::Discovery) {
-            if let Payload::UniverseDiscovery(d) = Packet::parse(&t.bytes).unwrap().payload {
-                discovery_universes = Some(d.universes.iter().collect::<Vec<_>>());
-            }
+        if matches!(t.route, Route::Discovery)
+            && let Payload::UniverseDiscovery(d) = Packet::parse(&t.bytes).unwrap().payload
+        {
+            discovery_universes = Some(d.universes.iter().collect::<Vec<_>>());
         }
     }
     // Ascending order, only universes with levels.
@@ -532,14 +534,14 @@ fn discovery_spans_multiple_pages() {
     // Collect the discovery pages in emission order.
     let mut pages = Vec::new();
     for t in &txs {
-        if matches!(t.route, Route::Discovery) {
-            if let Payload::UniverseDiscovery(d) = Packet::parse(&t.bytes).unwrap().payload {
-                pages.push((
-                    d.page,
-                    d.last_page,
-                    d.universes.iter().collect::<Vec<u16>>(),
-                ));
-            }
+        if matches!(t.route, Route::Discovery)
+            && let Payload::UniverseDiscovery(d) = Packet::parse(&t.bytes).unwrap().payload
+        {
+            pages.push((
+                d.page,
+                d.last_page,
+                d.universes.iter().collect::<Vec<u16>>(),
+            ));
         }
     }
 
@@ -567,12 +569,16 @@ fn discovery_spans_multiple_pages() {
 #[test]
 fn add_existing_universe_is_rejected() {
     let mut source = test_source();
-    assert!(source
-        .add_universe(UniverseConfig::new(univ(1)))
-        .expect("should have capacity"));
-    assert!(!source
-        .add_universe(UniverseConfig::new(univ(1)))
-        .expect("should have capacity"));
+    assert!(
+        source
+            .add_universe(UniverseConfig::new(univ(1)))
+            .expect("should have capacity")
+    );
+    assert!(
+        !source
+            .add_universe(UniverseConfig::new(univ(1)))
+            .expect("should have capacity")
+    );
 }
 
 #[test]
@@ -580,9 +586,11 @@ fn add_universe_reports_full_at_capacity() {
     let mut source = test_source();
     let cap = <TestCaps as SourceStorage>::TxUniverses::CAPACITY as u16;
     for u in 1..(cap + 1) {
-        assert!(source
-            .add_universe(UniverseConfig::new(univ(u)))
-            .expect("should have capacity"));
+        assert!(
+            source
+                .add_universe(UniverseConfig::new(univ(u)))
+                .expect("should have capacity")
+        );
     }
     assert_eq!(
         source
@@ -591,9 +599,11 @@ fn add_universe_reports_full_at_capacity() {
         Error::NoCapacity
     );
     // A re-add of a present universe is still distinguished from the limit.
-    assert!(!source
-        .add_universe(UniverseConfig::new(univ(cap)))
-        .expect("should have capacity"));
+    assert!(
+        !source
+            .add_universe(UniverseConfig::new(univ(cap)))
+            .expect("should have capacity")
+    );
 }
 
 #[test]

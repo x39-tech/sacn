@@ -476,7 +476,7 @@ impl<'r, S: ReceiverStorage> SyncRelease<'r, S> {
 
     /// Lazy generator of the latched frames, one per released universe
     /// (possibly none - the first sync on an address releases nothing).
-    pub fn merged_frames(&self) -> impl Iterator<Item = MergedDataRef<'r, S>> + 'r {
+    pub fn merged_frames(&self) -> impl Iterator<Item = MergedDataRef<'r, S>> + 'r + use<'r, S> {
         let receiver = self.receiver;
         receiver
             .sync_release()

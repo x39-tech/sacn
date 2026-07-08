@@ -11,7 +11,7 @@ use crate::merger::SlotOwner;
 use crate::packet::{DataPacket, Packet, Payload};
 use crate::time::Duration;
 use crate::types::{Cid, NetintId, SequenceNumber};
-use crate::{static_storage, ReceiverStorage};
+use crate::{ReceiverStorage, static_storage};
 
 use alloc::vec::Vec;
 use core::net::{IpAddr, Ipv4Addr, SocketAddr};
@@ -304,9 +304,11 @@ fn source_loss_updates_merge() {
     // Source falls silent; after the 2.5s loss timeout it is reported lost and
     // the merge updates to empty.
     let events = poll(&mut rx, 100 + 2500);
-    assert!(events
-        .iter()
-        .any(|e| matches!(e, ReceiverEvent::SourcesLost { .. })));
+    assert!(
+        events
+            .iter()
+            .any(|e| matches!(e, ReceiverEvent::SourcesLost { .. }))
+    );
     let m = merged(&events).expect("merged after loss");
     assert_eq!(m.levels()[0], 0);
     assert_eq!(m.active_sources().count(), 0);
@@ -351,9 +353,11 @@ fn pap_lost_reverts_to_universe_priority() {
     // PAP stops. A NULL packet after the PAP timeout (2.5s past the last PAP)
     // reverts the source to its universe priority.
     let events = dmx(&mut rx, 2600, cid(1), 1, 2, 100, &[40]);
-    assert!(events
-        .iter()
-        .any(|e| matches!(e, ReceiverEvent::SourcePapLost { .. })));
+    assert!(
+        events
+            .iter()
+            .any(|e| matches!(e, ReceiverEvent::SourcePapLost { .. }))
+    );
     let m = merged(&events).expect("merged after pap lost");
     assert_eq!(m.priorities()[0], 100);
     assert_eq!(m.levels()[0], 40);
@@ -555,30 +559,34 @@ fn one_sync_releases_a_multi_universe_group() {
     sync(&mut rx, 120, cid(1), 100);
 
     // New data for both universes is withheld until the sync.
-    assert!(merged(&dmx_sync(
-        &mut rx,
-        130,
-        cid(1),
-        1,
-        1,
-        100,
-        &[10],
-        100,
-        false
-    ))
-    .is_none());
-    assert!(merged(&dmx_sync(
-        &mut rx,
-        130,
-        cid(1),
-        2,
-        1,
-        100,
-        &[20],
-        100,
-        false
-    ))
-    .is_none());
+    assert!(
+        merged(&dmx_sync(
+            &mut rx,
+            130,
+            cid(1),
+            1,
+            1,
+            100,
+            &[10],
+            100,
+            false
+        ))
+        .is_none()
+    );
+    assert!(
+        merged(&dmx_sync(
+            &mut rx,
+            130,
+            cid(1),
+            2,
+            1,
+            100,
+            &[20],
+            100,
+            false
+        ))
+        .is_none()
+    );
 
     // One sync releases both universes coherently.
     let e = sync(&mut rx, 140, cid(1), 100);
@@ -778,22 +786,26 @@ fn synchronized_pap_and_levels_release_together() {
 
     // Activate the address, then withhold a coherent level+PAP update.
     sync(&mut rx, 120, cid(1), 100);
-    assert!(merged(&dmx_sync(
-        &mut rx,
-        130,
-        cid(1),
-        1,
-        2,
-        100,
-        &[70, 80],
-        100,
-        false
-    ))
-    .is_none());
+    assert!(
+        merged(&dmx_sync(
+            &mut rx,
+            130,
+            cid(1),
+            1,
+            2,
+            100,
+            &[70, 80],
+            100,
+            false
+        ))
+        .is_none()
+    );
     // The new PAP now sources slot 0 and drops slot 1.
-    assert!(pap_sync(&mut rx, 131, cid(1), 1, 3, &[200, 0], 100)
-        .iter()
-        .all(|e| !matches!(e, ReceiverEvent::MergedData(_))));
+    assert!(
+        pap_sync(&mut rx, 131, cid(1), 1, 3, &[200, 0], 100)
+            .iter()
+            .all(|e| !matches!(e, ReceiverEvent::MergedData(_)))
+    );
     // Still frozen at the released frame.
     assert_eq!(rx.merged(uni(1)).unwrap().owners()[0], SlotOwner::NONE);
 
@@ -829,9 +841,10 @@ fn pap_lost_under_sync_is_withheld_until_release() {
     // Source 1's PAP times out (its last PAP was at t=0). A NULL packet after the
     // PAP timeout reveals the loss; the revert to universe priority is withheld.
     let e = dmx_sync(&mut rx, 2600, cid(1), 1, 3, 100, &[10], 100, false);
-    assert!(e
-        .iter()
-        .any(|ev| matches!(ev, ReceiverEvent::SourcePapLost { .. })));
+    assert!(
+        e.iter()
+            .any(|ev| matches!(ev, ReceiverEvent::SourcePapLost { .. }))
+    );
     // Output still frozen: source 1 still owns slot 0 in the published frame.
     assert_eq!(
         rx.merged(uni(1))

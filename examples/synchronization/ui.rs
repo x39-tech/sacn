@@ -2,8 +2,8 @@
 //! receiver panels side-by-side. See the doc comment in `main.rs` for the
 //! overall picture.
 
-use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 use std::time::Duration;
 
 use crossterm::event::{self, Event as TermEvent, KeyCode, KeyEvent, KeyModifiers};
@@ -38,9 +38,11 @@ pub fn run_ui(
     on_loss: OnSyncLoss,
 ) -> anyhow::Result<()> {
     let (key_tx, key_rx) = std::sync::mpsc::channel::<KeyEvent>();
-    std::thread::spawn(move || loop {
-        if let Ok(TermEvent::Key(key)) = event::read() {
-            if key_tx.send(key).is_err() {
+    std::thread::spawn(move || {
+        loop {
+            if let Ok(TermEvent::Key(key)) = event::read()
+                && key_tx.send(key).is_err()
+            {
                 break;
             }
         }

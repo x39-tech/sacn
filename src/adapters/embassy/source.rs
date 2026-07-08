@@ -13,7 +13,7 @@ use crate::time::Instant;
 use crate::types::{Priority, SourceName, Universe};
 
 use super::error::EmbassyError;
-use super::{from_embassy_duration, targets_for, to_embassy_duration, Targets};
+use super::{Targets, from_embassy_duration, targets_for, to_embassy_duration};
 
 #[cfg(test)]
 #[path = "source_tests.rs"]

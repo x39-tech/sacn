@@ -9,7 +9,7 @@
 mod tests;
 
 use crate::error::Error;
-use crate::storage::{coherence_check, HeapStorage, VecLike};
+use crate::storage::{HeapStorage, VecLike, coherence_check};
 use crate::types::Priority;
 
 // --- Storage types ----------------------------------------------------------

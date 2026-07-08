@@ -86,9 +86,11 @@ mod tests {
         let t = Instant::EPOCH.checked_add(Duration::from_secs(5)).unwrap();
         assert_eq!(t.since_epoch(), Duration::from_secs(5));
         assert_eq!(t.saturating_sub(Duration::from_secs(10)), Instant::EPOCH);
-        assert!(Instant::from_epoch(Duration::MAX)
-            .checked_add(Duration::from_secs(1))
-            .is_none());
+        assert!(
+            Instant::from_epoch(Duration::MAX)
+                .checked_add(Duration::from_secs(1))
+                .is_none()
+        );
     }
 
     #[test]

@@ -219,10 +219,10 @@ async fn drain_universes(wire: &UdpSocket) -> BTreeSet<u16> {
     while let Ok(Ok((len, _))) =
         timeout(StdDuration::from_millis(200), wire.recv_from(&mut buf)).await
     {
-        if let Ok(packet) = Packet::parse(&buf[..len]) {
-            if let Payload::Data(data) = packet.payload {
-                seen.insert(data.universe);
-            }
+        if let Ok(packet) = Packet::parse(&buf[..len])
+            && let Payload::Data(data) = packet.payload
+        {
+            seen.insert(data.universe);
         }
     }
     seen
