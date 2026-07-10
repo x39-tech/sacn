@@ -140,6 +140,20 @@ macro_rules! static_storage {
             type Removed = $crate::heapless::Vec<$crate::Universe, { $tx_universes }>;
         }
 
+        impl $name {
+            /// Construct a [`SourceResources`](sacn::source::SourceResources)
+            /// in a const context.
+            #[allow(dead_code)]
+            $vis const fn source_resources() -> $crate::source::SourceResources<$name> {
+                $crate::source::SourceResources::from_parts(
+                    $crate::SortedVecMap::new(),
+                    $crate::SortedVecMap::new(),
+                    $crate::heapless::Vec::new(),
+                    $crate::heapless::Vec::new(),
+                )
+            }
+        }
+
         impl $crate::detector::DetectorStorage for $name {
             type Sources = $crate::SortedVecMap<
                 $crate::Cid,

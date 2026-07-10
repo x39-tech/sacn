@@ -7,6 +7,8 @@ mod property_tests;
 mod tests;
 mod transmit;
 
+use core::marker::PhantomData;
+
 use crate::error::{CodecError, CodecErrorKind, Error};
 use crate::log::debug;
 use crate::packet::{
@@ -569,7 +571,47 @@ impl SyncGroupState {
 /// held frame atomically.
 #[derive(Debug)]
 pub struct Source<S: SourceStorage = HeapStorage> {
+    core: SourceCore<S>,
+    store: SourceResources<S>,
+}
+
+/// The sACN source state machine: the send-path logic, separated from its
+/// working memory.
+///
+/// [`Source`] contains one of these as well as a [`SourceResources`]. Usually,
+/// just using [`Source`] is the right choice. Use this type alongside
+/// [`SourceResources`] if you need maximum control of your memory layout;
+/// [`SourceResources`] contains all of the bulk memory associated with a
+/// source, and can be const-initialized statically.
+///
+/// This has all the same functionality as [`Source`]; the only difference
+/// is that each method takes a mutable reference to a separate
+/// [`SourceResources`]. Each [`SourceCore`] should be associated with
+/// exactly one [`SourceResources`] and you should pass the same
+/// [`SourceResources`] instance to every call to a [`SourceCore`] method.
+#[derive(Debug)]
+pub struct SourceCore<S: SourceStorage = HeapStorage> {
     config: SourceConfig,
+    _marker: PhantomData<S>,
+}
+
+/// The mutable working memory a [`SourceCore`] operates on.
+///
+/// The store holds everything about a source that scales with the number of
+/// universes, so it is the potentially large allocation. It can be constructed
+/// in a const expression with statically-allocated storage (see below).
+///
+/// Most users should just use [`Source`] rather than [`SourceCore`] and
+/// [`SourceResources`].
+///
+/// To construct:
+///
+/// - **Heap:** construct with [`SourceResources::default`].
+/// - **Fixed-capacity:** use the [`static_storage!`](crate::static_storage!)
+///   macro, which emits a `const fn` `source_resources()` returning an empty
+///   `SourceResources`, suitable for static allocation.
+#[derive(Debug)]
+pub struct SourceResources<S: SourceStorage = HeapStorage> {
     universes: S::TxUniverses,
     /// Per-synchronization-group state, keyed by sync universe. Groups are
     /// implicitly derived from universes sharing a sync address, and have
@@ -581,7 +623,7 @@ pub struct Source<S: SourceStorage = HeapStorage> {
     /// consumed (the cursor advances past it) the moment it is handed out by
     /// [`SourcePoll::next_transmission`]; the caller is then responsible for
     /// getting it onto the wire. Un-handed-out entries survive an abandoned
-    /// drain: the next [`poll`](Self::poll) resumes from here rather than
+    /// drain: the next [`poll`](Source::poll) resumes from here rather than
     /// rebuilding.
     cursor: usize,
     /// The single packet buffer every transmission is serialized into, reused
@@ -606,7 +648,7 @@ impl Source<HeapStorage> {
     /// [`update_levels`](Self::update_levels).
     ///
     /// For a fixed-capacity source, construct with
-    /// `Source::<Caps>::with_config(config)` using a policy from
+    /// [`Source::<Caps>::with_config`](Self::with_config) using a policy from
     /// [`static_storage!`](crate::static_storage!).
     pub fn new(config: SourceConfig) -> Self {
         Self::with_config(config)
@@ -619,17 +661,259 @@ impl<S: SourceStorage> Source<S> {
     /// [`add_universe`](Self::add_universe) and given data with
     /// [`update_levels`](Self::update_levels).
     pub fn with_config(config: SourceConfig) -> Self {
-        let () = AssertCoherent::<S>::CHECK;
         Self {
-            config,
-            universes: S::TxUniverses::default(),
-            sync_groups: S::SyncGroups::default(),
-            pending: S::Pending::default(),
+            core: SourceCore::with_config(config),
+            store: SourceResources::default(),
+        }
+    }
+
+    /// The configuration this source was created with.
+    pub fn config(&self) -> &SourceConfig {
+        self.core.config()
+    }
+
+    /// The source's CID.
+    pub fn cid(&self) -> Cid {
+        self.core.cid()
+    }
+
+    /// Adds a universe to transmit on.
+    ///
+    /// Returns `true` if the universe was added, or `false` if it was already
+    /// present (in which case it is left unchanged; reconfigure it with the
+    /// `set_*` methods, or remove and re-add it). The universe transmits nothing
+    /// until its levels are set with [`update_levels`](Self::update_levels).
+    ///
+    /// Returns [`Error::NoCapacity`] when a fixed-capacity source's universe
+    /// table is full and this universe is not already present.
+    pub fn add_universe(&mut self, config: UniverseConfig) -> Result<bool, Error> {
+        self.core.add_universe(&mut self.store, config)
+    }
+
+    /// Begins terminating a universe: the E1.31 three-packet stream-terminated
+    /// sequence is sent over the next few polls, after which the universe is
+    /// dropped. Returns `false` if the universe was not present.
+    ///
+    /// A universe with no level data is dropped immediately (there is nothing to
+    /// terminate).
+    pub fn remove_universe(&mut self, universe: Universe) -> bool {
+        self.core.remove_universe(&mut self.store, universe)
+    }
+
+    /// Whether the source is currently transmitting (or terminating) `universe`.
+    pub fn has_universe(&self, universe: Universe) -> bool {
+        self.core.has_universe(&self.store, universe)
+    }
+
+    /// The universes the source currently has, in ascending order. Includes
+    /// universes that are mid-termination, but not ones that have finished
+    /// terminating and are awaiting removal.
+    pub fn universes(&self) -> impl Iterator<Item = Universe> + '_ {
+        self.core.universes(&self.store)
+    }
+
+    /// Sets the NULL-start-code levels for a universe. If the levels are
+    /// different than previous ones, a send will be scheduled as soon as is
+    /// permissible. At most [`MAX_SLOTS`] (512) levels are used; any beyond
+    /// that are ignored. A no-op if the universe is not present.
+    ///
+    /// [`MAX_SLOTS`]: crate::packet::MAX_SLOTS
+    pub fn update_levels(&mut self, universe: Universe, levels: &[u8]) {
+        self.core.update_levels(&mut self.store, universe, levels);
+    }
+
+    /// Sets both the levels and the per-address priorities for a universe.
+    ///
+    /// A per-address priority of zero means the source is not controlling that
+    /// slot, and a receiver ignores the slot's level accordingly. At most
+    /// [`MAX_SLOTS`] of each are used. A no-op if the universe is not present.
+    ///
+    /// [`MAX_SLOTS`]: crate::packet::MAX_SLOTS
+    pub fn update_levels_and_pap(&mut self, universe: Universe, levels: &[u8], pap: &[u8]) {
+        self.core
+            .update_levels_and_pap(&mut self.store, universe, levels, pap);
+    }
+
+    /// Stops sending per-address priority for a universe, falling back to its
+    /// universe priority. Receivers see the per-address priority time out. A
+    /// no-op if the universe is not present or was not sending PAP.
+    pub fn remove_pap(&mut self, universe: Universe) {
+        self.core.remove_pap(&mut self.store, universe);
+    }
+
+    /// Changes a universe's priority, resetting its transmission so the change
+    /// propagates promptly. A no-op if the universe is not present.
+    pub fn set_priority(&mut self, universe: Universe, priority: Priority) {
+        self.core.set_priority(&mut self.store, universe, priority);
+    }
+
+    /// Changes a universe's preview-data flag. A no-op if the universe is not
+    /// present.
+    pub fn set_preview(&mut self, universe: Universe, preview: bool) {
+        self.core.set_preview(&mut self.store, universe, preview);
+    }
+
+    /// Changes the source name carried in every packet, resetting transmission
+    /// on all universes so the change propagates promptly.
+    pub fn set_name(&mut self, name: impl Into<SourceName>) {
+        self.core.set_name(&mut self.store, name);
+    }
+
+    /// Restarts transmission of a universe's current data, re-sending its levels
+    /// and per-address priority promptly (as soon as the minimum inter-packet
+    /// spacing allows) and beginning a fresh pre-suppression burst, without
+    /// changing the data itself. A no-op if the universe is not present.
+    ///
+    /// Generally this should only be called if a new destination has been
+    /// added which needs data sent promptly.
+    pub fn resend(&mut self, universe: Universe) {
+        self.core.resend(&mut self.store, universe);
+    }
+
+    /// Starts, changes, or stops synchronization for a universe at runtime,
+    /// resetting its transmission so the change propagates promptly. A no-op
+    /// if the universe is not present.
+    ///
+    /// `Some((sync_universe, on_loss))` synchronizes the universe on
+    /// `sync_universe` with the given failure policy, exactly as
+    /// [`UniverseConfig::synchronized_on`] does at configuration time.
+    ///
+    /// `None` stops synchronization by transmitting `sync_address = 0`, which
+    /// tells receivers to desynchronize and resume live output.
+    pub fn set_synchronization(
+        &mut self,
+        universe: Universe,
+        sync: Option<(Universe, OnSyncLoss)>,
+    ) {
+        self.core
+            .set_synchronization(&mut self.store, universe, sync);
+    }
+
+    /// Advances time to `now` and returns the packets due to be sent now, plus
+    /// the next instant at which polling again could produce more.
+    ///
+    /// Calling `poll` more often than necessary is harmless (it simply finds
+    /// nothing due); calling it later only delays transmissions. The returned
+    /// [`SourcePoll`] borrows the source mutably; drain its transmissions before
+    /// polling or mutating the source again.
+    pub fn poll(&mut self, now: Instant) -> SourcePoll<'_, S> {
+        self.core.poll(&mut self.store, now)
+    }
+
+    /// Serializes a one-shot packet with an arbitrary START code for immediate
+    /// transmission on `universe`, for application data that falls outside the
+    /// managed NULL and per-address-priority streams. The packet carries the
+    /// universe's configured priority, preview flag and sync universe, and
+    /// takes the universe's next sequence number so it stays in order with the
+    /// scheduled stream.
+    ///
+    /// Unlike [`update_levels`](Self::update_levels), this performs no rate
+    /// limiting, transmission suppression or keep-alive: the packet is serialized
+    /// once, and the caller sends it (or repeats the call) at whatever rate it
+    /// likes. The returned [`Transmission`] is handled exactly like one drained
+    /// from a [`poll`](Self::poll), including re-reading it via
+    /// [`current_packet`](Self::current_packet).
+    ///
+    /// # Errors
+    ///
+    /// - [`Error::ReservedStartCode`] if `start_code` is [`StartCode::NULL`] or
+    ///   [`StartCode::PAP`], which the source manages itself.
+    /// - [`Error::NoSuchUniverse`] if the universe is not present (or is
+    ///   terminating).
+    /// - [`Error::Codec`] if `data` exceeds [`MAX_SLOTS`].
+    ///
+    /// [`MAX_SLOTS`]: crate::packet::MAX_SLOTS
+    pub fn send_now(
+        &mut self,
+        universe: Universe,
+        start_code: StartCode,
+        data: &[u8],
+    ) -> Result<Transmission<'_>, Error> {
+        self.core
+            .send_now(&mut self.store, universe, start_code, data)
+    }
+
+    /// The bytes of the packet currently held in the reusable buffer: the one
+    /// most recently returned by [`SourcePoll::next_transmission`] or
+    /// [`send_now`](Self::send_now).
+    ///
+    /// An adapter can use this to finish delivering a packet whose fan-out to
+    /// multiple destinations was interrupted (e.g. its send future was
+    /// cancelled). It is invalidated by operations that produce a new
+    /// serialized packet (e.g. the next call to [`SourcePoll::next_transmission`]
+    /// or [`send_now`](Self::send_now)).
+    pub fn current_packet(&self) -> &[u8] {
+        self.store.current_packet()
+    }
+}
+
+impl<S: SourceStorage> SourceResources<S> {
+    /// Assembles a store from already-constructed (empty) collections.
+    ///
+    /// Not used directly; used only from [`static_storage!`](crate::static_storage!)
+    /// or [`Default::default()`].
+    #[doc(hidden)]
+    pub const fn from_parts(
+        universes: S::TxUniverses,
+        sync_groups: S::SyncGroups,
+        pending: S::Pending,
+        removed: S::Removed,
+    ) -> Self {
+        Self {
+            universes,
+            sync_groups,
+            pending,
             cursor: 0,
             packet_buf: [0; MAX_PACKET_SIZE],
             packet_len: 0,
-            removed: S::Removed::default(),
+            removed,
             discovery_next_send: Instant::EPOCH,
+        }
+    }
+
+    /// The bytes of the packet currently held in the reusable buffer: the one
+    /// most recently returned by [`SourcePoll::next_transmission`] or
+    /// [`Source::send_now`].
+    ///
+    /// An adapter can use this to finish delivering a packet whose fan-out to
+    /// multiple destinations was interrupted (e.g. its send future was
+    /// cancelled). It is invalidated by operations that produce a new
+    /// serialized packet (e.g. the next call to [`SourcePoll::next_transmission`]
+    /// or [`Source::send_now`]).
+    pub fn current_packet(&self) -> &[u8] {
+        &self.packet_buf[..self.packet_len]
+    }
+}
+
+impl<S: SourceStorage> Default for SourceResources<S> {
+    /// An empty store with empty collections. For a fixed-capacity policy this
+    /// builds the (all-zero) value at runtime; prefer the macro-generated
+    /// `source_resources()` `const fn` to place it in static memory without a
+    /// stack copy.
+    fn default() -> Self {
+        Self::from_parts(
+            S::TxUniverses::default(),
+            S::SyncGroups::default(),
+            S::Pending::default(),
+            S::Removed::default(),
+        )
+    }
+}
+
+impl<S: SourceStorage> SourceCore<S> {
+    /// Creates a source controller with the given configuration, backed by the
+    /// storage policy `S`. It transmits nothing until a universe is added with
+    /// [`add_universe`](Self::add_universe) and given data with
+    /// [`update_levels`](Self::update_levels).
+    ///
+    /// The controller holds only the configuration; its working memory lives in
+    /// a separate [`SourceResources`] passed to each method. Most users should
+    /// use [`Source`] instead of [`SourceCore`] and [`SourceResources`].
+    pub fn with_config(config: SourceConfig) -> Self {
+        let () = AssertCoherent::<S>::CHECK;
+        Self {
+            config,
+            _marker: PhantomData,
         }
     }
 
@@ -645,23 +929,21 @@ impl<S: SourceStorage> Source<S> {
 
     /// Adds a universe to transmit on.
     ///
-    /// Returns `true` if the universe was added, or `false` if it was already
-    /// present (in which case it is left unchanged; reconfigure it with the
-    /// `set_*` methods, or remove and re-add it). The universe transmits nothing
-    /// until its levels are set with [`update_levels`](Self::update_levels).
-    ///
-    /// Returns [`Error::NoCapacity`] when a fixed-capacity source's universe
-    /// table is full and this universe is not already present.
-    pub fn add_universe(&mut self, config: UniverseConfig) -> Result<bool, Error> {
+    /// See [`Source::add_universe`].
+    pub fn add_universe(
+        &self,
+        store: &mut SourceResources<S>,
+        config: UniverseConfig,
+    ) -> Result<bool, Error> {
         let universe = config.universe;
-        if self
+        if store
             .universes
             .get(&universe)
             .is_some_and(|state| !state.is_finished())
         {
             return Ok(false);
         }
-        match self
+        match store
             .universes
             .upsert(universe, TxUniverseState::new(config))
         {
@@ -673,14 +955,11 @@ impl<S: SourceStorage> Source<S> {
         }
     }
 
-    /// Begins terminating a universe: the E1.31 three-packet stream-terminated
-    /// sequence is sent over the next few polls, after which the universe is
-    /// dropped. Returns `false` if the universe was not present.
+    /// Begins terminating a universe
     ///
-    /// A universe with no level data is dropped immediately (there is nothing to
-    /// terminate).
-    pub fn remove_universe(&mut self, universe: Universe) -> bool {
-        let Some(state) = self.universes.get_mut(&universe) else {
+    /// See [`Source::remove_universe`].
+    pub fn remove_universe(&self, store: &mut SourceResources<S>, universe: Universe) -> bool {
+        let Some(state) = store.universes.get_mut(&universe) else {
             return false;
         };
         if state.has_levels() {
@@ -690,37 +969,39 @@ impl<S: SourceStorage> Source<S> {
             debug!("terminating universe {}", universe);
         } else {
             // Nothing to terminate; drop it now.
-            self.universes.remove(&universe);
+            store.universes.remove(&universe);
             debug!("dropped universe {} (no data to terminate)", universe);
         }
         true
     }
 
     /// Whether the source is currently transmitting (or terminating) `universe`.
-    pub fn has_universe(&self, universe: Universe) -> bool {
-        self.universes
+    pub fn has_universe(&self, store: &SourceResources<S>, universe: Universe) -> bool {
+        store
+            .universes
             .get(&universe)
             .is_some_and(|state| !state.is_finished())
     }
 
-    /// The universes the source currently has, in ascending order. Includes
-    /// universes that are mid-termination, but not ones that have finished
-    /// terminating and are awaiting removal.
-    pub fn universes(&self) -> impl Iterator<Item = Universe> + '_ {
-        self.universes
+    /// The universes the source currently has.
+    ///
+    /// See [`Source::universes`].
+    pub fn universes<'a>(
+        &self,
+        store: &'a SourceResources<S>,
+    ) -> impl Iterator<Item = Universe> + 'a {
+        store
+            .universes
             .iter()
             .filter(|(_, state)| !state.is_finished())
             .map(|(&universe, _)| universe)
     }
 
-    /// Sets the NULL-start-code levels for a universe. If the levels are
-    /// different than previous ones, a send will be scheduled as soon as is
-    /// permissible. At most [`MAX_SLOTS`] (512) levels are used; any beyond
-    /// that are ignored. A no-op if the universe is not present.
+    /// Sets the NULL-start-code levels for a universe.
     ///
-    /// [`MAX_SLOTS`]: crate::packet::MAX_SLOTS
-    pub fn update_levels(&mut self, universe: Universe, levels: &[u8]) {
-        let Some(state) = self.universes.get_mut(&universe) else {
+    /// See [`Source::update_levels`].
+    pub fn update_levels(&self, store: &mut SourceResources<S>, universe: Universe, levels: &[u8]) {
+        let Some(state) = store.universes.get_mut(&universe) else {
             return;
         };
         let n = levels.len().min(MAX_SLOTS);
@@ -739,13 +1020,15 @@ impl<S: SourceStorage> Source<S> {
 
     /// Sets both the levels and the per-address priorities for a universe.
     ///
-    /// A per-address priority of zero means the source is not controlling that
-    /// slot, and a receiver ignores the slot's level accordingly. At most
-    /// [`MAX_SLOTS`] of each are used. A no-op if the universe is not present.
-    ///
-    /// [`MAX_SLOTS`]: crate::packet::MAX_SLOTS
-    pub fn update_levels_and_pap(&mut self, universe: Universe, levels: &[u8], pap: &[u8]) {
-        let Some(state) = self.universes.get_mut(&universe) else {
+    /// See [`Source::update_levels_and_pap`].
+    pub fn update_levels_and_pap(
+        &self,
+        store: &mut SourceResources<S>,
+        universe: Universe,
+        levels: &[u8],
+        pap: &[u8],
+    ) {
+        let Some(state) = store.universes.get_mut(&universe) else {
             return;
         };
         let levels_n = levels.len().min(MAX_SLOTS);
@@ -771,11 +1054,11 @@ impl<S: SourceStorage> Source<S> {
         }
     }
 
-    /// Stops sending per-address priority for a universe, falling back to its
-    /// universe priority. Receivers see the per-address priority time out. A
-    /// no-op if the universe is not present or was not sending PAP.
-    pub fn remove_pap(&mut self, universe: Universe) {
-        let Some(state) = self.universes.get_mut(&universe) else {
+    /// Stops sending per-address priority for a universe.
+    ///
+    /// See [`Source::remove_pap`].
+    pub fn remove_pap(&self, store: &mut SourceResources<S>, universe: Universe) {
+        let Some(state) = store.universes.get_mut(&universe) else {
             return;
         };
         // Dropping the PAP data stops its packets from being queued; receivers
@@ -783,66 +1066,64 @@ impl<S: SourceStorage> Source<S> {
         state.pap.clear();
     }
 
-    /// Changes a universe's priority, resetting its transmission so the change
-    /// propagates promptly. A no-op if the universe is not present.
-    pub fn set_priority(&mut self, universe: Universe, priority: Priority) {
-        if let Some(state) = self.universes.get_mut(&universe) {
+    /// Changes a universe's priority.
+    ///
+    /// See [`Source::set_priority`].
+    pub fn set_priority(
+        &self,
+        store: &mut SourceResources<S>,
+        universe: Universe,
+        priority: Priority,
+    ) {
+        if let Some(state) = store.universes.get_mut(&universe) {
             state.priority = priority.get();
             state.reset_levels();
             state.reset_pap();
         }
     }
 
-    /// Changes a universe's preview-data flag. A no-op if the universe is not
-    /// present.
-    pub fn set_preview(&mut self, universe: Universe, preview: bool) {
-        if let Some(state) = self.universes.get_mut(&universe) {
+    /// Changes a universe's preview-data flag.
+    ///
+    /// See [`Source::set_preview`].
+    pub fn set_preview(&self, store: &mut SourceResources<S>, universe: Universe, preview: bool) {
+        if let Some(state) = store.universes.get_mut(&universe) {
             state.preview = preview;
             state.reset_levels();
             state.reset_pap();
         }
     }
 
-    /// Changes the source name carried in every packet, resetting transmission
-    /// on all universes so the change propagates promptly.
-    pub fn set_name(&mut self, name: impl Into<SourceName>) {
+    /// Changes the source name carried in every packet.
+    ///
+    /// See [`Source::set_name`].
+    pub fn set_name(&mut self, store: &mut SourceResources<S>, name: impl Into<SourceName>) {
         self.config.name = name.into();
-        for state in self.universes.values_mut() {
+        for state in store.universes.values_mut() {
             state.reset_levels();
             state.reset_pap();
         }
     }
 
-    /// Restarts transmission of a universe's current data, re-sending its levels
-    /// and per-address priority promptly (as soon as the minimum inter-packet
-    /// spacing allows) and beginning a fresh pre-suppression burst, without
-    /// changing the data itself. A no-op if the universe is not present.
+    /// Restarts transmission of a universe's current data.
     ///
-    /// Generally this should only be called if a new destination has been
-    /// added which needs data sent promptly.
-    pub fn resend(&mut self, universe: Universe) {
-        if let Some(state) = self.universes.get_mut(&universe) {
+    /// See [`Source::resend`].
+    pub fn resend(&self, store: &mut SourceResources<S>, universe: Universe) {
+        if let Some(state) = store.universes.get_mut(&universe) {
             state.reset_levels();
             state.reset_pap();
         }
     }
 
-    /// Starts, changes, or stops (`None`) synchronization for a universe at
-    /// runtime, resetting its transmission so the change propagates promptly. A
-    /// no-op if the universe is not present.
+    /// Starts, changes, or stops synchronization for a universe.
     ///
-    /// `Some((sync_universe, on_loss))` synchronizes the universe on
-    /// `sync_universe` with the given failure policy, exactly as
-    /// [`UniverseConfig::synchronized_on`] does at configuration time.
-    ///
-    /// `None` stops synchronization by transmitting `sync_address = 0`,
-    /// which tells receivers to desynchronize and resume live output.
+    /// See [`Source::set_synchronization`].
     pub fn set_synchronization(
-        &mut self,
+        &self,
+        store: &mut SourceResources<S>,
         universe: Universe,
         sync: Option<(Universe, OnSyncLoss)>,
     ) {
-        if let Some(state) = self.universes.get_mut(&universe) {
+        if let Some(state) = store.universes.get_mut(&universe) {
             match sync {
                 Some((sync_universe, on_loss)) => {
                     state.sync_universe = sync_universe.get();
@@ -858,24 +1139,24 @@ impl<S: SourceStorage> Source<S> {
         }
     }
 
-    /// Advances time to `now` and returns the packets due to be sent now, plus
-    /// the next instant at which polling again could produce more.
+    /// Advances the state machine based on the current time.
     ///
-    /// Calling `poll` more often than necessary is harmless (it simply finds
-    /// nothing due); calling it later only delays transmissions. The returned
-    /// [`SourcePoll`] borrows the source mutably; drain its transmissions before
-    /// polling or mutating the source again.
-    pub fn poll(&mut self, now: Instant) -> SourcePoll<'_, S> {
+    /// See [`Source::poll`].
+    pub fn poll<'a>(
+        &'a self,
+        store: &'a mut SourceResources<S>,
+        now: Instant,
+    ) -> SourcePoll<'a, S> {
         // Resume draining if a previous drain was abandoned before it finished.
-        if self.cursor < self.pending.len() {
-            return SourcePoll::new(Some(now), self);
+        if store.cursor < store.pending.len() {
+            return SourcePoll::new(Some(now), self, store);
         }
 
         // Physically drop universes that finished terminating on a previous poll.
         {
-            let Self {
+            let SourceResources {
                 universes, removed, ..
-            } = &mut *self;
+            } = &mut *store;
             removed.clear();
             universes.retain(|universe, state| {
                 let finished = state.is_finished();
@@ -887,21 +1168,21 @@ impl<S: SourceStorage> Source<S> {
             });
         }
 
-        self.pending.clear();
-        self.cursor = 0;
+        store.pending.clear();
+        store.cursor = 0;
 
-        self.poll_discovery(now);
+        self.poll_discovery(store, now);
 
         // Poll each universe's data scheduling, arming the sync group of any
         // universe that queued a packet this poll.
         {
-            let Self {
-                config,
+            let config = &self.config;
+            let SourceResources {
                 universes,
                 sync_groups,
                 pending,
                 ..
-            } = self;
+            } = &mut *store;
             for state in universes.values_mut() {
                 let queued = poll_universe(state, config, now, pending);
                 // A terminating universe advertises `sync_address = 0`, so it is
@@ -915,10 +1196,10 @@ impl<S: SourceStorage> Source<S> {
             }
         }
 
-        self.poll_sync_groups(now);
+        self.poll_sync_groups(store, now);
 
-        let deadline = self.next_deadline(now);
-        SourcePoll::new(deadline, self)
+        let deadline = self.next_deadline(store, now);
+        SourcePoll::new(deadline, self, store)
     }
 
     /// Fires and prunes synchronization groups after the per-universe scheduling
@@ -927,13 +1208,13 @@ impl<S: SourceStorage> Source<S> {
     /// A group whose timer has come due queues one [`Emission::Sync`], which
     /// lands after this poll's data packets. Groups with no members and no
     /// pending sync are dropped.
-    fn poll_sync_groups(&mut self, now: Instant) {
-        let Self {
+    fn poll_sync_groups(&self, store: &mut SourceResources<S>, now: Instant) {
+        let SourceResources {
             universes,
             sync_groups,
             pending,
             ..
-        } = self;
+        } = store;
 
         // Drop groups whose last active member has left (terminated or removed)
         // before firing: a terminated universe advertises `sync_address = 0`, so
@@ -963,23 +1244,23 @@ impl<S: SourceStorage> Source<S> {
 
     /// Emits universe-discovery pages if the discovery interval has elapsed and
     /// the source has at least one universe to announce.
-    fn poll_discovery(&mut self, now: Instant) {
-        let announce = self.universes.values().any(TxUniverseState::in_discovery);
-        if !announce || now < self.discovery_next_send {
+    fn poll_discovery(&self, store: &mut SourceResources<S>, now: Instant) {
+        let announce = store.universes.values().any(TxUniverseState::in_discovery);
+        if !announce || now < store.discovery_next_send {
             return;
         }
 
         // Count the distinct announced universes to size the page run. The
         // pages themselves are rebuilt from the live universe set when each
         // discovery packet is serialized, so no full-list scratch is kept.
-        let total_universes = announced_count(&self.universes);
+        let total_universes = announced_count(&store.universes);
         let page_count = total_universes.div_ceil(MAX_UNIVERSES_PER_PAGE).max(1);
         let last_page = (page_count - 1) as u8;
 
         // One page per emission; the adapter sends each to the discovery group on
         // the interfaces it transmits on.
         for page in 0..page_count {
-            self.pending.push_expect(Pending {
+            store.pending.push_expect(Pending {
                 emission: Emission::Discovery {
                     page: page as u8,
                     last_page,
@@ -988,12 +1269,12 @@ impl<S: SourceStorage> Source<S> {
             });
         }
 
-        self.discovery_next_send = now.saturating_add(DISCOVERY_INTERVAL);
+        store.discovery_next_send = now.saturating_add(DISCOVERY_INTERVAL);
     }
 
     /// Computes the earliest future instant at which polling could produce a
     /// transmission.
-    fn next_deadline(&self, now: Instant) -> Option<Instant> {
+    fn next_deadline(&self, store: &SourceResources<S>, now: Instant) -> Option<Instant> {
         let mut next: Option<Instant> = None;
         let mut consider = |deadline: Instant| {
             if deadline > now {
@@ -1004,14 +1285,14 @@ impl<S: SourceStorage> Source<S> {
             }
         };
 
-        let announces = self
+        let announces = store
             .universes
             .values()
             .any(|state| !state.is_finished() && state.in_discovery());
         if announces {
-            consider(self.discovery_next_send);
+            consider(store.discovery_next_send);
         }
-        for state in self.universes.values() {
+        for state in store.universes.values() {
             if state.is_finished() {
                 // Logically gone; awaiting removal at the next poll.
                 continue;
@@ -1029,7 +1310,7 @@ impl<S: SourceStorage> Source<S> {
                 }
             }
         }
-        for group in self.sync_groups.values() {
+        for group in store.sync_groups.values() {
             if let Some(deadline) = group.pending_deadline {
                 consider(deadline);
             }
@@ -1042,16 +1323,16 @@ impl<S: SourceStorage> Source<S> {
     /// priority packet is assigned here (not when queued). The serialized bytes
     /// remain in `packet_buf` until the next serialization, so a caller cut off
     /// mid-send can re-read them via [`current_packet`](Self::current_packet).
-    fn serialize_at(&mut self, idx: usize) -> Transmission<'_> {
-        let pending = self.pending.as_slice()[idx];
+    fn serialize_at<'a>(&self, store: &'a mut SourceResources<S>, idx: usize) -> Transmission<'a> {
+        let pending = store.pending.as_slice()[idx];
 
-        let Self {
-            config,
+        let config = &self.config;
+        let SourceResources {
             universes,
             packet_buf,
             packet_len: last_len,
             ..
-        } = self;
+        } = store;
 
         let mut disc_page: heapless::Vec<u8, { MAX_UNIVERSES_PER_PAGE * 2 }> = heapless::Vec::new();
 
@@ -1112,48 +1393,16 @@ impl<S: SourceStorage> Source<S> {
         }
     }
 
-    /// The bytes of the packet currently held in the reusable buffer: the one
-    /// most recently returned by [`SourcePoll::next_transmission`] or
-    /// [`send_now`](Self::send_now).
+    /// Serializes a one-shot packet with an arbitrary START code.
     ///
-    /// An adapter can use this to finish delivering a packet whose fan-out to
-    /// multiple destinations was interrupted (e.g. its send future was
-    /// cancelled). It is invalidated by operations that produce a new
-    /// serialized packet (e.g. the next call to [`SourcePoll::next_transmission`]
-    /// or [`send_now`](Self::send_now)).
-    pub fn current_packet(&self) -> &[u8] {
-        &self.packet_buf[..self.packet_len]
-    }
-
-    /// Serializes a one-shot packet with an arbitrary START code for immediate
-    /// transmission on `universe`, for application data that falls outside the
-    /// managed NULL and per-address-priority streams. The packet carries the
-    /// universe's configured priority, preview flag and sync universe, and
-    /// takes the universe's next sequence number so it stays in order with the
-    /// scheduled stream.
-    ///
-    /// Unlike [`update_levels`](Self::update_levels), this performs no rate
-    /// limiting, transmission suppression or keep-alive: the packet is serialized
-    /// once, and the caller sends it (or repeats the call) at whatever rate it
-    /// likes. The returned [`Transmission`] is handled exactly like one drained
-    /// from a [`poll`](Self::poll), including re-reading it via
-    /// [`current_packet`](Self::current_packet).
-    ///
-    /// # Errors
-    ///
-    /// - [`Error::ReservedStartCode`] if `start_code` is [`StartCode::NULL`] or
-    ///   [`StartCode::PAP`], which the source manages itself.
-    /// - [`Error::NoSuchUniverse`] if the universe is not present (or is
-    ///   terminating).
-    /// - [`Error::Codec`] if `data` exceeds [`MAX_SLOTS`].
-    ///
-    /// [`MAX_SLOTS`]: crate::packet::MAX_SLOTS
-    pub fn send_now(
-        &mut self,
+    /// See [`Source::send_now`].
+    pub fn send_now<'a>(
+        &self,
+        store: &'a mut SourceResources<S>,
         universe: Universe,
         start_code: StartCode,
         data: &[u8],
-    ) -> Result<Transmission<'_>, Error> {
+    ) -> Result<Transmission<'a>, Error> {
         if start_code.is_reserved() {
             return Err(Error::ReservedStartCode {
                 start_code: start_code.get(),
@@ -1169,13 +1418,13 @@ impl<S: SourceStorage> Source<S> {
             }));
         }
 
-        let Self {
-            config,
+        let config = &self.config;
+        let SourceResources {
             universes,
             packet_buf,
             packet_len: last_len,
             ..
-        } = self;
+        } = store;
 
         let state = universes
             .get_mut(&universe)
@@ -1192,6 +1441,13 @@ impl<S: SourceStorage> Source<S> {
             route: Route::Universe(universe),
             data: &packet_buf[..n],
         })
+    }
+
+    /// The bytes of the packet currently held in the reusable buffer.
+    ///
+    /// See [`Source::current_packet`].
+    pub fn current_packet<'a>(&self, store: &'a mut SourceResources<S>) -> &'a [u8] {
+        store.current_packet()
     }
 }
 

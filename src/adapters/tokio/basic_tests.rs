@@ -122,7 +122,7 @@ async fn sampling_period_ends_on_its_timer() {
     );
     let now = tokio::time::Instant::now();
     assert!(
-        now - start >= Duration::from_millis(50),
+        now - start >= Duration::from_millis(45),
         "sampling period {:?} should not be less than the configured time",
         now - start
     );

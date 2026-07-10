@@ -7,6 +7,8 @@
 
 use alloc::vec::Vec;
 
+use static_cell::ConstStaticCell;
+
 use super::*;
 use crate::packet::{Packet, Payload};
 use crate::static_storage;
@@ -514,7 +516,10 @@ fn discovery_repeats_every_interval() {
 
 #[test]
 fn discovery_spans_multiple_pages() {
-    let mut source = super::Source::<BigCaps>::with_config(
+    static STORE: ConstStaticCell<SourceResources<BigCaps>> =
+        ConstStaticCell::new(BigCaps::source_resources());
+    let store = STORE.take();
+    let source = SourceCore::<BigCaps>::with_config(
         SourceConfig::new(Cid::from_bytes([1; 16]), "test source").with_sync_delay(Duration::ZERO),
     );
     // One universe past a full page forces the announcement onto a second page.
@@ -524,12 +529,22 @@ fn discovery_spans_multiple_pages() {
     fastrand::Rng::with_seed(0x5ac1).shuffle(&mut order);
     for n in order {
         source
-            .add_universe(UniverseConfig::new(univ(n)))
+            .add_universe(store, UniverseConfig::new(univ(n)))
             .expect("should have capacity");
-        source.update_levels(univ(n), &[1]);
+        source.update_levels(store, univ(n), &[1]);
     }
 
-    let (_deadline, txs) = poll_at(&mut source, at(0));
+    let txs = {
+        let mut poll = source.poll(store, at(0));
+        let mut txs = Vec::new();
+        while let Some(t) = poll.next_transmission() {
+            txs.push(OwnedTx {
+                route: t.route,
+                bytes: t.data.to_vec(),
+            });
+        }
+        txs
+    };
 
     // Collect the discovery pages in emission order.
     let mut pages = Vec::new();

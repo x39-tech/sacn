@@ -17,7 +17,7 @@ use crate::storage::VecLike;
 use crate::time::Instant;
 use crate::types::Universe;
 
-use super::{Source, SourceStorage};
+use super::{SourceCore, SourceResources, SourceStorage};
 
 /// Where a single [`Transmission`] must be delivered.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -74,32 +74,41 @@ pub struct SourcePoll<'a, S: SourceStorage = crate::storage::HeapStorage> {
     /// Calling `poll` earlier is harmless (it simply finds nothing due); calling
     /// it later only delays transmissions.
     pub deadline: Option<Instant>,
-    source: &'a mut Source<S>,
+    source: &'a SourceCore<S>,
+    store: &'a mut SourceResources<S>,
 }
 
 impl<'a, S: SourceStorage> SourcePoll<'a, S> {
-    pub(super) fn new(deadline: Option<Instant>, source: &'a mut Source<S>) -> Self {
-        Self { deadline, source }
+    pub(super) fn new(
+        deadline: Option<Instant>,
+        source: &'a SourceCore<S>,
+        store: &'a mut SourceResources<S>,
+    ) -> Self {
+        Self {
+            deadline,
+            source,
+            store,
+        }
     }
 
     /// Serializes and returns the next transmission due this poll, advancing the
     /// drain past it, or `None` once they are exhausted.
     ///
-    /// Each call reuses a single packet buffer inside the source, so the returned
-    /// [`Transmission`] borrows that buffer and is invalidated by the next call
-    /// (or by [`send_now`](super::Source::send_now)). Send (or copy) each
-    /// transmission before requesting the next.
+    /// Each call reuses a single packet buffer inside the source's resources,
+    /// so the returned [`Transmission`] borrows that buffer and is invalidated
+    /// by the next call (or by [`send_now`](super::Source::send_now)). Send (or
+    /// copy) each transmission before requesting the next.
     ///
     /// The just-returned bytes remain readable via
-    /// [`current_packet`](super::Source::current_packet) until the next
-    /// serialization.
+    /// [`Source::current_packet`](super::Source::current_packet) until the
+    /// next serialization.
     pub fn next_transmission(&mut self) -> Option<Transmission<'_>> {
-        if self.source.cursor >= self.source.pending.len() {
+        if self.store.cursor >= self.store.pending.len() {
             return None;
         }
-        let idx = self.source.cursor;
-        self.source.cursor += 1;
-        Some(self.source.serialize_at(idx))
+        let idx = self.store.cursor;
+        self.store.cursor += 1;
+        Some(self.source.serialize_at(self.store, idx))
     }
 
     /// The universes physically dropped by this poll, because their termination
@@ -108,6 +117,6 @@ impl<'a, S: SourceStorage> SourcePoll<'a, S> {
     /// This indicates that the source is no longer tracking these universes
     /// and will no longer send any data to them unless they are added again.
     pub fn removed(&self) -> &[Universe] {
-        self.source.removed.as_slice()
+        self.store.removed.as_slice()
     }
 }

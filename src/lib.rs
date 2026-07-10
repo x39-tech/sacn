@@ -90,7 +90,8 @@ pub use receiver::{
 pub use receiver::{BasicReceiverEvent, MergedData, MergedSource, ReceiverEvent};
 
 pub use source::{
-    OnSyncLoss, Route, Source, SourceConfig, SourceStorage, Transmission, UniverseConfig,
+    OnSyncLoss, Route, Source, SourceConfig, SourceCore, SourceResources, SourceStorage,
+    Transmission, UniverseConfig,
 };
 
 mod static_storage;
