@@ -2187,15 +2187,15 @@ pub fn sacn::source::Source<S>::universes(&self) -> impl core::iter::traits::ite
 pub fn sacn::source::Source<S>::update_levels(&mut self, sacn::Universe, &[u8])
 pub fn sacn::source::Source<S>::update_levels_and_pap(&mut self, sacn::Universe, &[u8], &[u8])
 pub fn sacn::source::Source<S>::with_config(sacn::source::SourceConfig) -> Self
-impl<S: core::fmt::Debug + sacn::source::SourceStorage> core::fmt::Debug for sacn::source::Source<S> where <S as sacn::source::SourceStorage>::TxUniverses: core::fmt::Debug, <S as sacn::source::SourceStorage>::SyncGroups: core::fmt::Debug, <S as sacn::source::SourceStorage>::Pending: core::fmt::Debug, <S as sacn::source::SourceStorage>::Removed: core::fmt::Debug
+impl<S: core::fmt::Debug + sacn::source::SourceStorage> core::fmt::Debug for sacn::source::Source<S>
 pub fn sacn::source::Source<S>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
 impl<S> core::marker::Freeze for sacn::source::Source<S> where <S as sacn::source::SourceStorage>::TxUniverses: core::marker::Freeze, <S as sacn::source::SourceStorage>::SyncGroups: core::marker::Freeze, <S as sacn::source::SourceStorage>::Pending: core::marker::Freeze, <S as sacn::source::SourceStorage>::Removed: core::marker::Freeze
-impl<S> core::marker::Send for sacn::source::Source<S> where <S as sacn::source::SourceStorage>::TxUniverses: core::marker::Send, <S as sacn::source::SourceStorage>::SyncGroups: core::marker::Send, <S as sacn::source::SourceStorage>::Pending: core::marker::Send, <S as sacn::source::SourceStorage>::Removed: core::marker::Send
-impl<S> core::marker::Sync for sacn::source::Source<S> where <S as sacn::source::SourceStorage>::TxUniverses: core::marker::Sync, <S as sacn::source::SourceStorage>::SyncGroups: core::marker::Sync, <S as sacn::source::SourceStorage>::Pending: core::marker::Sync, <S as sacn::source::SourceStorage>::Removed: core::marker::Sync
-impl<S> core::marker::Unpin for sacn::source::Source<S> where <S as sacn::source::SourceStorage>::TxUniverses: core::marker::Unpin, <S as sacn::source::SourceStorage>::SyncGroups: core::marker::Unpin, <S as sacn::source::SourceStorage>::Pending: core::marker::Unpin, <S as sacn::source::SourceStorage>::Removed: core::marker::Unpin
+impl<S> core::marker::Send for sacn::source::Source<S> where <S as sacn::source::SourceStorage>::TxUniverses: core::marker::Send, <S as sacn::source::SourceStorage>::SyncGroups: core::marker::Send, <S as sacn::source::SourceStorage>::Pending: core::marker::Send, <S as sacn::source::SourceStorage>::Removed: core::marker::Send, S: core::marker::Send
+impl<S> core::marker::Sync for sacn::source::Source<S> where <S as sacn::source::SourceStorage>::TxUniverses: core::marker::Sync, <S as sacn::source::SourceStorage>::SyncGroups: core::marker::Sync, <S as sacn::source::SourceStorage>::Pending: core::marker::Sync, <S as sacn::source::SourceStorage>::Removed: core::marker::Sync, S: core::marker::Sync
+impl<S> core::marker::Unpin for sacn::source::Source<S> where <S as sacn::source::SourceStorage>::TxUniverses: core::marker::Unpin, <S as sacn::source::SourceStorage>::SyncGroups: core::marker::Unpin, <S as sacn::source::SourceStorage>::Pending: core::marker::Unpin, <S as sacn::source::SourceStorage>::Removed: core::marker::Unpin, S: core::marker::Unpin
 impl<S> core::marker::UnsafeUnpin for sacn::source::Source<S> where <S as sacn::source::SourceStorage>::TxUniverses: core::marker::UnsafeUnpin, <S as sacn::source::SourceStorage>::SyncGroups: core::marker::UnsafeUnpin, <S as sacn::source::SourceStorage>::Pending: core::marker::UnsafeUnpin, <S as sacn::source::SourceStorage>::Removed: core::marker::UnsafeUnpin
-impl<S> core::panic::unwind_safe::RefUnwindSafe for sacn::source::Source<S> where <S as sacn::source::SourceStorage>::TxUniverses: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::source::SourceStorage>::SyncGroups: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::source::SourceStorage>::Pending: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::source::SourceStorage>::Removed: core::panic::unwind_safe::RefUnwindSafe
-impl<S> core::panic::unwind_safe::UnwindSafe for sacn::source::Source<S> where <S as sacn::source::SourceStorage>::TxUniverses: core::panic::unwind_safe::UnwindSafe, <S as sacn::source::SourceStorage>::SyncGroups: core::panic::unwind_safe::UnwindSafe, <S as sacn::source::SourceStorage>::Pending: core::panic::unwind_safe::UnwindSafe, <S as sacn::source::SourceStorage>::Removed: core::panic::unwind_safe::UnwindSafe
+impl<S> core::panic::unwind_safe::RefUnwindSafe for sacn::source::Source<S> where <S as sacn::source::SourceStorage>::TxUniverses: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::source::SourceStorage>::SyncGroups: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::source::SourceStorage>::Pending: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::source::SourceStorage>::Removed: core::panic::unwind_safe::RefUnwindSafe, S: core::panic::unwind_safe::RefUnwindSafe
+impl<S> core::panic::unwind_safe::UnwindSafe for sacn::source::Source<S> where <S as sacn::source::SourceStorage>::TxUniverses: core::panic::unwind_safe::UnwindSafe, <S as sacn::source::SourceStorage>::SyncGroups: core::panic::unwind_safe::UnwindSafe, <S as sacn::source::SourceStorage>::Pending: core::panic::unwind_safe::UnwindSafe, <S as sacn::source::SourceStorage>::Removed: core::panic::unwind_safe::UnwindSafe, S: core::panic::unwind_safe::UnwindSafe
 impl<T, U> core::convert::Into<U> for sacn::source::Source<S> where U: core::convert::From<T>
 pub fn sacn::source::Source<S>::into(self) -> U
 impl<T, U> core::convert::TryFrom<U> for sacn::source::Source<S> where U: core::convert::Into<T>
@@ -2257,6 +2257,51 @@ impl<T> core::clone::CloneToUninit for sacn::source::SourceConfig where T: core:
 pub unsafe fn sacn::source::SourceConfig::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::source::SourceConfig
 pub fn sacn::source::SourceConfig::from(T) -> T
+pub struct sacn::source::SourceCore<S: sacn::source::SourceStorage>
+impl<S: sacn::source::SourceStorage> sacn::source::SourceCore<S>
+pub fn sacn::source::SourceCore<S>::add_universe(&self, &mut sacn::source::SourceResources<S>, sacn::source::UniverseConfig) -> core::result::Result<bool, sacn::error::Error>
+pub fn sacn::source::SourceCore<S>::cid(&self) -> sacn::Cid
+pub fn sacn::source::SourceCore<S>::config(&self) -> &sacn::source::SourceConfig
+pub fn sacn::source::SourceCore<S>::current_packet<'a>(&self, &'a mut sacn::source::SourceResources<S>) -> &'a [u8]
+pub fn sacn::source::SourceCore<S>::has_universe(&self, &sacn::source::SourceResources<S>, sacn::Universe) -> bool
+pub fn sacn::source::SourceCore<S>::poll<'a>(&'a self, &'a mut sacn::source::SourceResources<S>, sacn::time::Instant) -> sacn::source::SourcePoll<'a, S>
+pub fn sacn::source::SourceCore<S>::remove_pap(&self, &mut sacn::source::SourceResources<S>, sacn::Universe)
+pub fn sacn::source::SourceCore<S>::remove_universe(&self, &mut sacn::source::SourceResources<S>, sacn::Universe) -> bool
+pub fn sacn::source::SourceCore<S>::resend(&self, &mut sacn::source::SourceResources<S>, sacn::Universe)
+pub fn sacn::source::SourceCore<S>::send_now<'a>(&self, &'a mut sacn::source::SourceResources<S>, sacn::Universe, sacn::StartCode, &[u8]) -> core::result::Result<sacn::Transmission<'a>, sacn::error::Error>
+pub fn sacn::source::SourceCore<S>::set_name(&mut self, &mut sacn::source::SourceResources<S>, impl core::convert::Into<sacn::SourceName>)
+pub fn sacn::source::SourceCore<S>::set_preview(&self, &mut sacn::source::SourceResources<S>, sacn::Universe, bool)
+pub fn sacn::source::SourceCore<S>::set_priority(&self, &mut sacn::source::SourceResources<S>, sacn::Universe, sacn::Priority)
+pub fn sacn::source::SourceCore<S>::set_synchronization(&self, &mut sacn::source::SourceResources<S>, sacn::Universe, core::option::Option<(sacn::Universe, sacn::source::OnSyncLoss)>)
+pub fn sacn::source::SourceCore<S>::universes<'a>(&self, &'a sacn::source::SourceResources<S>) -> impl core::iter::traits::iterator::Iterator<Item = sacn::Universe> + 'a
+pub fn sacn::source::SourceCore<S>::update_levels(&self, &mut sacn::source::SourceResources<S>, sacn::Universe, &[u8])
+pub fn sacn::source::SourceCore<S>::update_levels_and_pap(&self, &mut sacn::source::SourceResources<S>, sacn::Universe, &[u8], &[u8])
+pub fn sacn::source::SourceCore<S>::with_config(sacn::source::SourceConfig) -> Self
+impl<S: core::fmt::Debug + sacn::source::SourceStorage> core::fmt::Debug for sacn::source::SourceCore<S>
+pub fn sacn::source::SourceCore<S>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<S> core::marker::Freeze for sacn::source::SourceCore<S>
+impl<S> core::marker::Send for sacn::source::SourceCore<S> where S: core::marker::Send
+impl<S> core::marker::Sync for sacn::source::SourceCore<S> where S: core::marker::Sync
+impl<S> core::marker::Unpin for sacn::source::SourceCore<S> where S: core::marker::Unpin
+impl<S> core::marker::UnsafeUnpin for sacn::source::SourceCore<S>
+impl<S> core::panic::unwind_safe::RefUnwindSafe for sacn::source::SourceCore<S> where S: core::panic::unwind_safe::RefUnwindSafe
+impl<S> core::panic::unwind_safe::UnwindSafe for sacn::source::SourceCore<S> where S: core::panic::unwind_safe::UnwindSafe
+impl<T, U> core::convert::Into<U> for sacn::source::SourceCore<S> where U: core::convert::From<T>
+pub fn sacn::source::SourceCore<S>::into(self) -> U
+impl<T, U> core::convert::TryFrom<U> for sacn::source::SourceCore<S> where U: core::convert::Into<T>
+pub type sacn::source::SourceCore<S>::Error = core::convert::Infallible
+pub fn sacn::source::SourceCore<S>::try_from(U) -> core::result::Result<T, <T as core::convert::TryFrom<U>>::Error>
+impl<T, U> core::convert::TryInto<U> for sacn::source::SourceCore<S> where U: core::convert::TryFrom<T>
+pub type sacn::source::SourceCore<S>::Error = <U as core::convert::TryFrom<T>>::Error
+pub fn sacn::source::SourceCore<S>::try_into(self) -> core::result::Result<U, <U as core::convert::TryFrom<T>>::Error>
+impl<T> core::any::Any for sacn::source::SourceCore<S> where T: 'static + ?core::marker::Sized
+pub fn sacn::source::SourceCore<S>::type_id(&self) -> core::any::TypeId
+impl<T> core::borrow::Borrow<T> for sacn::source::SourceCore<S> where T: ?core::marker::Sized
+pub fn sacn::source::SourceCore<S>::borrow(&self) -> &T
+impl<T> core::borrow::BorrowMut<T> for sacn::source::SourceCore<S> where T: ?core::marker::Sized
+pub fn sacn::source::SourceCore<S>::borrow_mut(&mut self) -> &mut T
+impl<T> core::convert::From<T> for sacn::source::SourceCore<S>
+pub fn sacn::source::SourceCore<S>::from(T) -> T
 pub struct sacn::source::SourcePoll<'a, S: sacn::source::SourceStorage>
 pub sacn::source::SourcePoll::deadline: core::option::Option<sacn::time::Instant>
 impl<'a, S: sacn::source::SourceStorage> sacn::source::SourcePoll<'a, S>
@@ -2265,11 +2310,11 @@ pub fn sacn::source::SourcePoll<'a, S>::removed(&self) -> &[sacn::Universe]
 impl<'a, S: core::fmt::Debug + sacn::source::SourceStorage> core::fmt::Debug for sacn::source::SourcePoll<'a, S>
 pub fn sacn::source::SourcePoll<'a, S>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
 impl<'a, S> core::marker::Freeze for sacn::source::SourcePoll<'a, S>
-impl<'a, S> core::marker::Send for sacn::source::SourcePoll<'a, S> where <S as sacn::source::SourceStorage>::TxUniverses: core::marker::Send, <S as sacn::source::SourceStorage>::SyncGroups: core::marker::Send, <S as sacn::source::SourceStorage>::Pending: core::marker::Send, <S as sacn::source::SourceStorage>::Removed: core::marker::Send
-impl<'a, S> core::marker::Sync for sacn::source::SourcePoll<'a, S> where <S as sacn::source::SourceStorage>::TxUniverses: core::marker::Sync, <S as sacn::source::SourceStorage>::SyncGroups: core::marker::Sync, <S as sacn::source::SourceStorage>::Pending: core::marker::Sync, <S as sacn::source::SourceStorage>::Removed: core::marker::Sync
+impl<'a, S> core::marker::Send for sacn::source::SourcePoll<'a, S> where <S as sacn::source::SourceStorage>::TxUniverses: core::marker::Send, <S as sacn::source::SourceStorage>::SyncGroups: core::marker::Send, <S as sacn::source::SourceStorage>::Pending: core::marker::Send, <S as sacn::source::SourceStorage>::Removed: core::marker::Send, S: core::marker::Sync
+impl<'a, S> core::marker::Sync for sacn::source::SourcePoll<'a, S> where <S as sacn::source::SourceStorage>::TxUniverses: core::marker::Sync, <S as sacn::source::SourceStorage>::SyncGroups: core::marker::Sync, <S as sacn::source::SourceStorage>::Pending: core::marker::Sync, <S as sacn::source::SourceStorage>::Removed: core::marker::Sync, S: core::marker::Sync
 impl<'a, S> core::marker::Unpin for sacn::source::SourcePoll<'a, S>
 impl<'a, S> core::marker::UnsafeUnpin for sacn::source::SourcePoll<'a, S>
-impl<'a, S> core::panic::unwind_safe::RefUnwindSafe for sacn::source::SourcePoll<'a, S> where <S as sacn::source::SourceStorage>::TxUniverses: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::source::SourceStorage>::SyncGroups: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::source::SourceStorage>::Pending: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::source::SourceStorage>::Removed: core::panic::unwind_safe::RefUnwindSafe
+impl<'a, S> core::panic::unwind_safe::RefUnwindSafe for sacn::source::SourcePoll<'a, S> where <S as sacn::source::SourceStorage>::TxUniverses: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::source::SourceStorage>::SyncGroups: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::source::SourceStorage>::Pending: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::source::SourceStorage>::Removed: core::panic::unwind_safe::RefUnwindSafe, S: core::panic::unwind_safe::RefUnwindSafe
 impl<'a, S> !core::panic::unwind_safe::UnwindSafe for sacn::source::SourcePoll<'a, S>
 impl<T, U> core::convert::Into<U> for sacn::source::SourcePoll<'a, S> where U: core::convert::From<T>
 pub fn sacn::source::SourcePoll<'a, S>::into(self) -> U
@@ -2287,6 +2332,36 @@ impl<T> core::borrow::BorrowMut<T> for sacn::source::SourcePoll<'a, S> where T: 
 pub fn sacn::source::SourcePoll<'a, S>::borrow_mut(&mut self) -> &mut T
 impl<T> core::convert::From<T> for sacn::source::SourcePoll<'a, S>
 pub fn sacn::source::SourcePoll<'a, S>::from(T) -> T
+pub struct sacn::source::SourceResources<S: sacn::source::SourceStorage>
+impl<S: sacn::source::SourceStorage> sacn::source::SourceResources<S>
+pub fn sacn::source::SourceResources<S>::current_packet(&self) -> &[u8]
+impl<S: core::fmt::Debug + sacn::source::SourceStorage> core::fmt::Debug for sacn::source::SourceResources<S> where <S as sacn::source::SourceStorage>::TxUniverses: core::fmt::Debug, <S as sacn::source::SourceStorage>::SyncGroups: core::fmt::Debug, <S as sacn::source::SourceStorage>::Pending: core::fmt::Debug, <S as sacn::source::SourceStorage>::Removed: core::fmt::Debug
+pub fn sacn::source::SourceResources<S>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<S: sacn::source::SourceStorage> core::default::Default for sacn::source::SourceResources<S>
+pub fn sacn::source::SourceResources<S>::default() -> Self
+impl<S> core::marker::Freeze for sacn::source::SourceResources<S> where <S as sacn::source::SourceStorage>::TxUniverses: core::marker::Freeze, <S as sacn::source::SourceStorage>::SyncGroups: core::marker::Freeze, <S as sacn::source::SourceStorage>::Pending: core::marker::Freeze, <S as sacn::source::SourceStorage>::Removed: core::marker::Freeze
+impl<S> core::marker::Send for sacn::source::SourceResources<S> where <S as sacn::source::SourceStorage>::TxUniverses: core::marker::Send, <S as sacn::source::SourceStorage>::SyncGroups: core::marker::Send, <S as sacn::source::SourceStorage>::Pending: core::marker::Send, <S as sacn::source::SourceStorage>::Removed: core::marker::Send
+impl<S> core::marker::Sync for sacn::source::SourceResources<S> where <S as sacn::source::SourceStorage>::TxUniverses: core::marker::Sync, <S as sacn::source::SourceStorage>::SyncGroups: core::marker::Sync, <S as sacn::source::SourceStorage>::Pending: core::marker::Sync, <S as sacn::source::SourceStorage>::Removed: core::marker::Sync
+impl<S> core::marker::Unpin for sacn::source::SourceResources<S> where <S as sacn::source::SourceStorage>::TxUniverses: core::marker::Unpin, <S as sacn::source::SourceStorage>::SyncGroups: core::marker::Unpin, <S as sacn::source::SourceStorage>::Pending: core::marker::Unpin, <S as sacn::source::SourceStorage>::Removed: core::marker::Unpin
+impl<S> core::marker::UnsafeUnpin for sacn::source::SourceResources<S> where <S as sacn::source::SourceStorage>::TxUniverses: core::marker::UnsafeUnpin, <S as sacn::source::SourceStorage>::SyncGroups: core::marker::UnsafeUnpin, <S as sacn::source::SourceStorage>::Pending: core::marker::UnsafeUnpin, <S as sacn::source::SourceStorage>::Removed: core::marker::UnsafeUnpin
+impl<S> core::panic::unwind_safe::RefUnwindSafe for sacn::source::SourceResources<S> where <S as sacn::source::SourceStorage>::TxUniverses: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::source::SourceStorage>::SyncGroups: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::source::SourceStorage>::Pending: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::source::SourceStorage>::Removed: core::panic::unwind_safe::RefUnwindSafe
+impl<S> core::panic::unwind_safe::UnwindSafe for sacn::source::SourceResources<S> where <S as sacn::source::SourceStorage>::TxUniverses: core::panic::unwind_safe::UnwindSafe, <S as sacn::source::SourceStorage>::SyncGroups: core::panic::unwind_safe::UnwindSafe, <S as sacn::source::SourceStorage>::Pending: core::panic::unwind_safe::UnwindSafe, <S as sacn::source::SourceStorage>::Removed: core::panic::unwind_safe::UnwindSafe
+impl<T, U> core::convert::Into<U> for sacn::source::SourceResources<S> where U: core::convert::From<T>
+pub fn sacn::source::SourceResources<S>::into(self) -> U
+impl<T, U> core::convert::TryFrom<U> for sacn::source::SourceResources<S> where U: core::convert::Into<T>
+pub type sacn::source::SourceResources<S>::Error = core::convert::Infallible
+pub fn sacn::source::SourceResources<S>::try_from(U) -> core::result::Result<T, <T as core::convert::TryFrom<U>>::Error>
+impl<T, U> core::convert::TryInto<U> for sacn::source::SourceResources<S> where U: core::convert::TryFrom<T>
+pub type sacn::source::SourceResources<S>::Error = <U as core::convert::TryFrom<T>>::Error
+pub fn sacn::source::SourceResources<S>::try_into(self) -> core::result::Result<U, <U as core::convert::TryFrom<T>>::Error>
+impl<T> core::any::Any for sacn::source::SourceResources<S> where T: 'static + ?core::marker::Sized
+pub fn sacn::source::SourceResources<S>::type_id(&self) -> core::any::TypeId
+impl<T> core::borrow::Borrow<T> for sacn::source::SourceResources<S> where T: ?core::marker::Sized
+pub fn sacn::source::SourceResources<S>::borrow(&self) -> &T
+impl<T> core::borrow::BorrowMut<T> for sacn::source::SourceResources<S> where T: ?core::marker::Sized
+pub fn sacn::source::SourceResources<S>::borrow_mut(&mut self) -> &mut T
+impl<T> core::convert::From<T> for sacn::source::SourceResources<S>
+pub fn sacn::source::SourceResources<S>::from(T) -> T
 #[non_exhaustive] pub struct sacn::source::Transmission<'a>
 pub sacn::source::Transmission::data: &'a [u8]
 pub sacn::source::Transmission::route: sacn::Route
@@ -2449,6 +2524,8 @@ pub unsafe fn sacn::storage::HeapStorage::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::storage::HeapStorage
 pub fn sacn::storage::HeapStorage::from(T) -> T
 pub struct sacn::storage::SortedVecMap<K, V, const N: usize>
+impl<K, V, const N: usize> sacn::storage::SortedVecMap<K, V, N>
+pub const fn sacn::storage::SortedVecMap<K, V, N>::new() -> Self
 impl<K, V, const N: usize> core::default::Default for sacn::storage::SortedVecMap<K, V, N>
 pub fn sacn::storage::SortedVecMap<K, V, N>::default() -> Self
 impl<K, V, const N: usize> core::fmt::Debug for sacn::storage::SortedVecMap<K, V, N> where K: core::fmt::Debug + core::cmp::Ord, V: core::fmt::Debug
@@ -3845,6 +3922,8 @@ pub unsafe fn sacn::merger::SlotOwner::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::merger::SlotOwner
 pub fn sacn::merger::SlotOwner::from(T) -> T
 pub struct sacn::SortedVecMap<K, V, const N: usize>
+impl<K, V, const N: usize> sacn::storage::SortedVecMap<K, V, N>
+pub const fn sacn::storage::SortedVecMap<K, V, N>::new() -> Self
 impl<K, V, const N: usize> core::default::Default for sacn::storage::SortedVecMap<K, V, N>
 pub fn sacn::storage::SortedVecMap<K, V, N>::default() -> Self
 impl<K, V, const N: usize> core::fmt::Debug for sacn::storage::SortedVecMap<K, V, N> where K: core::fmt::Debug + core::cmp::Ord, V: core::fmt::Debug
@@ -3917,15 +3996,15 @@ pub fn sacn::source::Source<S>::universes(&self) -> impl core::iter::traits::ite
 pub fn sacn::source::Source<S>::update_levels(&mut self, sacn::Universe, &[u8])
 pub fn sacn::source::Source<S>::update_levels_and_pap(&mut self, sacn::Universe, &[u8], &[u8])
 pub fn sacn::source::Source<S>::with_config(sacn::source::SourceConfig) -> Self
-impl<S: core::fmt::Debug + sacn::source::SourceStorage> core::fmt::Debug for sacn::source::Source<S> where <S as sacn::source::SourceStorage>::TxUniverses: core::fmt::Debug, <S as sacn::source::SourceStorage>::SyncGroups: core::fmt::Debug, <S as sacn::source::SourceStorage>::Pending: core::fmt::Debug, <S as sacn::source::SourceStorage>::Removed: core::fmt::Debug
+impl<S: core::fmt::Debug + sacn::source::SourceStorage> core::fmt::Debug for sacn::source::Source<S>
 pub fn sacn::source::Source<S>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
 impl<S> core::marker::Freeze for sacn::source::Source<S> where <S as sacn::source::SourceStorage>::TxUniverses: core::marker::Freeze, <S as sacn::source::SourceStorage>::SyncGroups: core::marker::Freeze, <S as sacn::source::SourceStorage>::Pending: core::marker::Freeze, <S as sacn::source::SourceStorage>::Removed: core::marker::Freeze
-impl<S> core::marker::Send for sacn::source::Source<S> where <S as sacn::source::SourceStorage>::TxUniverses: core::marker::Send, <S as sacn::source::SourceStorage>::SyncGroups: core::marker::Send, <S as sacn::source::SourceStorage>::Pending: core::marker::Send, <S as sacn::source::SourceStorage>::Removed: core::marker::Send
-impl<S> core::marker::Sync for sacn::source::Source<S> where <S as sacn::source::SourceStorage>::TxUniverses: core::marker::Sync, <S as sacn::source::SourceStorage>::SyncGroups: core::marker::Sync, <S as sacn::source::SourceStorage>::Pending: core::marker::Sync, <S as sacn::source::SourceStorage>::Removed: core::marker::Sync
-impl<S> core::marker::Unpin for sacn::source::Source<S> where <S as sacn::source::SourceStorage>::TxUniverses: core::marker::Unpin, <S as sacn::source::SourceStorage>::SyncGroups: core::marker::Unpin, <S as sacn::source::SourceStorage>::Pending: core::marker::Unpin, <S as sacn::source::SourceStorage>::Removed: core::marker::Unpin
+impl<S> core::marker::Send for sacn::source::Source<S> where <S as sacn::source::SourceStorage>::TxUniverses: core::marker::Send, <S as sacn::source::SourceStorage>::SyncGroups: core::marker::Send, <S as sacn::source::SourceStorage>::Pending: core::marker::Send, <S as sacn::source::SourceStorage>::Removed: core::marker::Send, S: core::marker::Send
+impl<S> core::marker::Sync for sacn::source::Source<S> where <S as sacn::source::SourceStorage>::TxUniverses: core::marker::Sync, <S as sacn::source::SourceStorage>::SyncGroups: core::marker::Sync, <S as sacn::source::SourceStorage>::Pending: core::marker::Sync, <S as sacn::source::SourceStorage>::Removed: core::marker::Sync, S: core::marker::Sync
+impl<S> core::marker::Unpin for sacn::source::Source<S> where <S as sacn::source::SourceStorage>::TxUniverses: core::marker::Unpin, <S as sacn::source::SourceStorage>::SyncGroups: core::marker::Unpin, <S as sacn::source::SourceStorage>::Pending: core::marker::Unpin, <S as sacn::source::SourceStorage>::Removed: core::marker::Unpin, S: core::marker::Unpin
 impl<S> core::marker::UnsafeUnpin for sacn::source::Source<S> where <S as sacn::source::SourceStorage>::TxUniverses: core::marker::UnsafeUnpin, <S as sacn::source::SourceStorage>::SyncGroups: core::marker::UnsafeUnpin, <S as sacn::source::SourceStorage>::Pending: core::marker::UnsafeUnpin, <S as sacn::source::SourceStorage>::Removed: core::marker::UnsafeUnpin
-impl<S> core::panic::unwind_safe::RefUnwindSafe for sacn::source::Source<S> where <S as sacn::source::SourceStorage>::TxUniverses: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::source::SourceStorage>::SyncGroups: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::source::SourceStorage>::Pending: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::source::SourceStorage>::Removed: core::panic::unwind_safe::RefUnwindSafe
-impl<S> core::panic::unwind_safe::UnwindSafe for sacn::source::Source<S> where <S as sacn::source::SourceStorage>::TxUniverses: core::panic::unwind_safe::UnwindSafe, <S as sacn::source::SourceStorage>::SyncGroups: core::panic::unwind_safe::UnwindSafe, <S as sacn::source::SourceStorage>::Pending: core::panic::unwind_safe::UnwindSafe, <S as sacn::source::SourceStorage>::Removed: core::panic::unwind_safe::UnwindSafe
+impl<S> core::panic::unwind_safe::RefUnwindSafe for sacn::source::Source<S> where <S as sacn::source::SourceStorage>::TxUniverses: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::source::SourceStorage>::SyncGroups: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::source::SourceStorage>::Pending: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::source::SourceStorage>::Removed: core::panic::unwind_safe::RefUnwindSafe, S: core::panic::unwind_safe::RefUnwindSafe
+impl<S> core::panic::unwind_safe::UnwindSafe for sacn::source::Source<S> where <S as sacn::source::SourceStorage>::TxUniverses: core::panic::unwind_safe::UnwindSafe, <S as sacn::source::SourceStorage>::SyncGroups: core::panic::unwind_safe::UnwindSafe, <S as sacn::source::SourceStorage>::Pending: core::panic::unwind_safe::UnwindSafe, <S as sacn::source::SourceStorage>::Removed: core::panic::unwind_safe::UnwindSafe, S: core::panic::unwind_safe::UnwindSafe
 impl<T, U> core::convert::Into<U> for sacn::source::Source<S> where U: core::convert::From<T>
 pub fn sacn::source::Source<S>::into(self) -> U
 impl<T, U> core::convert::TryFrom<U> for sacn::source::Source<S> where U: core::convert::Into<T>
@@ -3987,6 +4066,51 @@ impl<T> core::clone::CloneToUninit for sacn::source::SourceConfig where T: core:
 pub unsafe fn sacn::source::SourceConfig::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::source::SourceConfig
 pub fn sacn::source::SourceConfig::from(T) -> T
+pub struct sacn::SourceCore<S: sacn::source::SourceStorage>
+impl<S: sacn::source::SourceStorage> sacn::source::SourceCore<S>
+pub fn sacn::source::SourceCore<S>::add_universe(&self, &mut sacn::source::SourceResources<S>, sacn::source::UniverseConfig) -> core::result::Result<bool, sacn::error::Error>
+pub fn sacn::source::SourceCore<S>::cid(&self) -> sacn::Cid
+pub fn sacn::source::SourceCore<S>::config(&self) -> &sacn::source::SourceConfig
+pub fn sacn::source::SourceCore<S>::current_packet<'a>(&self, &'a mut sacn::source::SourceResources<S>) -> &'a [u8]
+pub fn sacn::source::SourceCore<S>::has_universe(&self, &sacn::source::SourceResources<S>, sacn::Universe) -> bool
+pub fn sacn::source::SourceCore<S>::poll<'a>(&'a self, &'a mut sacn::source::SourceResources<S>, sacn::time::Instant) -> sacn::source::SourcePoll<'a, S>
+pub fn sacn::source::SourceCore<S>::remove_pap(&self, &mut sacn::source::SourceResources<S>, sacn::Universe)
+pub fn sacn::source::SourceCore<S>::remove_universe(&self, &mut sacn::source::SourceResources<S>, sacn::Universe) -> bool
+pub fn sacn::source::SourceCore<S>::resend(&self, &mut sacn::source::SourceResources<S>, sacn::Universe)
+pub fn sacn::source::SourceCore<S>::send_now<'a>(&self, &'a mut sacn::source::SourceResources<S>, sacn::Universe, sacn::StartCode, &[u8]) -> core::result::Result<sacn::Transmission<'a>, sacn::error::Error>
+pub fn sacn::source::SourceCore<S>::set_name(&mut self, &mut sacn::source::SourceResources<S>, impl core::convert::Into<sacn::SourceName>)
+pub fn sacn::source::SourceCore<S>::set_preview(&self, &mut sacn::source::SourceResources<S>, sacn::Universe, bool)
+pub fn sacn::source::SourceCore<S>::set_priority(&self, &mut sacn::source::SourceResources<S>, sacn::Universe, sacn::Priority)
+pub fn sacn::source::SourceCore<S>::set_synchronization(&self, &mut sacn::source::SourceResources<S>, sacn::Universe, core::option::Option<(sacn::Universe, sacn::source::OnSyncLoss)>)
+pub fn sacn::source::SourceCore<S>::universes<'a>(&self, &'a sacn::source::SourceResources<S>) -> impl core::iter::traits::iterator::Iterator<Item = sacn::Universe> + 'a
+pub fn sacn::source::SourceCore<S>::update_levels(&self, &mut sacn::source::SourceResources<S>, sacn::Universe, &[u8])
+pub fn sacn::source::SourceCore<S>::update_levels_and_pap(&self, &mut sacn::source::SourceResources<S>, sacn::Universe, &[u8], &[u8])
+pub fn sacn::source::SourceCore<S>::with_config(sacn::source::SourceConfig) -> Self
+impl<S: core::fmt::Debug + sacn::source::SourceStorage> core::fmt::Debug for sacn::source::SourceCore<S>
+pub fn sacn::source::SourceCore<S>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<S> core::marker::Freeze for sacn::source::SourceCore<S>
+impl<S> core::marker::Send for sacn::source::SourceCore<S> where S: core::marker::Send
+impl<S> core::marker::Sync for sacn::source::SourceCore<S> where S: core::marker::Sync
+impl<S> core::marker::Unpin for sacn::source::SourceCore<S> where S: core::marker::Unpin
+impl<S> core::marker::UnsafeUnpin for sacn::source::SourceCore<S>
+impl<S> core::panic::unwind_safe::RefUnwindSafe for sacn::source::SourceCore<S> where S: core::panic::unwind_safe::RefUnwindSafe
+impl<S> core::panic::unwind_safe::UnwindSafe for sacn::source::SourceCore<S> where S: core::panic::unwind_safe::UnwindSafe
+impl<T, U> core::convert::Into<U> for sacn::source::SourceCore<S> where U: core::convert::From<T>
+pub fn sacn::source::SourceCore<S>::into(self) -> U
+impl<T, U> core::convert::TryFrom<U> for sacn::source::SourceCore<S> where U: core::convert::Into<T>
+pub type sacn::source::SourceCore<S>::Error = core::convert::Infallible
+pub fn sacn::source::SourceCore<S>::try_from(U) -> core::result::Result<T, <T as core::convert::TryFrom<U>>::Error>
+impl<T, U> core::convert::TryInto<U> for sacn::source::SourceCore<S> where U: core::convert::TryFrom<T>
+pub type sacn::source::SourceCore<S>::Error = <U as core::convert::TryFrom<T>>::Error
+pub fn sacn::source::SourceCore<S>::try_into(self) -> core::result::Result<U, <U as core::convert::TryFrom<T>>::Error>
+impl<T> core::any::Any for sacn::source::SourceCore<S> where T: 'static + ?core::marker::Sized
+pub fn sacn::source::SourceCore<S>::type_id(&self) -> core::any::TypeId
+impl<T> core::borrow::Borrow<T> for sacn::source::SourceCore<S> where T: ?core::marker::Sized
+pub fn sacn::source::SourceCore<S>::borrow(&self) -> &T
+impl<T> core::borrow::BorrowMut<T> for sacn::source::SourceCore<S> where T: ?core::marker::Sized
+pub fn sacn::source::SourceCore<S>::borrow_mut(&mut self) -> &mut T
+impl<T> core::convert::From<T> for sacn::source::SourceCore<S>
+pub fn sacn::source::SourceCore<S>::from(T) -> T
 pub struct sacn::SourceDetector<S: sacn::detector::DetectorStorage>
 impl sacn::detector::SourceDetector<sacn::storage::HeapStorage>
 pub fn sacn::detector::SourceDetector<sacn::storage::HeapStorage>::new(sacn::detector::SourceDetectorConfig) -> Self
@@ -4170,6 +4294,36 @@ impl<T> core::clone::CloneToUninit for sacn::SourceName where T: core::clone::Cl
 pub unsafe fn sacn::SourceName::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::SourceName
 pub fn sacn::SourceName::from(T) -> T
+pub struct sacn::SourceResources<S: sacn::source::SourceStorage>
+impl<S: sacn::source::SourceStorage> sacn::source::SourceResources<S>
+pub fn sacn::source::SourceResources<S>::current_packet(&self) -> &[u8]
+impl<S: core::fmt::Debug + sacn::source::SourceStorage> core::fmt::Debug for sacn::source::SourceResources<S> where <S as sacn::source::SourceStorage>::TxUniverses: core::fmt::Debug, <S as sacn::source::SourceStorage>::SyncGroups: core::fmt::Debug, <S as sacn::source::SourceStorage>::Pending: core::fmt::Debug, <S as sacn::source::SourceStorage>::Removed: core::fmt::Debug
+pub fn sacn::source::SourceResources<S>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<S: sacn::source::SourceStorage> core::default::Default for sacn::source::SourceResources<S>
+pub fn sacn::source::SourceResources<S>::default() -> Self
+impl<S> core::marker::Freeze for sacn::source::SourceResources<S> where <S as sacn::source::SourceStorage>::TxUniverses: core::marker::Freeze, <S as sacn::source::SourceStorage>::SyncGroups: core::marker::Freeze, <S as sacn::source::SourceStorage>::Pending: core::marker::Freeze, <S as sacn::source::SourceStorage>::Removed: core::marker::Freeze
+impl<S> core::marker::Send for sacn::source::SourceResources<S> where <S as sacn::source::SourceStorage>::TxUniverses: core::marker::Send, <S as sacn::source::SourceStorage>::SyncGroups: core::marker::Send, <S as sacn::source::SourceStorage>::Pending: core::marker::Send, <S as sacn::source::SourceStorage>::Removed: core::marker::Send
+impl<S> core::marker::Sync for sacn::source::SourceResources<S> where <S as sacn::source::SourceStorage>::TxUniverses: core::marker::Sync, <S as sacn::source::SourceStorage>::SyncGroups: core::marker::Sync, <S as sacn::source::SourceStorage>::Pending: core::marker::Sync, <S as sacn::source::SourceStorage>::Removed: core::marker::Sync
+impl<S> core::marker::Unpin for sacn::source::SourceResources<S> where <S as sacn::source::SourceStorage>::TxUniverses: core::marker::Unpin, <S as sacn::source::SourceStorage>::SyncGroups: core::marker::Unpin, <S as sacn::source::SourceStorage>::Pending: core::marker::Unpin, <S as sacn::source::SourceStorage>::Removed: core::marker::Unpin
+impl<S> core::marker::UnsafeUnpin for sacn::source::SourceResources<S> where <S as sacn::source::SourceStorage>::TxUniverses: core::marker::UnsafeUnpin, <S as sacn::source::SourceStorage>::SyncGroups: core::marker::UnsafeUnpin, <S as sacn::source::SourceStorage>::Pending: core::marker::UnsafeUnpin, <S as sacn::source::SourceStorage>::Removed: core::marker::UnsafeUnpin
+impl<S> core::panic::unwind_safe::RefUnwindSafe for sacn::source::SourceResources<S> where <S as sacn::source::SourceStorage>::TxUniverses: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::source::SourceStorage>::SyncGroups: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::source::SourceStorage>::Pending: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::source::SourceStorage>::Removed: core::panic::unwind_safe::RefUnwindSafe
+impl<S> core::panic::unwind_safe::UnwindSafe for sacn::source::SourceResources<S> where <S as sacn::source::SourceStorage>::TxUniverses: core::panic::unwind_safe::UnwindSafe, <S as sacn::source::SourceStorage>::SyncGroups: core::panic::unwind_safe::UnwindSafe, <S as sacn::source::SourceStorage>::Pending: core::panic::unwind_safe::UnwindSafe, <S as sacn::source::SourceStorage>::Removed: core::panic::unwind_safe::UnwindSafe
+impl<T, U> core::convert::Into<U> for sacn::source::SourceResources<S> where U: core::convert::From<T>
+pub fn sacn::source::SourceResources<S>::into(self) -> U
+impl<T, U> core::convert::TryFrom<U> for sacn::source::SourceResources<S> where U: core::convert::Into<T>
+pub type sacn::source::SourceResources<S>::Error = core::convert::Infallible
+pub fn sacn::source::SourceResources<S>::try_from(U) -> core::result::Result<T, <T as core::convert::TryFrom<U>>::Error>
+impl<T, U> core::convert::TryInto<U> for sacn::source::SourceResources<S> where U: core::convert::TryFrom<T>
+pub type sacn::source::SourceResources<S>::Error = <U as core::convert::TryFrom<T>>::Error
+pub fn sacn::source::SourceResources<S>::try_into(self) -> core::result::Result<U, <U as core::convert::TryFrom<T>>::Error>
+impl<T> core::any::Any for sacn::source::SourceResources<S> where T: 'static + ?core::marker::Sized
+pub fn sacn::source::SourceResources<S>::type_id(&self) -> core::any::TypeId
+impl<T> core::borrow::Borrow<T> for sacn::source::SourceResources<S> where T: ?core::marker::Sized
+pub fn sacn::source::SourceResources<S>::borrow(&self) -> &T
+impl<T> core::borrow::BorrowMut<T> for sacn::source::SourceResources<S> where T: ?core::marker::Sized
+pub fn sacn::source::SourceResources<S>::borrow_mut(&mut self) -> &mut T
+impl<T> core::convert::From<T> for sacn::source::SourceResources<S>
+pub fn sacn::source::SourceResources<S>::from(T) -> T
 pub struct sacn::StartCode(_)
 impl sacn::StartCode
 pub const sacn::StartCode::NULL: sacn::StartCode

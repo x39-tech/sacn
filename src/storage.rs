@@ -213,11 +213,18 @@ pub struct SortedVecMap<K, V, const N: usize> {
     entries: heapless::Vec<(K, V), N>,
 }
 
-impl<K, V, const N: usize> Default for SortedVecMap<K, V, N> {
-    fn default() -> Self {
+impl<K, V, const N: usize> SortedVecMap<K, V, N> {
+    /// Create a new map.
+    pub const fn new() -> Self {
         Self {
             entries: heapless::Vec::new(),
         }
+    }
+}
+
+impl<K, V, const N: usize> Default for SortedVecMap<K, V, N> {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
