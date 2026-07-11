@@ -37,6 +37,10 @@ pub use source::TrackedSource;
 
 /// Storage types for a [`BasicReceiver`] (and the merging [`Receiver`] by
 /// extension)
+///
+/// Use [`static_storage!`](crate::static_storage!) to produce a type that
+/// implements this trait for statically-allocated storage, or use
+/// [`HeapStorage`] for heap-based storage.
 pub trait BasicReceiverStorage: Sized {
     /// The listened universes and their per-universe state.
     type BasicUniverses: MapLike<Universe, basic::BasicUniverseState<Self>>;
@@ -118,6 +122,10 @@ impl BasicReceiverStorage for HeapStorage {
 }
 
 /// Storage types for the merging [`Receiver`].
+///
+/// Use [`static_storage!`](crate::static_storage!) to produce a type that
+/// implements this trait for statically-allocated storage, or use
+/// [`HeapStorage`] for heap-based storage.
 pub trait ReceiverStorage: BasicReceiverStorage + MergerStorage {
     /// The listened universes and their per-universe merge state.
     type Universes: MapLike<Universe, merging::UniverseMerge<Self>>;

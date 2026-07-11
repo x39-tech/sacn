@@ -22,6 +22,10 @@ mod tests;
 // --- Storage types ----------------------------------------------------------
 
 /// Storage types for a [`SourceDetector`].
+///
+/// Use [`static_storage!`](crate::static_storage!) to produce a type that
+/// implements this trait for statically-allocated storage, or use
+/// [`HeapStorage`] for heap-based storage.
 pub trait DetectorStorage: Sized {
     /// The tracked sources, keyed by CID.
     type Sources: MapLike<Cid, DetectedSource<Self>>;

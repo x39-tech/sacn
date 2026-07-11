@@ -15,6 +15,10 @@ use crate::types::Priority;
 // --- Storage types ----------------------------------------------------------
 
 /// Storage types for a [`DmxMerger`].
+///
+/// Use [`static_storage!`](crate::static_storage!) to produce a type that
+/// implements this trait for statically-allocated storage, or use
+/// [`HeapStorage`] for heap-based storage.
 pub trait MergerStorage: Sized {
     /// Backing for the dense, index-sorted live-source table.
     type MergeSources: VecLike<MergeSourceEntry>;
