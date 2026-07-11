@@ -6,6 +6,10 @@
 //!
 //! - [`Source`] wraps [`crate::source::Source`] and transmits sACN.
 //!
+//! On a target with no allocator, size the source's fixed-capacity storage
+//! (including its unicast destination tables and socket buffers) with
+//! [`embassy_static_storage!`](crate::embassy_static_storage!).
+//!
 //! # Setup
 //!
 //! This adapter depends on `embassy-net` but deliberately does not select a
@@ -21,30 +25,27 @@
 //! ```
 
 mod error;
+mod sending;
 mod source;
+mod storage;
 
 pub use error::EmbassyError;
 pub use source::Source;
+pub use storage::{Destinations, SourceResources, SourceStorage};
 
-use embassy_net::{IpAddress, IpEndpoint, Stack};
+// Re-exported so the `embassy_static_storage!` macro can name these through
+// `$crate::embassy::...` without the user's crate depending on `embassy-net`
+// under those exact paths.
+#[doc(hidden)]
+pub use embassy_net::IpEndpoint;
+#[doc(hidden)]
+pub use embassy_net::udp::PacketMetadata;
+
+use embassy_net::IpAddress;
 use embassy_time::Duration as EmbassyDuration;
 
 use crate::proto::{DISCOVERY_UNIVERSE, SACN_PORT, ipv4_multicast, ipv6_multicast};
-use crate::source::Route;
 use crate::time::Duration;
-
-// IPv4 and IPv6
-const MAX_TARGETS: usize = 2;
-
-type Targets = heapless::Vec<IpEndpoint, MAX_TARGETS>;
-
-fn route_universe(route: Route) -> u16 {
-    match route {
-        Route::Universe(universe) => universe.get(),
-        Route::Discovery => DISCOVERY_UNIVERSE,
-        Route::Sync(sync_universe) => sync_universe.get(),
-    }
-}
 
 fn v4_group(universe: u16) -> IpEndpoint {
     IpEndpoint::new(IpAddress::Ipv4(ipv4_multicast(universe)), SACN_PORT)
@@ -52,20 +53,6 @@ fn v4_group(universe: u16) -> IpEndpoint {
 
 fn v6_group(universe: u16) -> IpEndpoint {
     IpEndpoint::new(IpAddress::Ipv6(ipv6_multicast(universe)), SACN_PORT)
-}
-
-/// Resolves the multicast destinations a route is delivered to, given the
-/// address families the `stack` currently has configured.
-fn targets_for(route: Route, stack: Stack<'_>) -> Targets {
-    let mut targets = Targets::new();
-    let universe = route_universe(route);
-    if stack.config_v4().is_some() {
-        let _ = targets.push(v4_group(universe));
-    }
-    if stack.config_v6().is_some() {
-        let _ = targets.push(v6_group(universe));
-    }
-    targets
 }
 
 /// Maps a core [`Duration`] onto an `embassy_time` [`Duration`].

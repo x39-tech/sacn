@@ -94,8 +94,6 @@ pub use source::{
     Transmission, UniverseConfig,
 };
 
-mod static_storage;
-
 #[cfg(any(feature = "std", feature = "embassy"))]
 mod adapters;
 

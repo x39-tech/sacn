@@ -26,6 +26,10 @@ pub use transmit::{Route, SourcePoll, Transmission};
 // --- Storage types ----------------------------------------------------------
 
 /// Storage types for a [`Source`].
+///
+/// Use [`static_storage!`](crate::static_storage!) to produce a type that
+/// implements this trait for statically-allocated storage, or use
+/// [`HeapStorage`] for heap-based storage.
 pub trait SourceStorage: Sized {
     /// The universes the source transmits on, keyed by universe number.
     type TxUniverses: MapLike<Universe, TxUniverseState>;
@@ -597,7 +601,7 @@ pub struct SourceCore<S: SourceStorage = HeapStorage> {
 
 /// The mutable working memory a [`SourceCore`] operates on.
 ///
-/// The store holds everything about a source that scales with the number of
+/// This struct holds everything about a source that scales with the number of
 /// universes, so it is the potentially large allocation. It can be constructed
 /// in a const expression with statically-allocated storage (see below).
 ///
@@ -609,7 +613,7 @@ pub struct SourceCore<S: SourceStorage = HeapStorage> {
 /// - **Heap:** construct with [`SourceResources::default`].
 /// - **Fixed-capacity:** use the [`static_storage!`](crate::static_storage!)
 ///   macro, which emits a `const fn` `source_resources()` returning an empty
-///   `SourceResources`, suitable for static allocation.
+///   `SourceResources`, suitable for static allocation in a const context.
 #[derive(Debug)]
 pub struct SourceResources<S: SourceStorage = HeapStorage> {
     universes: S::TxUniverses,

@@ -331,27 +331,27 @@ impl<T: core::fmt::Debug, const N: usize> VecLike<T> for heapless::Vec<T, N> {
     }
 
     fn push(&mut self, value: T) -> Result<(), T> {
-        (*self).push(value)
+        self.push(value)
     }
 
     fn insert(&mut self, index: usize, value: T) -> Result<(), T> {
-        (*self).insert(index, value)
+        self.insert(index, value)
     }
 
     fn remove(&mut self, index: usize) -> T {
-        (*self).remove(index)
+        self.remove(index)
     }
 
     fn pop(&mut self) -> Option<T> {
-        (*self).pop()
+        self.pop()
     }
 
     fn clear(&mut self) {
-        (*self).clear();
+        self.clear();
     }
 
     fn retain(&mut self, f: impl FnMut(&T) -> bool) {
-        (*self).retain(f);
+        self.retain(f);
     }
 
     fn as_slice(&self) -> &[T] {
@@ -466,6 +466,195 @@ impl<T: core::fmt::Debug> VecLike<T> for alloc::vec::Vec<T> {
 /// inserts never fail.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct HeapStorage;
+
+/// Build a fixed-capacity, allocation-free storage policy for core modules
+/// in this library.
+///
+/// Invoke this macro with a set of set user-defined capacities. Using those,
+/// the macro defines a zero-sized type and implements the necessary traits for
+/// all of the core types in this library to use it.
+///
+/// The resulting marker (e.g. `Caps`) is usable as the storage parameter of
+/// every core type: `Receiver<Caps>`, `BasicReceiver<Caps>`, `DmxMerger<Caps>`,
+/// `Source<Caps>`, and `SourceDetector<Caps>`. The macro also defines
+/// associated `const fn`s such as `Caps::source_resources()`, which return
+/// empty resource structures for core types. This is helpful if you want to
+/// place memory resources in a static context like a `ConstStaticCell`.
+///
+/// # User-defined capacities
+///
+/// The following user-defined capacities are required, in order. Note that
+/// capacities can be zero if you are not using the corresponding module (e.g.
+/// `rx_*` can be set to 0 if you do not use any `Receiver` types).
+///
+/// | Capacity                   | Bounds                                             |
+/// | -------------------------- | -------------------------------------------------- |
+/// | `rx_universes`             | universes a receiver listens to                    |
+/// | `rx_sources_per_universe`  | sources tracked on one universe                    |
+/// | `rx_sync_addresses`        | synchronization addresses tracked by a receiver    |
+/// | `tx_universes`             | universes a source transmits on                    |
+/// | `det_sources`              | sources a detector tracks                          |
+/// | `det_universes_per_source` | universes one detected source may advertise        |
+///
+/// Every other capacity used internally is derived from these.
+///
+/// # Example
+///
+/// ```
+/// sacn::static_storage! {
+///     pub struct Caps {
+///         rx_universes: 4,
+///         rx_sources_per_universe: 8,
+///         rx_sync_addresses: 8,
+///         tx_universes: 4,
+///         det_sources: 5,
+///         det_universes_per_source: 5,
+///     }
+/// }
+///
+/// let mut rx: sacn::receiver::Receiver<Caps> =
+///     sacn::receiver::Receiver::with_config(sacn::receiver::ReceiverConfig::default());
+/// let _ = &mut rx;
+/// ```
+#[macro_export]
+macro_rules! static_storage {
+    (
+        $(#[$attr:meta])*
+        $vis:vis struct $name:ident {
+            rx_universes: $rx_universes:expr,
+            rx_sources_per_universe: $rx_sources_per_universe:expr,
+            rx_sync_addresses: $rx_sync_addresses:expr,
+            tx_universes: $tx_universes:expr,
+            det_sources: $det_sources:expr,
+            det_universes_per_source: $det_universes_per_source:expr $(,)?
+        }
+    ) => {
+        $(#[$attr])*
+        #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+        $vis struct $name;
+
+        impl $crate::merger::MergerStorage for $name {
+            type MergeSources = $crate::heapless::Vec<
+                $crate::merger::MergeSourceEntry,
+                { $rx_sources_per_universe },
+            >;
+            type FreeList =
+                $crate::heapless::Vec<$crate::merger::SourceIndex, { $rx_sources_per_universe }>;
+        }
+
+        impl $crate::receiver::BasicReceiverStorage for $name {
+            type BasicUniverses = $crate::SortedVecMap<
+                $crate::Universe,
+                $crate::receiver::BasicUniverseState<$name>,
+                { $rx_universes },
+            >;
+            type BasicSources = $crate::SortedVecMap<
+                $crate::Cid,
+                $crate::receiver::TrackedSource,
+                { $rx_sources_per_universe },
+            >;
+            type TermSets = $crate::heapless::Vec<
+                $crate::receiver::TerminationSet<$name>,
+                { $rx_sources_per_universe },
+            >;
+            type TermSetSources = $crate::SortedVecMap<
+                $crate::Cid,
+                $crate::receiver::TerminationSetSource,
+                { $rx_sources_per_universe },
+            >;
+            type PollKeys = $crate::heapless::Vec<$crate::Universe, { $rx_universes }>;
+            type LossList =
+                $crate::heapless::Vec<$crate::receiver::LostSource, { $rx_sources_per_universe }>;
+            type OfflineScratch =
+                $crate::heapless::Vec<($crate::Cid, bool), { $rx_sources_per_universe }>;
+            type CidScratch =
+                $crate::heapless::Vec<$crate::Cid, { $rx_sources_per_universe }>;
+        }
+
+        impl $crate::receiver::ReceiverStorage for $name {
+            type Universes = $crate::SortedVecMap<
+                $crate::Universe,
+                $crate::receiver::UniverseMerge<$name>,
+                { $rx_universes },
+            >;
+            type Sources = $crate::SortedVecMap<
+                $crate::Cid,
+                $crate::receiver::MergeSource,
+                { $rx_sources_per_universe },
+            >;
+            type SyncAddresses =
+                $crate::SortedVecMap<u16, $crate::time::Instant, { $rx_sync_addresses }>;
+            type MergeLossList = $crate::heapless::Vec<
+                $crate::receiver::MergedLostSource,
+                { $rx_sources_per_universe },
+            >;
+            type SyncReleases = $crate::heapless::Vec<$crate::Universe, { $rx_universes }>;
+        }
+
+        $crate::__impl_source_storage!($name, $tx_universes);
+
+        impl $name {
+            /// Construct a [`SourceResources`](sacn::source::SourceResources)
+            /// in a const context.
+            ///
+            /// The returned value is large, so it's recommended to place it
+            /// directly in `const`/`static` storage - e.g. a `ConstStaticCell` -
+            /// rather than building it on the stack.
+            #[allow(dead_code)]
+            #[allow(clippy::large_stack_frames)]
+            $vis const fn source_resources() -> $crate::source::SourceResources<$name> {
+                $crate::source::SourceResources::from_parts(
+                    $crate::SortedVecMap::new(),
+                    $crate::SortedVecMap::new(),
+                    $crate::heapless::Vec::new(),
+                    $crate::heapless::Vec::new(),
+                )
+            }
+        }
+
+        impl $crate::detector::DetectorStorage for $name {
+            type Sources = $crate::SortedVecMap<
+                $crate::Cid,
+                $crate::detector::DetectedSource<$name>,
+                { $det_sources },
+            >;
+            type Universes = $crate::heapless::Vec<u16, { $det_universes_per_source }>;
+            type EventBuffer = $crate::heapless::Vec<
+                $crate::detector::SourceDetectorPollEvent,
+                { $det_sources },
+            >;
+        }
+    };
+}
+
+/// Implements [`SourceStorage`](crate::source::SourceStorage) for a marker type,
+/// sizing every derived collection from the `tx_universes` capacity.
+///
+/// This is an implementation detail macro used by other macros and is not
+/// intended to be called directly.
+#[doc(hidden)]
+#[macro_export]
+macro_rules! __impl_source_storage {
+    ($name:ident, $tx_universes:expr) => {
+        impl $crate::source::SourceStorage for $name {
+            type TxUniverses = $crate::SortedVecMap<
+                $crate::Universe,
+                $crate::source::TxUniverseState,
+                { $tx_universes },
+            >;
+            type SyncGroups = $crate::SortedVecMap<
+                $crate::Universe,
+                $crate::source::SyncGroupState,
+                { $tx_universes },
+            >;
+            type Pending = $crate::heapless::Vec<
+                $crate::source::Pending,
+                { $tx_universes * 3 + $tx_universes / 512 + 1 },
+            >;
+            type Removed = $crate::heapless::Vec<$crate::Universe, { $tx_universes }>;
+        }
+    };
+}
 
 #[cfg(test)]
 mod tests {

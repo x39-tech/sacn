@@ -29,7 +29,7 @@ const MULTICAST_TTL: u32 = 64;
 /// [`add_universe`](Self::add_universe) / [`add_universe_on`](Self::add_universe_on),
 /// set their data with [`update_levels`](Self::update_levels) (and the other
 /// `update_*` / `set_*` methods), and drive transmission by calling
-/// [`process`](Self::process) in a loop.
+/// [`process`](Self::process) or [`run`](Self::run) in a loop.
 ///
 /// This wraps the [`crate::source::Source`] core, which documents the transmit
 /// behavior (suppression and keep-alives, termination, discovery and
@@ -166,7 +166,8 @@ impl Source {
         match self.core.add_universe(config) {
             Ok(added) => {
                 if added {
-                    self.routes.insert(universe, interfaces, sync_universe);
+                    self.routes
+                        .add_universe(universe, interfaces, sync_universe);
                 }
                 Ok(added)
             }
@@ -176,8 +177,8 @@ impl Source {
 
     /// Begins terminating a universe (the E1.31 three-packet stream-terminated
     /// sequence), after which it is dropped. Returns `false` if the universe was
-    /// not present. Drive [`process`](Self::process) until the universe is gone
-    /// to actually send the termination packets.
+    /// not present. Keep driving [`run`](Self::run) / [`process`](Self::process)
+    /// until the universe is gone to actually send the termination packets.
     pub fn remove_universe(&mut self, universe: Universe) -> bool {
         self.core.remove_universe(universe)
     }
@@ -227,8 +228,7 @@ impl Source {
         self.core.set_name(name);
     }
 
-    /// Starts, changes, or stops (`None`) synchronization for a universe at
-    /// runtime. See
+    /// Starts, changes, or stops synchronization for a universe at runtime. See
     /// [`Source::set_synchronization`](crate::source::Source::set_synchronization).
     pub fn set_synchronization(
         &mut self,
@@ -290,10 +290,9 @@ impl Source {
     /// next one falls due, or `None` if the source has nothing left to transmit.
     ///
     /// Call this in a loop, sleeping until the returned deadline (and applying
-    /// any data updates) between calls. Individual send failures are logged and
-    /// skipped rather than aborting the whole tick, mirroring a best-effort
-    /// transmitter; the method only returns `Err` if the system clock mapping
-    /// fails, which it currently never does.
+    /// any data updates) between calls, or use [`run`](Self::run) as a
+    /// convenience wrapper around the same. Individual send failures are logged
+    /// (once, on the transition into and out of failure).
     ///
     /// # Cancel safety
     ///
