@@ -21,7 +21,7 @@ jobs:
       id-token: write # crates.io trusted publishing
     steps:
       - name: Generate GitHub App token
-        uses: actions/create-github-app-token@v2
+        uses: actions/create-github-app-token@v3
         id: app-token
         with:
           app-id: ${{ secrets.RELEASE_BOT_APP_ID }}

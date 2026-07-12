@@ -42,6 +42,8 @@ impl<T> core::clone::CloneToUninit for sacn::detector::LimitExceeded where T: co
 pub unsafe fn sacn::detector::LimitExceeded::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::detector::LimitExceeded
 pub fn sacn::detector::LimitExceeded::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::detector::LimitExceeded
+impl<T> tracing::instrument::WithSubscriber for sacn::detector::LimitExceeded
 #[non_exhaustive] pub enum sacn::detector::SourceDetectorEvent
 pub sacn::detector::SourceDetectorEvent::SourceExpired
 pub sacn::detector::SourceDetectorEvent::SourceExpired::cid: sacn::Cid
@@ -92,6 +94,8 @@ impl<T> core::clone::CloneToUninit for sacn::SourceDetectorEvent where T: core::
 pub unsafe fn sacn::SourceDetectorEvent::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::SourceDetectorEvent
 pub fn sacn::SourceDetectorEvent::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::SourceDetectorEvent
+impl<T> tracing::instrument::WithSubscriber for sacn::SourceDetectorEvent
 #[non_exhaustive] pub enum sacn::detector::SourceDetectorPollEvent
 pub sacn::detector::SourceDetectorPollEvent::SourceExpired
 pub sacn::detector::SourceDetectorPollEvent::SourceExpired::cid: sacn::Cid
@@ -135,6 +139,8 @@ impl<T> core::clone::CloneToUninit for sacn::detector::SourceDetectorPollEvent w
 pub unsafe fn sacn::detector::SourceDetectorPollEvent::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::detector::SourceDetectorPollEvent
 pub fn sacn::detector::SourceDetectorPollEvent::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::detector::SourceDetectorPollEvent
+impl<T> tracing::instrument::WithSubscriber for sacn::detector::SourceDetectorPollEvent
 #[non_exhaustive] pub struct sacn::detector::DetectorPacketOutcome<'a>
 pub sacn::detector::DetectorPacketOutcome::limit_exceeded: core::option::Option<sacn::detector::LimitExceeded>
 pub sacn::detector::DetectorPacketOutcome::updated: core::option::Option<sacn::detector::SourceUpdateRef<'a>>
@@ -178,6 +184,8 @@ impl<T> core::clone::CloneToUninit for sacn::detector::DetectorPacketOutcome<'a>
 pub unsafe fn sacn::detector::DetectorPacketOutcome<'a>::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::detector::DetectorPacketOutcome<'a>
 pub fn sacn::detector::DetectorPacketOutcome<'a>::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::detector::DetectorPacketOutcome<'a>
+impl<T> tracing::instrument::WithSubscriber for sacn::detector::DetectorPacketOutcome<'a>
 pub struct sacn::detector::DetectorPollOutcome<'a>
 pub sacn::detector::DetectorPollOutcome::deadline: core::option::Option<sacn::time::Instant>
 impl<'a> sacn::detector::DetectorPollOutcome<'a>
@@ -207,6 +215,8 @@ impl<T> core::borrow::BorrowMut<T> for sacn::detector::DetectorPollOutcome<'a> w
 pub fn sacn::detector::DetectorPollOutcome<'a>::borrow_mut(&mut self) -> &mut T
 impl<T> core::convert::From<T> for sacn::detector::DetectorPollOutcome<'a>
 pub fn sacn::detector::DetectorPollOutcome<'a>::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::detector::DetectorPollOutcome<'a>
+impl<T> tracing::instrument::WithSubscriber for sacn::detector::DetectorPollOutcome<'a>
 pub struct sacn::detector::SourceDetector<S: sacn::detector::DetectorStorage>
 impl sacn::detector::SourceDetector<sacn::storage::HeapStorage>
 pub fn sacn::detector::SourceDetector<sacn::storage::HeapStorage>::new(sacn::detector::SourceDetectorConfig) -> Self
@@ -240,6 +250,8 @@ impl<T> core::borrow::BorrowMut<T> for sacn::detector::SourceDetector<S> where T
 pub fn sacn::detector::SourceDetector<S>::borrow_mut(&mut self) -> &mut T
 impl<T> core::convert::From<T> for sacn::detector::SourceDetector<S>
 pub fn sacn::detector::SourceDetector<S>::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::detector::SourceDetector<S>
+impl<T> tracing::instrument::WithSubscriber for sacn::detector::SourceDetector<S>
 pub struct sacn::detector::SourceDetectorConfig
 impl sacn::detector::SourceDetectorConfig
 pub fn sacn::detector::SourceDetectorConfig::new() -> Self
@@ -286,6 +298,8 @@ impl<T> core::clone::CloneToUninit for sacn::detector::SourceDetectorConfig wher
 pub unsafe fn sacn::detector::SourceDetectorConfig::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::detector::SourceDetectorConfig
 pub fn sacn::detector::SourceDetectorConfig::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::detector::SourceDetectorConfig
+impl<T> tracing::instrument::WithSubscriber for sacn::detector::SourceDetectorConfig
 #[non_exhaustive] pub struct sacn::detector::SourceUpdateRef<'a>
 pub sacn::detector::SourceUpdateRef::cid: sacn::Cid
 pub sacn::detector::SourceUpdateRef::name: &'a str
@@ -330,6 +344,8 @@ impl<T> core::clone::CloneToUninit for sacn::detector::SourceUpdateRef<'a> where
 pub unsafe fn sacn::detector::SourceUpdateRef<'a>::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::detector::SourceUpdateRef<'a>
 pub fn sacn::detector::SourceUpdateRef<'a>::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::detector::SourceUpdateRef<'a>
+impl<T> tracing::instrument::WithSubscriber for sacn::detector::SourceUpdateRef<'a>
 pub trait sacn::detector::DetectorStorage: core::marker::Sized
 pub type sacn::detector::DetectorStorage::EventBuffer: sacn::storage::VecLike<sacn::detector::SourceDetectorPollEvent>
 pub type sacn::detector::DetectorStorage::Sources: sacn::storage::MapLike<sacn::Cid, DetectedSource<Self>>
@@ -338,6 +354,148 @@ impl sacn::detector::DetectorStorage for sacn::storage::HeapStorage
 pub type sacn::storage::HeapStorage::EventBuffer = alloc::vec::Vec<sacn::detector::SourceDetectorPollEvent>
 pub type sacn::storage::HeapStorage::Sources = alloc::collections::btree::map::BTreeMap<sacn::Cid, DetectedSource<sacn::storage::HeapStorage>>
 pub type sacn::storage::HeapStorage::Universes = alloc::vec::Vec<u16>
+pub mod sacn::embassy
+#[non_exhaustive] pub enum sacn::embassy::EmbassyError
+pub sacn::embassy::EmbassyError::Bind(embassy_net::udp::BindError)
+pub sacn::embassy::EmbassyError::Protocol(sacn::error::Error)
+impl core::convert::From<sacn::error::Error> for sacn::embassy::EmbassyError
+pub fn sacn::embassy::EmbassyError::from(sacn::error::Error) -> Self
+impl core::error::Error for sacn::embassy::EmbassyError
+pub fn sacn::embassy::EmbassyError::source(&self) -> core::option::Option<&(dyn core::error::Error + 'static)>
+impl core::fmt::Debug for sacn::embassy::EmbassyError
+pub fn sacn::embassy::EmbassyError::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::fmt::Display for sacn::embassy::EmbassyError
+pub fn sacn::embassy::EmbassyError::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl defmt::traits::Format for sacn::embassy::EmbassyError where sacn::error::Error: defmt::traits::Format, embassy_net::udp::BindError: defmt::traits::Format
+pub fn sacn::embassy::EmbassyError::format(&self, defmt::formatter::Formatter<'_>)
+impl core::marker::Freeze for sacn::embassy::EmbassyError
+impl core::marker::Send for sacn::embassy::EmbassyError
+impl core::marker::Sync for sacn::embassy::EmbassyError
+impl core::marker::Unpin for sacn::embassy::EmbassyError
+impl core::marker::UnsafeUnpin for sacn::embassy::EmbassyError
+impl core::panic::unwind_safe::RefUnwindSafe for sacn::embassy::EmbassyError
+impl core::panic::unwind_safe::UnwindSafe for sacn::embassy::EmbassyError
+impl<T, U> core::convert::Into<U> for sacn::embassy::EmbassyError where U: core::convert::From<T>
+pub fn sacn::embassy::EmbassyError::into(self) -> U
+impl<T, U> core::convert::TryFrom<U> for sacn::embassy::EmbassyError where U: core::convert::Into<T>
+pub type sacn::embassy::EmbassyError::Error = core::convert::Infallible
+pub fn sacn::embassy::EmbassyError::try_from(U) -> core::result::Result<T, <T as core::convert::TryFrom<U>>::Error>
+impl<T, U> core::convert::TryInto<U> for sacn::embassy::EmbassyError where U: core::convert::TryFrom<T>
+pub type sacn::embassy::EmbassyError::Error = <U as core::convert::TryFrom<T>>::Error
+pub fn sacn::embassy::EmbassyError::try_into(self) -> core::result::Result<U, <U as core::convert::TryFrom<T>>::Error>
+impl<T> alloc::string::ToString for sacn::embassy::EmbassyError where T: core::fmt::Display + ?core::marker::Sized
+pub fn sacn::embassy::EmbassyError::to_string(&self) -> alloc::string::String
+impl<T> core::any::Any for sacn::embassy::EmbassyError where T: 'static + ?core::marker::Sized
+pub fn sacn::embassy::EmbassyError::type_id(&self) -> core::any::TypeId
+impl<T> core::borrow::Borrow<T> for sacn::embassy::EmbassyError where T: ?core::marker::Sized
+pub fn sacn::embassy::EmbassyError::borrow(&self) -> &T
+impl<T> core::borrow::BorrowMut<T> for sacn::embassy::EmbassyError where T: ?core::marker::Sized
+pub fn sacn::embassy::EmbassyError::borrow_mut(&mut self) -> &mut T
+impl<T> core::convert::From<T> for sacn::embassy::EmbassyError
+pub fn sacn::embassy::EmbassyError::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::embassy::EmbassyError
+impl<T> tracing::instrument::WithSubscriber for sacn::embassy::EmbassyError
+pub struct sacn::embassy::Source<'d, S: sacn::embassy::SourceStorage>
+impl<'d, S: sacn::embassy::SourceStorage> sacn::embassy::Source<'d, S>
+pub fn sacn::embassy::Source<'d, S>::add_unicast(&mut self, sacn::Universe, smoltcp::wire::ip::Address) -> bool
+pub fn sacn::embassy::Source<'d, S>::add_unicast_only_universe(&mut self, sacn::source::UniverseConfig) -> core::result::Result<bool, sacn::embassy::EmbassyError>
+pub fn sacn::embassy::Source<'d, S>::add_unicast_to_port(&mut self, sacn::Universe, smoltcp::wire::ip::Address, u16) -> bool
+pub fn sacn::embassy::Source<'d, S>::add_universe(&mut self, sacn::source::UniverseConfig) -> core::result::Result<bool, sacn::embassy::EmbassyError>
+pub fn sacn::embassy::Source<'d, S>::config(&self) -> &sacn::source::SourceConfig
+pub fn sacn::embassy::Source<'d, S>::has_universe(&self, sacn::Universe) -> bool
+pub fn sacn::embassy::Source<'d, S>::new(embassy_net::Stack<'d>, &'d mut sacn::embassy::SourceResources<S>, sacn::source::SourceConfig) -> core::result::Result<Self, sacn::embassy::EmbassyError>
+pub async fn sacn::embassy::Source<'d, S>::process(&mut self) -> core::result::Result<core::option::Option<embassy_time::instant::Instant>, sacn::embassy::EmbassyError>
+pub fn sacn::embassy::Source<'d, S>::remove_pap(&mut self, sacn::Universe)
+pub fn sacn::embassy::Source<'d, S>::remove_unicast(&mut self, sacn::Universe, smoltcp::wire::ip::Address) -> bool
+pub fn sacn::embassy::Source<'d, S>::remove_unicast_from_port(&mut self, sacn::Universe, smoltcp::wire::ip::Address, u16) -> bool
+pub fn sacn::embassy::Source<'d, S>::remove_universe(&mut self, sacn::Universe) -> bool
+pub fn sacn::embassy::Source<'d, S>::resend(&mut self, sacn::Universe)
+pub async fn sacn::embassy::Source<'d, S>::run(&mut self) -> core::result::Result<core::convert::Infallible, sacn::embassy::EmbassyError>
+pub async fn sacn::embassy::Source<'d, S>::send_now(&mut self, sacn::Universe, sacn::StartCode, &[u8]) -> core::result::Result<(), sacn::embassy::EmbassyError>
+pub fn sacn::embassy::Source<'d, S>::set_name(&mut self, impl core::convert::Into<sacn::SourceName>)
+pub fn sacn::embassy::Source<'d, S>::set_preview(&mut self, sacn::Universe, bool)
+pub fn sacn::embassy::Source<'d, S>::set_priority(&mut self, sacn::Universe, sacn::Priority)
+pub fn sacn::embassy::Source<'d, S>::set_synchronization(&mut self, sacn::Universe, core::option::Option<(sacn::Universe, sacn::source::OnSyncLoss)>)
+pub fn sacn::embassy::Source<'d, S>::universes(&self) -> impl core::iter::traits::iterator::Iterator<Item = sacn::Universe> + '_
+pub fn sacn::embassy::Source<'d, S>::update_levels(&mut self, sacn::Universe, &[u8])
+pub fn sacn::embassy::Source<'d, S>::update_levels_and_pap(&mut self, sacn::Universe, &[u8], &[u8])
+impl<'d> sacn::embassy::Source<'d, sacn::storage::HeapStorage>
+pub fn sacn::embassy::Source<'d, sacn::storage::HeapStorage>::new_boxed(embassy_net::Stack<'d>, sacn::source::SourceConfig) -> core::result::Result<Self, sacn::embassy::EmbassyError>
+impl<S: sacn::embassy::SourceStorage> core::fmt::Debug for sacn::embassy::Source<'_, S>
+pub fn sacn::embassy::Source<'_, S>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<'d, S> core::marker::Freeze for sacn::embassy::Source<'d, S> where <S as sacn::embassy::SourceStorage>::FailingTargets: core::marker::Freeze
+impl<'d, S> !core::marker::Send for sacn::embassy::Source<'d, S>
+impl<'d, S> !core::marker::Sync for sacn::embassy::Source<'d, S>
+impl<'d, S> core::marker::Unpin for sacn::embassy::Source<'d, S> where S: core::marker::Unpin, <S as sacn::embassy::SourceStorage>::FailingTargets: core::marker::Unpin
+impl<'d, S> core::marker::UnsafeUnpin for sacn::embassy::Source<'d, S> where <S as sacn::embassy::SourceStorage>::FailingTargets: core::marker::UnsafeUnpin
+impl<'d, S> !core::panic::unwind_safe::RefUnwindSafe for sacn::embassy::Source<'d, S>
+impl<'d, S> !core::panic::unwind_safe::UnwindSafe for sacn::embassy::Source<'d, S>
+impl<T, U> core::convert::Into<U> for sacn::embassy::Source<'d, S> where U: core::convert::From<T>
+pub fn sacn::embassy::Source<'d, S>::into(self) -> U
+impl<T, U> core::convert::TryFrom<U> for sacn::embassy::Source<'d, S> where U: core::convert::Into<T>
+pub type sacn::embassy::Source<'d, S>::Error = core::convert::Infallible
+pub fn sacn::embassy::Source<'d, S>::try_from(U) -> core::result::Result<T, <T as core::convert::TryFrom<U>>::Error>
+impl<T, U> core::convert::TryInto<U> for sacn::embassy::Source<'d, S> where U: core::convert::TryFrom<T>
+pub type sacn::embassy::Source<'d, S>::Error = <U as core::convert::TryFrom<T>>::Error
+pub fn sacn::embassy::Source<'d, S>::try_into(self) -> core::result::Result<U, <U as core::convert::TryFrom<T>>::Error>
+impl<T> core::any::Any for sacn::embassy::Source<'d, S> where T: 'static + ?core::marker::Sized
+pub fn sacn::embassy::Source<'d, S>::type_id(&self) -> core::any::TypeId
+impl<T> core::borrow::Borrow<T> for sacn::embassy::Source<'d, S> where T: ?core::marker::Sized
+pub fn sacn::embassy::Source<'d, S>::borrow(&self) -> &T
+impl<T> core::borrow::BorrowMut<T> for sacn::embassy::Source<'d, S> where T: ?core::marker::Sized
+pub fn sacn::embassy::Source<'d, S>::borrow_mut(&mut self) -> &mut T
+impl<T> core::convert::From<T> for sacn::embassy::Source<'d, S>
+pub fn sacn::embassy::Source<'d, S>::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::embassy::Source<'d, S>
+impl<T> tracing::instrument::WithSubscriber for sacn::embassy::Source<'d, S>
+pub struct sacn::embassy::SourceResources<S: sacn::embassy::SourceStorage>
+impl core::default::Default for sacn::embassy::SourceResources<sacn::storage::HeapStorage>
+pub fn sacn::embassy::SourceResources<sacn::storage::HeapStorage>::default() -> Self
+impl<S: sacn::embassy::SourceStorage> core::fmt::Debug for sacn::embassy::SourceResources<S>
+pub fn sacn::embassy::SourceResources<S>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<S> core::marker::Freeze for sacn::embassy::SourceResources<S> where <S as sacn::embassy::SourceStorage>::Destinations: core::marker::Freeze, <S as sacn::embassy::SourceStorage>::RxMeta: core::marker::Freeze, <S as sacn::embassy::SourceStorage>::RxBuffer: core::marker::Freeze, <S as sacn::embassy::SourceStorage>::TxMeta: core::marker::Freeze, <S as sacn::embassy::SourceStorage>::TxBuffer: core::marker::Freeze, <S as sacn::source::SourceStorage>::TxUniverses: core::marker::Freeze, <S as sacn::source::SourceStorage>::SyncGroups: core::marker::Freeze, <S as sacn::source::SourceStorage>::Pending: core::marker::Freeze, <S as sacn::source::SourceStorage>::Removed: core::marker::Freeze, <S as sacn::embassy::SourceStorage>::SendTargets: core::marker::Freeze
+impl<S> core::marker::Send for sacn::embassy::SourceResources<S> where <S as sacn::embassy::SourceStorage>::Destinations: core::marker::Send, <S as sacn::embassy::SourceStorage>::RxMeta: core::marker::Send, <S as sacn::embassy::SourceStorage>::RxBuffer: core::marker::Send, <S as sacn::embassy::SourceStorage>::TxMeta: core::marker::Send, <S as sacn::embassy::SourceStorage>::TxBuffer: core::marker::Send, <S as sacn::source::SourceStorage>::TxUniverses: core::marker::Send, <S as sacn::source::SourceStorage>::SyncGroups: core::marker::Send, <S as sacn::source::SourceStorage>::Pending: core::marker::Send, <S as sacn::source::SourceStorage>::Removed: core::marker::Send, <S as sacn::embassy::SourceStorage>::SendTargets: core::marker::Send
+impl<S> core::marker::Sync for sacn::embassy::SourceResources<S> where <S as sacn::embassy::SourceStorage>::Destinations: core::marker::Sync, <S as sacn::embassy::SourceStorage>::RxMeta: core::marker::Sync, <S as sacn::embassy::SourceStorage>::RxBuffer: core::marker::Sync, <S as sacn::embassy::SourceStorage>::TxMeta: core::marker::Sync, <S as sacn::embassy::SourceStorage>::TxBuffer: core::marker::Sync, <S as sacn::source::SourceStorage>::TxUniverses: core::marker::Sync, <S as sacn::source::SourceStorage>::SyncGroups: core::marker::Sync, <S as sacn::source::SourceStorage>::Pending: core::marker::Sync, <S as sacn::source::SourceStorage>::Removed: core::marker::Sync, <S as sacn::embassy::SourceStorage>::SendTargets: core::marker::Sync
+impl<S> core::marker::Unpin for sacn::embassy::SourceResources<S> where <S as sacn::embassy::SourceStorage>::Destinations: core::marker::Unpin, <S as sacn::embassy::SourceStorage>::RxMeta: core::marker::Unpin, <S as sacn::embassy::SourceStorage>::RxBuffer: core::marker::Unpin, <S as sacn::embassy::SourceStorage>::TxMeta: core::marker::Unpin, <S as sacn::embassy::SourceStorage>::TxBuffer: core::marker::Unpin, <S as sacn::source::SourceStorage>::TxUniverses: core::marker::Unpin, <S as sacn::source::SourceStorage>::SyncGroups: core::marker::Unpin, <S as sacn::source::SourceStorage>::Pending: core::marker::Unpin, <S as sacn::source::SourceStorage>::Removed: core::marker::Unpin, <S as sacn::embassy::SourceStorage>::SendTargets: core::marker::Unpin
+impl<S> core::marker::UnsafeUnpin for sacn::embassy::SourceResources<S> where <S as sacn::embassy::SourceStorage>::Destinations: core::marker::UnsafeUnpin, <S as sacn::embassy::SourceStorage>::RxMeta: core::marker::UnsafeUnpin, <S as sacn::embassy::SourceStorage>::RxBuffer: core::marker::UnsafeUnpin, <S as sacn::embassy::SourceStorage>::TxMeta: core::marker::UnsafeUnpin, <S as sacn::embassy::SourceStorage>::TxBuffer: core::marker::UnsafeUnpin, <S as sacn::source::SourceStorage>::TxUniverses: core::marker::UnsafeUnpin, <S as sacn::source::SourceStorage>::SyncGroups: core::marker::UnsafeUnpin, <S as sacn::source::SourceStorage>::Pending: core::marker::UnsafeUnpin, <S as sacn::source::SourceStorage>::Removed: core::marker::UnsafeUnpin, <S as sacn::embassy::SourceStorage>::SendTargets: core::marker::UnsafeUnpin
+impl<S> core::panic::unwind_safe::RefUnwindSafe for sacn::embassy::SourceResources<S> where <S as sacn::embassy::SourceStorage>::Destinations: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::embassy::SourceStorage>::RxMeta: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::embassy::SourceStorage>::RxBuffer: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::embassy::SourceStorage>::TxMeta: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::embassy::SourceStorage>::TxBuffer: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::source::SourceStorage>::TxUniverses: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::source::SourceStorage>::SyncGroups: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::source::SourceStorage>::Pending: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::source::SourceStorage>::Removed: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::embassy::SourceStorage>::SendTargets: core::panic::unwind_safe::RefUnwindSafe
+impl<S> core::panic::unwind_safe::UnwindSafe for sacn::embassy::SourceResources<S> where <S as sacn::embassy::SourceStorage>::Destinations: core::panic::unwind_safe::UnwindSafe, <S as sacn::embassy::SourceStorage>::RxMeta: core::panic::unwind_safe::UnwindSafe, <S as sacn::embassy::SourceStorage>::RxBuffer: core::panic::unwind_safe::UnwindSafe, <S as sacn::embassy::SourceStorage>::TxMeta: core::panic::unwind_safe::UnwindSafe, <S as sacn::embassy::SourceStorage>::TxBuffer: core::panic::unwind_safe::UnwindSafe, <S as sacn::source::SourceStorage>::TxUniverses: core::panic::unwind_safe::UnwindSafe, <S as sacn::source::SourceStorage>::SyncGroups: core::panic::unwind_safe::UnwindSafe, <S as sacn::source::SourceStorage>::Pending: core::panic::unwind_safe::UnwindSafe, <S as sacn::source::SourceStorage>::Removed: core::panic::unwind_safe::UnwindSafe, <S as sacn::embassy::SourceStorage>::SendTargets: core::panic::unwind_safe::UnwindSafe
+impl<T, U> core::convert::Into<U> for sacn::embassy::SourceResources<S> where U: core::convert::From<T>
+pub fn sacn::embassy::SourceResources<S>::into(self) -> U
+impl<T, U> core::convert::TryFrom<U> for sacn::embassy::SourceResources<S> where U: core::convert::Into<T>
+pub type sacn::embassy::SourceResources<S>::Error = core::convert::Infallible
+pub fn sacn::embassy::SourceResources<S>::try_from(U) -> core::result::Result<T, <T as core::convert::TryFrom<U>>::Error>
+impl<T, U> core::convert::TryInto<U> for sacn::embassy::SourceResources<S> where U: core::convert::TryFrom<T>
+pub type sacn::embassy::SourceResources<S>::Error = <U as core::convert::TryFrom<T>>::Error
+pub fn sacn::embassy::SourceResources<S>::try_into(self) -> core::result::Result<U, <U as core::convert::TryFrom<T>>::Error>
+impl<T> core::any::Any for sacn::embassy::SourceResources<S> where T: 'static + ?core::marker::Sized
+pub fn sacn::embassy::SourceResources<S>::type_id(&self) -> core::any::TypeId
+impl<T> core::borrow::Borrow<T> for sacn::embassy::SourceResources<S> where T: ?core::marker::Sized
+pub fn sacn::embassy::SourceResources<S>::borrow(&self) -> &T
+impl<T> core::borrow::BorrowMut<T> for sacn::embassy::SourceResources<S> where T: ?core::marker::Sized
+pub fn sacn::embassy::SourceResources<S>::borrow_mut(&mut self) -> &mut T
+impl<T> core::convert::From<T> for sacn::embassy::SourceResources<S>
+pub fn sacn::embassy::SourceResources<S>::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::embassy::SourceResources<S>
+impl<T> tracing::instrument::WithSubscriber for sacn::embassy::SourceResources<S>
+pub trait sacn::embassy::SourceStorage: sacn::source::SourceStorage
+pub type sacn::embassy::SourceStorage::Destinations: sacn::storage::MapLike<sacn::Universe, Destinations<Self>>
+pub type sacn::embassy::SourceStorage::FailingTargets: sacn::storage::VecLike<smoltcp::wire::ip::Endpoint>
+pub type sacn::embassy::SourceStorage::RxBuffer: core::convert::AsMut<[u8]>
+pub type sacn::embassy::SourceStorage::RxMeta: core::convert::AsMut<[smoltcp::socket::udp::PacketMetadata]>
+pub type sacn::embassy::SourceStorage::SendTargets: sacn::storage::VecLike<smoltcp::wire::ip::Endpoint>
+pub type sacn::embassy::SourceStorage::TxBuffer: core::convert::AsMut<[u8]>
+pub type sacn::embassy::SourceStorage::TxMeta: core::convert::AsMut<[smoltcp::socket::udp::PacketMetadata]>
+pub type sacn::embassy::SourceStorage::Unicast: sacn::storage::VecLike<smoltcp::wire::ip::Endpoint>
+impl sacn::embassy::SourceStorage for sacn::storage::HeapStorage
+pub type sacn::storage::HeapStorage::Destinations = alloc::collections::btree::map::BTreeMap<sacn::Universe, Destinations<sacn::storage::HeapStorage>>
+pub type sacn::storage::HeapStorage::FailingTargets = alloc::vec::Vec<smoltcp::wire::ip::Endpoint>
+pub type sacn::storage::HeapStorage::RxBuffer = [u8; 1144]
+pub type sacn::storage::HeapStorage::RxMeta = [smoltcp::storage::packet_buffer::PacketMetadata<smoltcp::socket::udp::UdpMetadata>; 4]
+pub type sacn::storage::HeapStorage::SendTargets = alloc::vec::Vec<smoltcp::wire::ip::Endpoint>
+pub type sacn::storage::HeapStorage::TxBuffer = [u8; 1144]
+pub type sacn::storage::HeapStorage::TxMeta = [smoltcp::storage::packet_buffer::PacketMetadata<smoltcp::socket::udp::UdpMetadata>; 4]
+pub type sacn::storage::HeapStorage::Unicast = alloc::vec::Vec<smoltcp::wire::ip::Endpoint>
 pub mod sacn::error
 #[non_exhaustive] pub enum sacn::error::CodecErrorKind
 pub sacn::error::CodecErrorKind::BufferTooSmall
@@ -368,6 +526,8 @@ pub fn sacn::error::CodecErrorKind::fmt(&self, &mut core::fmt::Formatter<'_>) ->
 impl core::fmt::Display for sacn::error::CodecErrorKind
 pub fn sacn::error::CodecErrorKind::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
 impl core::marker::StructuralPartialEq for sacn::error::CodecErrorKind
+impl defmt::traits::Format for sacn::error::CodecErrorKind where sacn::error::VectorLayer: defmt::traits::Format
+pub fn sacn::error::CodecErrorKind::format(&self, defmt::formatter::Formatter<'_>)
 impl core::marker::Freeze for sacn::error::CodecErrorKind
 impl core::marker::Send for sacn::error::CodecErrorKind
 impl core::marker::Sync for sacn::error::CodecErrorKind
@@ -399,6 +559,8 @@ impl<T> core::clone::CloneToUninit for sacn::error::CodecErrorKind where T: core
 pub unsafe fn sacn::error::CodecErrorKind::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::error::CodecErrorKind
 pub fn sacn::error::CodecErrorKind::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::error::CodecErrorKind
+impl<T> tracing::instrument::WithSubscriber for sacn::error::CodecErrorKind
 #[non_exhaustive] pub enum sacn::error::Error
 pub sacn::error::Error::Codec(sacn::error::CodecError)
 pub sacn::error::Error::InvalidPriority
@@ -419,6 +581,8 @@ impl core::convert::From<sacn::error::CodecError> for sacn::error::Error
 pub fn sacn::error::Error::from(sacn::error::CodecError) -> Self
 impl core::convert::From<sacn::error::Error> for sacn::AdapterError
 pub fn sacn::AdapterError::from(sacn::error::Error) -> Self
+impl core::convert::From<sacn::error::Error> for sacn::embassy::EmbassyError
+pub fn sacn::embassy::EmbassyError::from(sacn::error::Error) -> Self
 impl core::error::Error for sacn::error::Error
 pub fn sacn::error::Error::source(&self) -> core::option::Option<&(dyn core::error::Error + 'static)>
 impl core::fmt::Debug for sacn::error::Error
@@ -426,6 +590,8 @@ pub fn sacn::error::Error::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fm
 impl core::fmt::Display for sacn::error::Error
 pub fn sacn::error::Error::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
 impl core::marker::StructuralPartialEq for sacn::error::Error
+impl defmt::traits::Format for sacn::error::Error where sacn::error::CodecError: defmt::traits::Format
+pub fn sacn::error::Error::format(&self, defmt::formatter::Formatter<'_>)
 impl core::marker::Freeze for sacn::error::Error
 impl core::marker::Send for sacn::error::Error
 impl core::marker::Sync for sacn::error::Error
@@ -457,6 +623,8 @@ impl<T> core::clone::CloneToUninit for sacn::error::Error where T: core::clone::
 pub unsafe fn sacn::error::Error::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::error::Error
 pub fn sacn::error::Error::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::error::Error
+impl<T> tracing::instrument::WithSubscriber for sacn::error::Error
 #[non_exhaustive] pub enum sacn::error::VectorLayer
 pub sacn::error::VectorLayer::Dmp
 pub sacn::error::VectorLayer::Framing
@@ -473,6 +641,8 @@ impl core::fmt::Display for sacn::error::VectorLayer
 pub fn sacn::error::VectorLayer::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
 impl core::marker::Copy for sacn::error::VectorLayer
 impl core::marker::StructuralPartialEq for sacn::error::VectorLayer
+impl defmt::traits::Format for sacn::error::VectorLayer
+pub fn sacn::error::VectorLayer::format(&self, defmt::formatter::Formatter<'_>)
 impl core::marker::Freeze for sacn::error::VectorLayer
 impl core::marker::Send for sacn::error::VectorLayer
 impl core::marker::Sync for sacn::error::VectorLayer
@@ -504,6 +674,8 @@ impl<T> core::clone::CloneToUninit for sacn::error::VectorLayer where T: core::c
 pub unsafe fn sacn::error::VectorLayer::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::error::VectorLayer
 pub fn sacn::error::VectorLayer::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::error::VectorLayer
+impl<T> tracing::instrument::WithSubscriber for sacn::error::VectorLayer
 #[non_exhaustive] pub struct sacn::error::CodecError
 pub sacn::error::CodecError::kind: sacn::error::CodecErrorKind
 pub sacn::error::CodecError::offset: usize
@@ -520,6 +692,8 @@ pub fn sacn::error::CodecError::fmt(&self, &mut core::fmt::Formatter<'_>) -> cor
 impl core::fmt::Display for sacn::error::CodecError
 pub fn sacn::error::CodecError::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
 impl core::marker::StructuralPartialEq for sacn::error::CodecError
+impl defmt::traits::Format for sacn::error::CodecError where sacn::error::CodecErrorKind: defmt::traits::Format
+pub fn sacn::error::CodecError::format(&self, defmt::formatter::Formatter<'_>)
 impl core::marker::Freeze for sacn::error::CodecError
 impl core::marker::Send for sacn::error::CodecError
 impl core::marker::Sync for sacn::error::CodecError
@@ -551,6 +725,8 @@ impl<T> core::clone::CloneToUninit for sacn::error::CodecError where T: core::cl
 pub unsafe fn sacn::error::CodecError::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::error::CodecError
 pub fn sacn::error::CodecError::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::error::CodecError
+impl<T> tracing::instrument::WithSubscriber for sacn::error::CodecError
 pub type sacn::error::Result<T> = core::result::Result<T, sacn::error::Error>
 pub mod sacn::merger
 pub struct sacn::merger::DmxMerger<S: sacn::merger::MergerStorage>
@@ -594,6 +770,8 @@ impl<T> core::borrow::BorrowMut<T> for sacn::merger::DmxMerger<S> where T: ?core
 pub fn sacn::merger::DmxMerger<S>::borrow_mut(&mut self) -> &mut T
 impl<T> core::convert::From<T> for sacn::merger::DmxMerger<S>
 pub fn sacn::merger::DmxMerger<S>::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::merger::DmxMerger<S>
+impl<T> tracing::instrument::WithSubscriber for sacn::merger::DmxMerger<S>
 pub struct sacn::merger::MergeOutput<'a>
 impl<'a> sacn::merger::MergeOutput<'a>
 pub fn sacn::merger::MergeOutput<'a>::levels(&self) -> &'a [u8]
@@ -633,6 +811,8 @@ impl<T> core::clone::CloneToUninit for sacn::merger::MergeOutput<'a> where T: co
 pub unsafe fn sacn::merger::MergeOutput<'a>::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::merger::MergeOutput<'a>
 pub fn sacn::merger::MergeOutput<'a>::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::merger::MergeOutput<'a>
+impl<T> tracing::instrument::WithSubscriber for sacn::merger::MergeOutput<'a>
 #[repr(transparent)] pub struct sacn::merger::SlotOwner(_)
 impl sacn::merger::SlotOwner
 pub const sacn::merger::SlotOwner::NONE: sacn::merger::SlotOwner
@@ -679,6 +859,8 @@ impl<T> core::clone::CloneToUninit for sacn::merger::SlotOwner where T: core::cl
 pub unsafe fn sacn::merger::SlotOwner::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::merger::SlotOwner
 pub fn sacn::merger::SlotOwner::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::merger::SlotOwner
+impl<T> tracing::instrument::WithSubscriber for sacn::merger::SlotOwner
 pub struct sacn::merger::SourceId(_)
 impl sacn::merger::SourceId
 pub fn sacn::merger::SourceId::index(self) -> SourceIndex
@@ -722,6 +904,8 @@ impl<T> core::clone::CloneToUninit for sacn::merger::SourceId where T: core::clo
 pub unsafe fn sacn::merger::SourceId::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::merger::SourceId
 pub fn sacn::merger::SourceId::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::merger::SourceId
+impl<T> tracing::instrument::WithSubscriber for sacn::merger::SourceId
 pub trait sacn::merger::MergerStorage: core::marker::Sized
 pub type sacn::merger::MergerStorage::FreeList: sacn::storage::VecLike<SourceIndex>
 pub type sacn::merger::MergerStorage::MergeSources: sacn::storage::VecLike<MergeSourceEntry>
@@ -771,6 +955,8 @@ impl<T> core::clone::CloneToUninit for sacn::packet::Payload<'a> where T: core::
 pub unsafe fn sacn::packet::Payload<'a>::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::packet::Payload<'a>
 pub fn sacn::packet::Payload<'a>::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::packet::Payload<'a>
+impl<T> tracing::instrument::WithSubscriber for sacn::packet::Payload<'a>
 #[non_exhaustive] pub struct sacn::packet::DataPacket<'a>
 pub sacn::packet::DataPacket::force_sync: bool
 pub sacn::packet::DataPacket::preview: bool
@@ -820,6 +1006,8 @@ impl<T> core::clone::CloneToUninit for sacn::packet::DataPacket<'a> where T: cor
 pub unsafe fn sacn::packet::DataPacket<'a>::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::packet::DataPacket<'a>
 pub fn sacn::packet::DataPacket<'a>::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::packet::DataPacket<'a>
+impl<T> tracing::instrument::WithSubscriber for sacn::packet::DataPacket<'a>
 #[non_exhaustive] pub struct sacn::packet::Packet<'a>
 pub sacn::packet::Packet::cid: sacn::Cid
 pub sacn::packet::Packet::payload: sacn::packet::Payload<'a>
@@ -867,6 +1055,8 @@ impl<T> core::clone::CloneToUninit for sacn::packet::Packet<'a> where T: core::c
 pub unsafe fn sacn::packet::Packet<'a>::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::packet::Packet<'a>
 pub fn sacn::packet::Packet<'a>::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::packet::Packet<'a>
+impl<T> tracing::instrument::WithSubscriber for sacn::packet::Packet<'a>
 #[non_exhaustive] pub struct sacn::packet::SyncPacket
 pub sacn::packet::SyncPacket::sequence_number: sacn::SequenceNumber
 pub sacn::packet::SyncPacket::sync_address: u16
@@ -908,6 +1098,8 @@ impl<T> core::clone::CloneToUninit for sacn::packet::SyncPacket where T: core::c
 pub unsafe fn sacn::packet::SyncPacket::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::packet::SyncPacket
 pub fn sacn::packet::SyncPacket::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::packet::SyncPacket
+impl<T> tracing::instrument::WithSubscriber for sacn::packet::SyncPacket
 #[non_exhaustive] pub struct sacn::packet::UniverseDiscoveryPacket<'a>
 pub sacn::packet::UniverseDiscoveryPacket::last_page: u8
 pub sacn::packet::UniverseDiscoveryPacket::page: u8
@@ -951,6 +1143,8 @@ impl<T> core::clone::CloneToUninit for sacn::packet::UniverseDiscoveryPacket<'a>
 pub unsafe fn sacn::packet::UniverseDiscoveryPacket<'a>::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::packet::UniverseDiscoveryPacket<'a>
 pub fn sacn::packet::UniverseDiscoveryPacket<'a>::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::packet::UniverseDiscoveryPacket<'a>
+impl<T> tracing::instrument::WithSubscriber for sacn::packet::UniverseDiscoveryPacket<'a>
 pub struct sacn::packet::UniverseList<'a>
 impl<'a> sacn::packet::UniverseList<'a>
 pub const fn sacn::packet::UniverseList<'a>::as_bytes(&self) -> &'a [u8]
@@ -1000,6 +1194,8 @@ impl<T> core::clone::CloneToUninit for sacn::packet::UniverseList<'a> where T: c
 pub unsafe fn sacn::packet::UniverseList<'a>::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::packet::UniverseList<'a>
 pub fn sacn::packet::UniverseList<'a>::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::packet::UniverseList<'a>
+impl<T> tracing::instrument::WithSubscriber for sacn::packet::UniverseList<'a>
 pub const sacn::packet::DMX_NULL_START_CODE: u8
 pub const sacn::packet::MAX_PACKET_SIZE: usize
 pub const sacn::packet::MAX_SLOTS: usize
@@ -1067,6 +1263,8 @@ impl<T> core::clone::CloneToUninit for sacn::BasicReceiverEvent where T: core::c
 pub unsafe fn sacn::BasicReceiverEvent::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::BasicReceiverEvent
 pub fn sacn::BasicReceiverEvent::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::BasicReceiverEvent
+impl<T> tracing::instrument::WithSubscriber for sacn::BasicReceiverEvent
 #[non_exhaustive] pub enum sacn::receiver::BasicReceiverPollEvent<'a>
 pub sacn::receiver::BasicReceiverPollEvent::SamplingEnded
 pub sacn::receiver::BasicReceiverPollEvent::SamplingEnded::universe: sacn::Universe
@@ -1113,6 +1311,8 @@ impl<T> core::clone::CloneToUninit for sacn::receiver::BasicReceiverPollEvent<'a
 pub unsafe fn sacn::receiver::BasicReceiverPollEvent<'a>::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::receiver::BasicReceiverPollEvent<'a>
 pub fn sacn::receiver::BasicReceiverPollEvent<'a>::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::receiver::BasicReceiverPollEvent<'a>
+impl<T> tracing::instrument::WithSubscriber for sacn::receiver::BasicReceiverPollEvent<'a>
 #[non_exhaustive] pub enum sacn::receiver::MergedPacketOutcome<'r, 'p, S: sacn::receiver::ReceiverStorage>
 pub sacn::receiver::MergedPacketOutcome::Data
 pub sacn::receiver::MergedPacketOutcome::Data::merged: core::option::Option<sacn::receiver::MergedDataRef<'r, S>>
@@ -1162,6 +1362,8 @@ impl<T> core::clone::CloneToUninit for sacn::receiver::MergedPacketOutcome<'r, '
 pub unsafe fn sacn::receiver::MergedPacketOutcome<'r, 'p, S>::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::receiver::MergedPacketOutcome<'r, 'p, S>
 pub fn sacn::receiver::MergedPacketOutcome<'r, 'p, S>::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::receiver::MergedPacketOutcome<'r, 'p, S>
+impl<T> tracing::instrument::WithSubscriber for sacn::receiver::MergedPacketOutcome<'r, 'p, S>
 #[non_exhaustive] pub enum sacn::receiver::PacketOutcome<'a>
 pub sacn::receiver::PacketOutcome::Data
 pub sacn::receiver::PacketOutcome::Data::data: core::option::Option<sacn::receiver::UniverseDataRef<'a>>
@@ -1213,6 +1415,8 @@ impl<T> core::clone::CloneToUninit for sacn::receiver::PacketOutcome<'a> where T
 pub unsafe fn sacn::receiver::PacketOutcome<'a>::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::receiver::PacketOutcome<'a>
 pub fn sacn::receiver::PacketOutcome<'a>::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::receiver::PacketOutcome<'a>
+impl<T> tracing::instrument::WithSubscriber for sacn::receiver::PacketOutcome<'a>
 #[non_exhaustive] pub enum sacn::receiver::ReceiverEvent
 pub sacn::receiver::ReceiverEvent::MergedData(sacn::MergedData)
 pub sacn::receiver::ReceiverEvent::SamplingEnded
@@ -1268,6 +1472,8 @@ impl<T> core::clone::CloneToUninit for sacn::ReceiverEvent where T: core::clone:
 pub unsafe fn sacn::ReceiverEvent::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::ReceiverEvent
 pub fn sacn::ReceiverEvent::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::ReceiverEvent
+impl<T> tracing::instrument::WithSubscriber for sacn::ReceiverEvent
 #[non_exhaustive] pub enum sacn::receiver::ReceiverPollEvent<'a>
 pub sacn::receiver::ReceiverPollEvent::MergedDataChanged
 pub sacn::receiver::ReceiverPollEvent::MergedDataChanged::universe: sacn::Universe
@@ -1314,6 +1520,8 @@ impl<T> core::clone::CloneToUninit for sacn::receiver::ReceiverPollEvent<'a> whe
 pub unsafe fn sacn::receiver::ReceiverPollEvent<'a>::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::receiver::ReceiverPollEvent<'a>
 pub fn sacn::receiver::ReceiverPollEvent<'a>::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::receiver::ReceiverPollEvent<'a>
+impl<T> tracing::instrument::WithSubscriber for sacn::receiver::ReceiverPollEvent<'a>
 pub struct sacn::receiver::BasicReceiver<S: sacn::receiver::BasicReceiverStorage>
 impl sacn::BasicReceiver<sacn::storage::HeapStorage>
 pub fn sacn::BasicReceiver<sacn::storage::HeapStorage>::new(sacn::receiver::ReceiverConfig) -> Self
@@ -1349,6 +1557,8 @@ impl<T> core::borrow::BorrowMut<T> for sacn::BasicReceiver<S> where T: ?core::ma
 pub fn sacn::BasicReceiver<S>::borrow_mut(&mut self) -> &mut T
 impl<T> core::convert::From<T> for sacn::BasicReceiver<S>
 pub fn sacn::BasicReceiver<S>::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::BasicReceiver<S>
+impl<T> tracing::instrument::WithSubscriber for sacn::BasicReceiver<S>
 #[non_exhaustive] pub struct sacn::receiver::ListenOutcome
 pub sacn::receiver::ListenOutcome::sampling_started: bool
 impl core::clone::Clone for sacn::receiver::ListenOutcome
@@ -1389,6 +1599,8 @@ impl<T> core::clone::CloneToUninit for sacn::receiver::ListenOutcome where T: co
 pub unsafe fn sacn::receiver::ListenOutcome::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::receiver::ListenOutcome
 pub fn sacn::receiver::ListenOutcome::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::receiver::ListenOutcome
+impl<T> tracing::instrument::WithSubscriber for sacn::receiver::ListenOutcome
 #[non_exhaustive] pub struct sacn::receiver::LostSource
 pub sacn::receiver::LostSource::cid: sacn::Cid
 pub sacn::receiver::LostSource::terminated: bool
@@ -1429,6 +1641,8 @@ impl<T> core::clone::CloneToUninit for sacn::receiver::LostSource where T: core:
 pub unsafe fn sacn::receiver::LostSource::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::receiver::LostSource
 pub fn sacn::receiver::LostSource::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::receiver::LostSource
+impl<T> tracing::instrument::WithSubscriber for sacn::receiver::LostSource
 #[non_exhaustive] pub struct sacn::receiver::MergedData
 pub sacn::receiver::MergedData::universe: sacn::Universe
 impl sacn::MergedData
@@ -1474,6 +1688,8 @@ impl<T> core::clone::CloneToUninit for sacn::MergedData where T: core::clone::Cl
 pub unsafe fn sacn::MergedData::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::MergedData
 pub fn sacn::MergedData::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::MergedData
+impl<T> tracing::instrument::WithSubscriber for sacn::MergedData
 pub struct sacn::receiver::MergedDataRef<'a, S: sacn::receiver::ReceiverStorage>
 pub sacn::receiver::MergedDataRef::universe: sacn::Universe
 impl<'a, S: sacn::receiver::ReceiverStorage> sacn::receiver::MergedDataRef<'a, S>
@@ -1517,6 +1733,8 @@ impl<T> core::clone::CloneToUninit for sacn::receiver::MergedDataRef<'a, S> wher
 pub unsafe fn sacn::receiver::MergedDataRef<'a, S>::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::receiver::MergedDataRef<'a, S>
 pub fn sacn::receiver::MergedDataRef<'a, S>::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::receiver::MergedDataRef<'a, S>
+impl<T> tracing::instrument::WithSubscriber for sacn::receiver::MergedDataRef<'a, S>
 #[non_exhaustive] pub struct sacn::receiver::MergedLostSource
 pub sacn::receiver::MergedLostSource::cid: sacn::Cid
 pub sacn::receiver::MergedLostSource::name: sacn::SourceName
@@ -1558,6 +1776,8 @@ impl<T> core::clone::CloneToUninit for sacn::receiver::MergedLostSource where T:
 pub unsafe fn sacn::receiver::MergedLostSource::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::receiver::MergedLostSource
 pub fn sacn::receiver::MergedLostSource::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::receiver::MergedLostSource
+impl<T> tracing::instrument::WithSubscriber for sacn::receiver::MergedLostSource
 pub struct sacn::receiver::MergedPollOutcome<'a, S: sacn::receiver::ReceiverStorage>
 pub sacn::receiver::MergedPollOutcome::deadline: core::option::Option<sacn::time::Instant>
 impl<'a, S: sacn::receiver::ReceiverStorage> sacn::receiver::MergedPollOutcome<'a, S>
@@ -1588,6 +1808,8 @@ impl<T> core::borrow::BorrowMut<T> for sacn::receiver::MergedPollOutcome<'a, S> 
 pub fn sacn::receiver::MergedPollOutcome<'a, S>::borrow_mut(&mut self) -> &mut T
 impl<T> core::convert::From<T> for sacn::receiver::MergedPollOutcome<'a, S>
 pub fn sacn::receiver::MergedPollOutcome<'a, S>::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::receiver::MergedPollOutcome<'a, S>
+impl<T> tracing::instrument::WithSubscriber for sacn::receiver::MergedPollOutcome<'a, S>
 #[non_exhaustive] pub struct sacn::receiver::MergedSource
 pub sacn::receiver::MergedSource::addr: core::net::socket_addr::SocketAddr
 pub sacn::receiver::MergedSource::cid: sacn::Cid
@@ -1631,6 +1853,8 @@ impl<T> core::clone::CloneToUninit for sacn::MergedSource where T: core::clone::
 pub unsafe fn sacn::MergedSource::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::MergedSource
 pub fn sacn::MergedSource::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::MergedSource
+impl<T> tracing::instrument::WithSubscriber for sacn::MergedSource
 #[non_exhaustive] pub struct sacn::receiver::MergedSourceRef<'a>
 pub sacn::receiver::MergedSourceRef::addr: core::net::socket_addr::SocketAddr
 pub sacn::receiver::MergedSourceRef::cid: sacn::Cid
@@ -1677,6 +1901,8 @@ impl<T> core::clone::CloneToUninit for sacn::receiver::MergedSourceRef<'a> where
 pub unsafe fn sacn::receiver::MergedSourceRef<'a>::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::receiver::MergedSourceRef<'a>
 pub fn sacn::receiver::MergedSourceRef<'a>::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::receiver::MergedSourceRef<'a>
+impl<T> tracing::instrument::WithSubscriber for sacn::receiver::MergedSourceRef<'a>
 pub struct sacn::receiver::PollOutcome<'a, S: sacn::receiver::BasicReceiverStorage>
 pub sacn::receiver::PollOutcome::deadline: core::option::Option<sacn::time::Instant>
 impl<'a, S: sacn::receiver::BasicReceiverStorage> sacn::receiver::PollOutcome<'a, S>
@@ -1706,6 +1932,8 @@ impl<T> core::borrow::BorrowMut<T> for sacn::receiver::PollOutcome<'a, S> where 
 pub fn sacn::receiver::PollOutcome<'a, S>::borrow_mut(&mut self) -> &mut T
 impl<T> core::convert::From<T> for sacn::receiver::PollOutcome<'a, S>
 pub fn sacn::receiver::PollOutcome<'a, S>::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::receiver::PollOutcome<'a, S>
+impl<T> tracing::instrument::WithSubscriber for sacn::receiver::PollOutcome<'a, S>
 pub struct sacn::receiver::Receiver<S: sacn::receiver::ReceiverStorage>
 impl sacn::Receiver<sacn::storage::HeapStorage>
 pub fn sacn::Receiver<sacn::storage::HeapStorage>::new(sacn::receiver::ReceiverConfig) -> Self
@@ -1743,6 +1971,8 @@ impl<T> core::borrow::BorrowMut<T> for sacn::Receiver<S> where T: ?core::marker:
 pub fn sacn::Receiver<S>::borrow_mut(&mut self) -> &mut T
 impl<T> core::convert::From<T> for sacn::Receiver<S>
 pub fn sacn::Receiver<S>::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::Receiver<S>
+impl<T> tracing::instrument::WithSubscriber for sacn::Receiver<S>
 pub struct sacn::receiver::ReceiverConfig
 impl sacn::receiver::ReceiverConfig
 pub fn sacn::receiver::ReceiverConfig::new() -> Self
@@ -1794,6 +2024,8 @@ impl<T> core::clone::CloneToUninit for sacn::receiver::ReceiverConfig where T: c
 pub unsafe fn sacn::receiver::ReceiverConfig::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::receiver::ReceiverConfig
 pub fn sacn::receiver::ReceiverConfig::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::receiver::ReceiverConfig
+impl<T> tracing::instrument::WithSubscriber for sacn::receiver::ReceiverConfig
 #[non_exhaustive] pub struct sacn::receiver::SourceInfo
 pub sacn::receiver::SourceInfo::cid: sacn::Cid
 pub sacn::receiver::SourceInfo::name: alloc::string::String
@@ -1834,6 +2066,8 @@ impl<T> core::clone::CloneToUninit for sacn::receiver::SourceInfo where T: core:
 pub unsafe fn sacn::receiver::SourceInfo::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::receiver::SourceInfo
 pub fn sacn::receiver::SourceInfo::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::receiver::SourceInfo
+impl<T> tracing::instrument::WithSubscriber for sacn::receiver::SourceInfo
 #[non_exhaustive] pub struct sacn::receiver::SourceInfoRef<'a>
 pub sacn::receiver::SourceInfoRef::cid: sacn::Cid
 pub sacn::receiver::SourceInfoRef::name: &'a str
@@ -1877,6 +2111,8 @@ impl<T> core::clone::CloneToUninit for sacn::receiver::SourceInfoRef<'a> where T
 pub unsafe fn sacn::receiver::SourceInfoRef<'a>::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::receiver::SourceInfoRef<'a>
 pub fn sacn::receiver::SourceInfoRef<'a>::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::receiver::SourceInfoRef<'a>
+impl<T> tracing::instrument::WithSubscriber for sacn::receiver::SourceInfoRef<'a>
 #[non_exhaustive] pub struct sacn::receiver::StopOutcome
 pub sacn::receiver::StopOutcome::was_listening: bool
 impl core::clone::Clone for sacn::receiver::StopOutcome
@@ -1917,6 +2153,8 @@ impl<T> core::clone::CloneToUninit for sacn::receiver::StopOutcome where T: core
 pub unsafe fn sacn::receiver::StopOutcome::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::receiver::StopOutcome
 pub fn sacn::receiver::StopOutcome::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::receiver::StopOutcome
+impl<T> tracing::instrument::WithSubscriber for sacn::receiver::StopOutcome
 pub struct sacn::receiver::SyncRelease<'r, S: sacn::receiver::ReceiverStorage>
 impl<'r, S: sacn::receiver::ReceiverStorage> sacn::receiver::SyncRelease<'r, S>
 pub fn sacn::receiver::SyncRelease<'r, S>::merged_frames(&self) -> impl core::iter::traits::iterator::Iterator<Item = sacn::receiver::MergedDataRef<'r, S>> + 'r + use<'r, S>
@@ -1954,6 +2192,8 @@ impl<T> core::clone::CloneToUninit for sacn::receiver::SyncRelease<'r, S> where 
 pub unsafe fn sacn::receiver::SyncRelease<'r, S>::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::receiver::SyncRelease<'r, S>
 pub fn sacn::receiver::SyncRelease<'r, S>::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::receiver::SyncRelease<'r, S>
+impl<T> tracing::instrument::WithSubscriber for sacn::receiver::SyncRelease<'r, S>
 #[non_exhaustive] pub struct sacn::receiver::UniverseData
 pub sacn::receiver::UniverseData::addr: core::net::socket_addr::SocketAddr
 pub sacn::receiver::UniverseData::is_sampling: bool
@@ -2001,6 +2241,8 @@ impl<T> core::clone::CloneToUninit for sacn::receiver::UniverseData where T: cor
 pub unsafe fn sacn::receiver::UniverseData::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::receiver::UniverseData
 pub fn sacn::receiver::UniverseData::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::receiver::UniverseData
+impl<T> tracing::instrument::WithSubscriber for sacn::receiver::UniverseData
 #[non_exhaustive] pub struct sacn::receiver::UniverseDataRef<'a>
 pub sacn::receiver::UniverseDataRef::addr: core::net::socket_addr::SocketAddr
 pub sacn::receiver::UniverseDataRef::is_sampling: bool
@@ -2051,6 +2293,8 @@ impl<T> core::clone::CloneToUninit for sacn::receiver::UniverseDataRef<'a> where
 pub unsafe fn sacn::receiver::UniverseDataRef<'a>::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::receiver::UniverseDataRef<'a>
 pub fn sacn::receiver::UniverseDataRef<'a>::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::receiver::UniverseDataRef<'a>
+impl<T> tracing::instrument::WithSubscriber for sacn::receiver::UniverseDataRef<'a>
 pub trait sacn::receiver::BasicReceiverStorage: core::marker::Sized
 pub type sacn::receiver::BasicReceiverStorage::BasicSources: sacn::storage::MapLike<sacn::Cid, source::TrackedSource>
 pub type sacn::receiver::BasicReceiverStorage::BasicUniverses: sacn::storage::MapLike<sacn::Universe, basic::BasicUniverseState<Self>>
@@ -2123,6 +2367,8 @@ impl<T> core::clone::CloneToUninit for sacn::source::OnSyncLoss where T: core::c
 pub unsafe fn sacn::source::OnSyncLoss::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::source::OnSyncLoss
 pub fn sacn::source::OnSyncLoss::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::source::OnSyncLoss
+impl<T> tracing::instrument::WithSubscriber for sacn::source::OnSyncLoss
 #[non_exhaustive] pub enum sacn::source::Route
 pub sacn::source::Route::Discovery
 pub sacn::source::Route::Sync(sacn::Universe)
@@ -2165,6 +2411,8 @@ impl<T> core::clone::CloneToUninit for sacn::Route where T: core::clone::Clone
 pub unsafe fn sacn::Route::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::Route
 pub fn sacn::Route::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::Route
+impl<T> tracing::instrument::WithSubscriber for sacn::Route
 pub struct sacn::source::Source<S: sacn::source::SourceStorage>
 impl sacn::source::Source<sacn::storage::HeapStorage>
 pub fn sacn::source::Source<sacn::storage::HeapStorage>::new(sacn::source::SourceConfig) -> Self
@@ -2212,6 +2460,8 @@ impl<T> core::borrow::BorrowMut<T> for sacn::source::Source<S> where T: ?core::m
 pub fn sacn::source::Source<S>::borrow_mut(&mut self) -> &mut T
 impl<T> core::convert::From<T> for sacn::source::Source<S>
 pub fn sacn::source::Source<S>::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::source::Source<S>
+impl<T> tracing::instrument::WithSubscriber for sacn::source::Source<S>
 pub struct sacn::source::SourceConfig
 impl sacn::source::SourceConfig
 pub fn sacn::source::SourceConfig::cid(&self) -> sacn::Cid
@@ -2257,6 +2507,8 @@ impl<T> core::clone::CloneToUninit for sacn::source::SourceConfig where T: core:
 pub unsafe fn sacn::source::SourceConfig::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::source::SourceConfig
 pub fn sacn::source::SourceConfig::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::source::SourceConfig
+impl<T> tracing::instrument::WithSubscriber for sacn::source::SourceConfig
 pub struct sacn::source::SourceCore<S: sacn::source::SourceStorage>
 impl<S: sacn::source::SourceStorage> sacn::source::SourceCore<S>
 pub fn sacn::source::SourceCore<S>::add_universe(&self, &mut sacn::source::SourceResources<S>, sacn::source::UniverseConfig) -> core::result::Result<bool, sacn::error::Error>
@@ -2302,6 +2554,8 @@ impl<T> core::borrow::BorrowMut<T> for sacn::source::SourceCore<S> where T: ?cor
 pub fn sacn::source::SourceCore<S>::borrow_mut(&mut self) -> &mut T
 impl<T> core::convert::From<T> for sacn::source::SourceCore<S>
 pub fn sacn::source::SourceCore<S>::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::source::SourceCore<S>
+impl<T> tracing::instrument::WithSubscriber for sacn::source::SourceCore<S>
 pub struct sacn::source::SourcePoll<'a, S: sacn::source::SourceStorage>
 pub sacn::source::SourcePoll::deadline: core::option::Option<sacn::time::Instant>
 impl<'a, S: sacn::source::SourceStorage> sacn::source::SourcePoll<'a, S>
@@ -2332,6 +2586,8 @@ impl<T> core::borrow::BorrowMut<T> for sacn::source::SourcePoll<'a, S> where T: 
 pub fn sacn::source::SourcePoll<'a, S>::borrow_mut(&mut self) -> &mut T
 impl<T> core::convert::From<T> for sacn::source::SourcePoll<'a, S>
 pub fn sacn::source::SourcePoll<'a, S>::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::source::SourcePoll<'a, S>
+impl<T> tracing::instrument::WithSubscriber for sacn::source::SourcePoll<'a, S>
 pub struct sacn::source::SourceResources<S: sacn::source::SourceStorage>
 impl<S: sacn::source::SourceStorage> sacn::source::SourceResources<S>
 pub fn sacn::source::SourceResources<S>::current_packet(&self) -> &[u8]
@@ -2362,6 +2618,8 @@ impl<T> core::borrow::BorrowMut<T> for sacn::source::SourceResources<S> where T:
 pub fn sacn::source::SourceResources<S>::borrow_mut(&mut self) -> &mut T
 impl<T> core::convert::From<T> for sacn::source::SourceResources<S>
 pub fn sacn::source::SourceResources<S>::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::source::SourceResources<S>
+impl<T> tracing::instrument::WithSubscriber for sacn::source::SourceResources<S>
 #[non_exhaustive] pub struct sacn::source::Transmission<'a>
 pub sacn::source::Transmission::data: &'a [u8]
 pub sacn::source::Transmission::route: sacn::Route
@@ -2399,6 +2657,8 @@ impl<T> core::clone::CloneToUninit for sacn::Transmission<'a> where T: core::clo
 pub unsafe fn sacn::Transmission<'a>::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::Transmission<'a>
 pub fn sacn::Transmission<'a>::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::Transmission<'a>
+impl<T> tracing::instrument::WithSubscriber for sacn::Transmission<'a>
 pub struct sacn::source::UniverseConfig
 impl sacn::source::UniverseConfig
 pub fn sacn::source::UniverseConfig::new(sacn::Universe) -> Self
@@ -2444,6 +2704,8 @@ impl<T> core::clone::CloneToUninit for sacn::source::UniverseConfig where T: cor
 pub unsafe fn sacn::source::UniverseConfig::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::source::UniverseConfig
 pub fn sacn::source::UniverseConfig::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::source::UniverseConfig
+impl<T> tracing::instrument::WithSubscriber for sacn::source::UniverseConfig
 pub trait sacn::source::SourceStorage: core::marker::Sized
 pub type sacn::source::SourceStorage::Pending: sacn::storage::VecLike<Pending>
 pub type sacn::source::SourceStorage::Removed: sacn::storage::VecLike<sacn::Universe>
@@ -2471,6 +2733,15 @@ impl sacn::detector::DetectorStorage for sacn::storage::HeapStorage
 pub type sacn::storage::HeapStorage::EventBuffer = alloc::vec::Vec<sacn::detector::SourceDetectorPollEvent>
 pub type sacn::storage::HeapStorage::Sources = alloc::collections::btree::map::BTreeMap<sacn::Cid, DetectedSource<sacn::storage::HeapStorage>>
 pub type sacn::storage::HeapStorage::Universes = alloc::vec::Vec<u16>
+impl sacn::embassy::SourceStorage for sacn::storage::HeapStorage
+pub type sacn::storage::HeapStorage::Destinations = alloc::collections::btree::map::BTreeMap<sacn::Universe, Destinations<sacn::storage::HeapStorage>>
+pub type sacn::storage::HeapStorage::FailingTargets = alloc::vec::Vec<smoltcp::wire::ip::Endpoint>
+pub type sacn::storage::HeapStorage::RxBuffer = [u8; 1144]
+pub type sacn::storage::HeapStorage::RxMeta = [smoltcp::storage::packet_buffer::PacketMetadata<smoltcp::socket::udp::UdpMetadata>; 4]
+pub type sacn::storage::HeapStorage::SendTargets = alloc::vec::Vec<smoltcp::wire::ip::Endpoint>
+pub type sacn::storage::HeapStorage::TxBuffer = [u8; 1144]
+pub type sacn::storage::HeapStorage::TxMeta = [smoltcp::storage::packet_buffer::PacketMetadata<smoltcp::socket::udp::UdpMetadata>; 4]
+pub type sacn::storage::HeapStorage::Unicast = alloc::vec::Vec<smoltcp::wire::ip::Endpoint>
 impl sacn::merger::MergerStorage for sacn::storage::HeapStorage
 pub type sacn::storage::HeapStorage::FreeList = alloc::vec::Vec<u16>
 pub type sacn::storage::HeapStorage::MergeSources = alloc::vec::Vec<MergeSourceEntry>
@@ -2523,6 +2794,8 @@ impl<T> core::clone::CloneToUninit for sacn::storage::HeapStorage where T: core:
 pub unsafe fn sacn::storage::HeapStorage::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::storage::HeapStorage
 pub fn sacn::storage::HeapStorage::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::storage::HeapStorage
+impl<T> tracing::instrument::WithSubscriber for sacn::storage::HeapStorage
 pub struct sacn::storage::SortedVecMap<K, V, const N: usize>
 impl<K, V, const N: usize> sacn::storage::SortedVecMap<K, V, N>
 pub const fn sacn::storage::SortedVecMap<K, V, N>::new() -> Self
@@ -2576,6 +2849,8 @@ impl<T> core::clone::CloneToUninit for sacn::storage::SortedVecMap<K, V, N> wher
 pub unsafe fn sacn::storage::SortedVecMap<K, V, N>::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::storage::SortedVecMap<K, V, N>
 pub fn sacn::storage::SortedVecMap<K, V, N>::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::storage::SortedVecMap<K, V, N>
+impl<T> tracing::instrument::WithSubscriber for sacn::storage::SortedVecMap<K, V, N>
 pub trait sacn::storage::MapLike<K, V>: core::default::Default + core::fmt::Debug
 pub const sacn::storage::MapLike::CAPACITY: usize
 pub fn sacn::storage::MapLike::contains_key(&self, &K) -> bool
@@ -2721,6 +2996,8 @@ impl<T> core::clone::CloneToUninit for sacn::time::Instant where T: core::clone:
 pub unsafe fn sacn::time::Instant::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::time::Instant
 pub fn sacn::time::Instant::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::time::Instant
+impl<T> tracing::instrument::WithSubscriber for sacn::time::Instant
 pub mod sacn::tokio
 pub struct sacn::tokio::BasicReceiver
 impl sacn::tokio::BasicReceiver
@@ -2754,6 +3031,8 @@ impl<T> core::borrow::BorrowMut<T> for sacn::tokio::BasicReceiver where T: ?core
 pub fn sacn::tokio::BasicReceiver::borrow_mut(&mut self) -> &mut T
 impl<T> core::convert::From<T> for sacn::tokio::BasicReceiver
 pub fn sacn::tokio::BasicReceiver::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::tokio::BasicReceiver
+impl<T> tracing::instrument::WithSubscriber for sacn::tokio::BasicReceiver
 pub struct sacn::tokio::Receiver
 impl sacn::tokio::Receiver
 pub async fn sacn::tokio::Receiver::bind(sacn::receiver::ReceiverConfig) -> core::result::Result<Self, sacn::AdapterError>
@@ -2788,6 +3067,8 @@ impl<T> core::borrow::BorrowMut<T> for sacn::tokio::Receiver where T: ?core::mar
 pub fn sacn::tokio::Receiver::borrow_mut(&mut self) -> &mut T
 impl<T> core::convert::From<T> for sacn::tokio::Receiver
 pub fn sacn::tokio::Receiver::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::tokio::Receiver
+impl<T> tracing::instrument::WithSubscriber for sacn::tokio::Receiver
 pub struct sacn::tokio::Source
 impl sacn::tokio::Source
 pub fn sacn::tokio::Source::add_unicast(&mut self, sacn::Universe, core::net::ip_addr::IpAddr) -> bool
@@ -2836,6 +3117,8 @@ impl<T> core::borrow::BorrowMut<T> for sacn::tokio::Source where T: ?core::marke
 pub fn sacn::tokio::Source::borrow_mut(&mut self) -> &mut T
 impl<T> core::convert::From<T> for sacn::tokio::Source
 pub fn sacn::tokio::Source::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::tokio::Source
+impl<T> tracing::instrument::WithSubscriber for sacn::tokio::Source
 pub struct sacn::tokio::SourceDetector
 impl sacn::tokio::SourceDetector
 pub async fn sacn::tokio::SourceDetector::bind(sacn::detector::SourceDetectorConfig) -> core::result::Result<Self, sacn::AdapterError>
@@ -2866,6 +3149,9 @@ impl<T> core::borrow::BorrowMut<T> for sacn::tokio::SourceDetector where T: ?cor
 pub fn sacn::tokio::SourceDetector::borrow_mut(&mut self) -> &mut T
 impl<T> core::convert::From<T> for sacn::tokio::SourceDetector
 pub fn sacn::tokio::SourceDetector::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::tokio::SourceDetector
+impl<T> tracing::instrument::WithSubscriber for sacn::tokio::SourceDetector
+pub macro sacn::embassy_static_storage!
 pub macro sacn::static_storage!
 #[non_exhaustive] pub enum sacn::AdapterError
 pub sacn::AdapterError::Io
@@ -2906,6 +3192,8 @@ impl<T> core::borrow::BorrowMut<T> for sacn::AdapterError where T: ?core::marker
 pub fn sacn::AdapterError::borrow_mut(&mut self) -> &mut T
 impl<T> core::convert::From<T> for sacn::AdapterError
 pub fn sacn::AdapterError::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::AdapterError
+impl<T> tracing::instrument::WithSubscriber for sacn::AdapterError
 #[non_exhaustive] pub enum sacn::BasicReceiverEvent
 pub sacn::BasicReceiverEvent::SamplingEnded
 pub sacn::BasicReceiverEvent::SamplingEnded::universe: sacn::Universe
@@ -2962,6 +3250,8 @@ impl<T> core::clone::CloneToUninit for sacn::BasicReceiverEvent where T: core::c
 pub unsafe fn sacn::BasicReceiverEvent::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::BasicReceiverEvent
 pub fn sacn::BasicReceiverEvent::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::BasicReceiverEvent
+impl<T> tracing::instrument::WithSubscriber for sacn::BasicReceiverEvent
 #[non_exhaustive] pub enum sacn::Error
 pub sacn::Error::Codec(sacn::error::CodecError)
 pub sacn::Error::InvalidPriority
@@ -2982,6 +3272,8 @@ impl core::convert::From<sacn::error::CodecError> for sacn::error::Error
 pub fn sacn::error::Error::from(sacn::error::CodecError) -> Self
 impl core::convert::From<sacn::error::Error> for sacn::AdapterError
 pub fn sacn::AdapterError::from(sacn::error::Error) -> Self
+impl core::convert::From<sacn::error::Error> for sacn::embassy::EmbassyError
+pub fn sacn::embassy::EmbassyError::from(sacn::error::Error) -> Self
 impl core::error::Error for sacn::error::Error
 pub fn sacn::error::Error::source(&self) -> core::option::Option<&(dyn core::error::Error + 'static)>
 impl core::fmt::Debug for sacn::error::Error
@@ -2989,6 +3281,8 @@ pub fn sacn::error::Error::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fm
 impl core::fmt::Display for sacn::error::Error
 pub fn sacn::error::Error::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
 impl core::marker::StructuralPartialEq for sacn::error::Error
+impl defmt::traits::Format for sacn::error::Error where sacn::error::CodecError: defmt::traits::Format
+pub fn sacn::error::Error::format(&self, defmt::formatter::Formatter<'_>)
 impl core::marker::Freeze for sacn::error::Error
 impl core::marker::Send for sacn::error::Error
 impl core::marker::Sync for sacn::error::Error
@@ -3020,6 +3314,8 @@ impl<T> core::clone::CloneToUninit for sacn::error::Error where T: core::clone::
 pub unsafe fn sacn::error::Error::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::error::Error
 pub fn sacn::error::Error::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::error::Error
+impl<T> tracing::instrument::WithSubscriber for sacn::error::Error
 #[non_exhaustive] pub enum sacn::MulticastInterface
 pub sacn::MulticastInterface::V4(core::net::ip_addr::Ipv4Addr)
 pub sacn::MulticastInterface::V6(u32)
@@ -3070,6 +3366,8 @@ impl<T> core::clone::CloneToUninit for sacn::MulticastInterface where T: core::c
 pub unsafe fn sacn::MulticastInterface::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::MulticastInterface
 pub fn sacn::MulticastInterface::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::MulticastInterface
+impl<T> tracing::instrument::WithSubscriber for sacn::MulticastInterface
 pub enum sacn::OnSyncLoss
 pub sacn::OnSyncLoss::HoldLastLook
 pub sacn::OnSyncLoss::RevertToLive
@@ -3111,6 +3409,8 @@ impl<T> core::clone::CloneToUninit for sacn::source::OnSyncLoss where T: core::c
 pub unsafe fn sacn::source::OnSyncLoss::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::source::OnSyncLoss
 pub fn sacn::source::OnSyncLoss::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::source::OnSyncLoss
+impl<T> tracing::instrument::WithSubscriber for sacn::source::OnSyncLoss
 #[non_exhaustive] pub enum sacn::ReceiverEvent
 pub sacn::ReceiverEvent::MergedData(sacn::MergedData)
 pub sacn::ReceiverEvent::SamplingEnded
@@ -3166,6 +3466,8 @@ impl<T> core::clone::CloneToUninit for sacn::ReceiverEvent where T: core::clone:
 pub unsafe fn sacn::ReceiverEvent::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::ReceiverEvent
 pub fn sacn::ReceiverEvent::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::ReceiverEvent
+impl<T> tracing::instrument::WithSubscriber for sacn::ReceiverEvent
 #[non_exhaustive] pub enum sacn::Route
 pub sacn::Route::Discovery
 pub sacn::Route::Sync(sacn::Universe)
@@ -3208,6 +3510,8 @@ impl<T> core::clone::CloneToUninit for sacn::Route where T: core::clone::Clone
 pub unsafe fn sacn::Route::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::Route
 pub fn sacn::Route::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::Route
+impl<T> tracing::instrument::WithSubscriber for sacn::Route
 #[non_exhaustive] pub enum sacn::SourceDetectorEvent
 pub sacn::SourceDetectorEvent::SourceExpired
 pub sacn::SourceDetectorEvent::SourceExpired::cid: sacn::Cid
@@ -3258,6 +3562,8 @@ impl<T> core::clone::CloneToUninit for sacn::SourceDetectorEvent where T: core::
 pub unsafe fn sacn::SourceDetectorEvent::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::SourceDetectorEvent
 pub fn sacn::SourceDetectorEvent::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::SourceDetectorEvent
+impl<T> tracing::instrument::WithSubscriber for sacn::SourceDetectorEvent
 pub struct sacn::BasicReceiver<S: sacn::receiver::BasicReceiverStorage>
 impl sacn::BasicReceiver<sacn::storage::HeapStorage>
 pub fn sacn::BasicReceiver<sacn::storage::HeapStorage>::new(sacn::receiver::ReceiverConfig) -> Self
@@ -3293,6 +3599,8 @@ impl<T> core::borrow::BorrowMut<T> for sacn::BasicReceiver<S> where T: ?core::ma
 pub fn sacn::BasicReceiver<S>::borrow_mut(&mut self) -> &mut T
 impl<T> core::convert::From<T> for sacn::BasicReceiver<S>
 pub fn sacn::BasicReceiver<S>::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::BasicReceiver<S>
+impl<T> tracing::instrument::WithSubscriber for sacn::BasicReceiver<S>
 pub struct sacn::Cid(_)
 impl sacn::Cid
 pub const fn sacn::Cid::as_bytes(&self) -> &[u8; 16]
@@ -3307,6 +3615,10 @@ impl core::cmp::PartialEq for sacn::Cid
 pub fn sacn::Cid::eq(&self, &sacn::Cid) -> bool
 impl core::cmp::PartialOrd for sacn::Cid
 pub fn sacn::Cid::partial_cmp(&self, &sacn::Cid) -> core::option::Option<core::cmp::Ordering>
+impl core::convert::From<sacn::Cid> for uuid::Uuid
+pub fn uuid::Uuid::from(sacn::Cid) -> Self
+impl core::convert::From<uuid::Uuid> for sacn::Cid
+pub fn sacn::Cid::from(uuid::Uuid) -> Self
 impl core::fmt::Debug for sacn::Cid
 pub fn sacn::Cid::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
 impl core::hash::Hash for sacn::Cid
@@ -3342,6 +3654,8 @@ impl<T> core::clone::CloneToUninit for sacn::Cid where T: core::clone::Clone
 pub unsafe fn sacn::Cid::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::Cid
 pub fn sacn::Cid::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::Cid
+impl<T> tracing::instrument::WithSubscriber for sacn::Cid
 pub struct sacn::DmxMerger<S: sacn::merger::MergerStorage>
 impl sacn::merger::DmxMerger<sacn::storage::HeapStorage>
 pub fn sacn::merger::DmxMerger<sacn::storage::HeapStorage>::new() -> Self
@@ -3383,6 +3697,8 @@ impl<T> core::borrow::BorrowMut<T> for sacn::merger::DmxMerger<S> where T: ?core
 pub fn sacn::merger::DmxMerger<S>::borrow_mut(&mut self) -> &mut T
 impl<T> core::convert::From<T> for sacn::merger::DmxMerger<S>
 pub fn sacn::merger::DmxMerger<S>::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::merger::DmxMerger<S>
+impl<T> tracing::instrument::WithSubscriber for sacn::merger::DmxMerger<S>
 pub struct sacn::HeapStorage
 impl core::clone::Clone for sacn::storage::HeapStorage
 pub fn sacn::storage::HeapStorage::clone(&self) -> sacn::storage::HeapStorage
@@ -3399,6 +3715,15 @@ impl sacn::detector::DetectorStorage for sacn::storage::HeapStorage
 pub type sacn::storage::HeapStorage::EventBuffer = alloc::vec::Vec<sacn::detector::SourceDetectorPollEvent>
 pub type sacn::storage::HeapStorage::Sources = alloc::collections::btree::map::BTreeMap<sacn::Cid, DetectedSource<sacn::storage::HeapStorage>>
 pub type sacn::storage::HeapStorage::Universes = alloc::vec::Vec<u16>
+impl sacn::embassy::SourceStorage for sacn::storage::HeapStorage
+pub type sacn::storage::HeapStorage::Destinations = alloc::collections::btree::map::BTreeMap<sacn::Universe, Destinations<sacn::storage::HeapStorage>>
+pub type sacn::storage::HeapStorage::FailingTargets = alloc::vec::Vec<smoltcp::wire::ip::Endpoint>
+pub type sacn::storage::HeapStorage::RxBuffer = [u8; 1144]
+pub type sacn::storage::HeapStorage::RxMeta = [smoltcp::storage::packet_buffer::PacketMetadata<smoltcp::socket::udp::UdpMetadata>; 4]
+pub type sacn::storage::HeapStorage::SendTargets = alloc::vec::Vec<smoltcp::wire::ip::Endpoint>
+pub type sacn::storage::HeapStorage::TxBuffer = [u8; 1144]
+pub type sacn::storage::HeapStorage::TxMeta = [smoltcp::storage::packet_buffer::PacketMetadata<smoltcp::socket::udp::UdpMetadata>; 4]
+pub type sacn::storage::HeapStorage::Unicast = alloc::vec::Vec<smoltcp::wire::ip::Endpoint>
 impl sacn::merger::MergerStorage for sacn::storage::HeapStorage
 pub type sacn::storage::HeapStorage::FreeList = alloc::vec::Vec<u16>
 pub type sacn::storage::HeapStorage::MergeSources = alloc::vec::Vec<MergeSourceEntry>
@@ -3451,6 +3776,8 @@ impl<T> core::clone::CloneToUninit for sacn::storage::HeapStorage where T: core:
 pub unsafe fn sacn::storage::HeapStorage::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::storage::HeapStorage
 pub fn sacn::storage::HeapStorage::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::storage::HeapStorage
+impl<T> tracing::instrument::WithSubscriber for sacn::storage::HeapStorage
 pub struct sacn::MergeOutput<'a>
 impl<'a> sacn::merger::MergeOutput<'a>
 pub fn sacn::merger::MergeOutput<'a>::levels(&self) -> &'a [u8]
@@ -3490,6 +3817,8 @@ impl<T> core::clone::CloneToUninit for sacn::merger::MergeOutput<'a> where T: co
 pub unsafe fn sacn::merger::MergeOutput<'a>::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::merger::MergeOutput<'a>
 pub fn sacn::merger::MergeOutput<'a>::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::merger::MergeOutput<'a>
+impl<T> tracing::instrument::WithSubscriber for sacn::merger::MergeOutput<'a>
 #[non_exhaustive] pub struct sacn::MergedData
 pub sacn::MergedData::universe: sacn::Universe
 impl sacn::MergedData
@@ -3535,6 +3864,8 @@ impl<T> core::clone::CloneToUninit for sacn::MergedData where T: core::clone::Cl
 pub unsafe fn sacn::MergedData::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::MergedData
 pub fn sacn::MergedData::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::MergedData
+impl<T> tracing::instrument::WithSubscriber for sacn::MergedData
 #[non_exhaustive] pub struct sacn::MergedSource
 pub sacn::MergedSource::addr: core::net::socket_addr::SocketAddr
 pub sacn::MergedSource::cid: sacn::Cid
@@ -3578,6 +3909,8 @@ impl<T> core::clone::CloneToUninit for sacn::MergedSource where T: core::clone::
 pub unsafe fn sacn::MergedSource::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::MergedSource
 pub fn sacn::MergedSource::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::MergedSource
+impl<T> tracing::instrument::WithSubscriber for sacn::MergedSource
 pub struct sacn::NetintId(_)
 impl sacn::NetintId
 pub const sacn::NetintId::UNKNOWN: sacn::NetintId
@@ -3631,6 +3964,8 @@ impl<T> core::clone::CloneToUninit for sacn::NetintId where T: core::clone::Clon
 pub unsafe fn sacn::NetintId::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::NetintId
 pub fn sacn::NetintId::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::NetintId
+impl<T> tracing::instrument::WithSubscriber for sacn::NetintId
 #[non_exhaustive] pub struct sacn::Packet<'a>
 pub sacn::Packet::cid: sacn::Cid
 pub sacn::Packet::payload: sacn::packet::Payload<'a>
@@ -3678,6 +4013,8 @@ impl<T> core::clone::CloneToUninit for sacn::packet::Packet<'a> where T: core::c
 pub unsafe fn sacn::packet::Packet<'a>::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::packet::Packet<'a>
 pub fn sacn::packet::Packet<'a>::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::packet::Packet<'a>
+impl<T> tracing::instrument::WithSubscriber for sacn::packet::Packet<'a>
 pub struct sacn::Priority(_)
 impl sacn::Priority
 pub const sacn::Priority::DEFAULT: sacn::Priority
@@ -3734,6 +4071,8 @@ impl<T> core::clone::CloneToUninit for sacn::Priority where T: core::clone::Clon
 pub unsafe fn sacn::Priority::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::Priority
 pub fn sacn::Priority::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::Priority
+impl<T> tracing::instrument::WithSubscriber for sacn::Priority
 pub struct sacn::Receiver<S: sacn::receiver::ReceiverStorage>
 impl sacn::Receiver<sacn::storage::HeapStorage>
 pub fn sacn::Receiver<sacn::storage::HeapStorage>::new(sacn::receiver::ReceiverConfig) -> Self
@@ -3771,6 +4110,8 @@ impl<T> core::borrow::BorrowMut<T> for sacn::Receiver<S> where T: ?core::marker:
 pub fn sacn::Receiver<S>::borrow_mut(&mut self) -> &mut T
 impl<T> core::convert::From<T> for sacn::Receiver<S>
 pub fn sacn::Receiver<S>::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::Receiver<S>
+impl<T> tracing::instrument::WithSubscriber for sacn::Receiver<S>
 pub struct sacn::ReceiverConfig
 impl sacn::receiver::ReceiverConfig
 pub fn sacn::receiver::ReceiverConfig::new() -> Self
@@ -3822,6 +4163,8 @@ impl<T> core::clone::CloneToUninit for sacn::receiver::ReceiverConfig where T: c
 pub unsafe fn sacn::receiver::ReceiverConfig::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::receiver::ReceiverConfig
 pub fn sacn::receiver::ReceiverConfig::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::receiver::ReceiverConfig
+impl<T> tracing::instrument::WithSubscriber for sacn::receiver::ReceiverConfig
 pub struct sacn::SequenceNumber(_)
 impl sacn::SequenceNumber
 pub const fn sacn::SequenceNumber::get(self) -> u8
@@ -3875,6 +4218,8 @@ impl<T> core::clone::CloneToUninit for sacn::SequenceNumber where T: core::clone
 pub unsafe fn sacn::SequenceNumber::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::SequenceNumber
 pub fn sacn::SequenceNumber::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::SequenceNumber
+impl<T> tracing::instrument::WithSubscriber for sacn::SequenceNumber
 #[repr(transparent)] pub struct sacn::SlotOwner(_)
 impl sacn::merger::SlotOwner
 pub const sacn::merger::SlotOwner::NONE: sacn::merger::SlotOwner
@@ -3921,6 +4266,8 @@ impl<T> core::clone::CloneToUninit for sacn::merger::SlotOwner where T: core::cl
 pub unsafe fn sacn::merger::SlotOwner::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::merger::SlotOwner
 pub fn sacn::merger::SlotOwner::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::merger::SlotOwner
+impl<T> tracing::instrument::WithSubscriber for sacn::merger::SlotOwner
 pub struct sacn::SortedVecMap<K, V, const N: usize>
 impl<K, V, const N: usize> sacn::storage::SortedVecMap<K, V, N>
 pub const fn sacn::storage::SortedVecMap<K, V, N>::new() -> Self
@@ -3974,6 +4321,8 @@ impl<T> core::clone::CloneToUninit for sacn::storage::SortedVecMap<K, V, N> wher
 pub unsafe fn sacn::storage::SortedVecMap<K, V, N>::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::storage::SortedVecMap<K, V, N>
 pub fn sacn::storage::SortedVecMap<K, V, N>::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::storage::SortedVecMap<K, V, N>
+impl<T> tracing::instrument::WithSubscriber for sacn::storage::SortedVecMap<K, V, N>
 pub struct sacn::Source<S: sacn::source::SourceStorage>
 impl sacn::source::Source<sacn::storage::HeapStorage>
 pub fn sacn::source::Source<sacn::storage::HeapStorage>::new(sacn::source::SourceConfig) -> Self
@@ -4021,6 +4370,8 @@ impl<T> core::borrow::BorrowMut<T> for sacn::source::Source<S> where T: ?core::m
 pub fn sacn::source::Source<S>::borrow_mut(&mut self) -> &mut T
 impl<T> core::convert::From<T> for sacn::source::Source<S>
 pub fn sacn::source::Source<S>::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::source::Source<S>
+impl<T> tracing::instrument::WithSubscriber for sacn::source::Source<S>
 pub struct sacn::SourceConfig
 impl sacn::source::SourceConfig
 pub fn sacn::source::SourceConfig::cid(&self) -> sacn::Cid
@@ -4066,6 +4417,8 @@ impl<T> core::clone::CloneToUninit for sacn::source::SourceConfig where T: core:
 pub unsafe fn sacn::source::SourceConfig::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::source::SourceConfig
 pub fn sacn::source::SourceConfig::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::source::SourceConfig
+impl<T> tracing::instrument::WithSubscriber for sacn::source::SourceConfig
 pub struct sacn::SourceCore<S: sacn::source::SourceStorage>
 impl<S: sacn::source::SourceStorage> sacn::source::SourceCore<S>
 pub fn sacn::source::SourceCore<S>::add_universe(&self, &mut sacn::source::SourceResources<S>, sacn::source::UniverseConfig) -> core::result::Result<bool, sacn::error::Error>
@@ -4111,6 +4464,8 @@ impl<T> core::borrow::BorrowMut<T> for sacn::source::SourceCore<S> where T: ?cor
 pub fn sacn::source::SourceCore<S>::borrow_mut(&mut self) -> &mut T
 impl<T> core::convert::From<T> for sacn::source::SourceCore<S>
 pub fn sacn::source::SourceCore<S>::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::source::SourceCore<S>
+impl<T> tracing::instrument::WithSubscriber for sacn::source::SourceCore<S>
 pub struct sacn::SourceDetector<S: sacn::detector::DetectorStorage>
 impl sacn::detector::SourceDetector<sacn::storage::HeapStorage>
 pub fn sacn::detector::SourceDetector<sacn::storage::HeapStorage>::new(sacn::detector::SourceDetectorConfig) -> Self
@@ -4144,6 +4499,8 @@ impl<T> core::borrow::BorrowMut<T> for sacn::detector::SourceDetector<S> where T
 pub fn sacn::detector::SourceDetector<S>::borrow_mut(&mut self) -> &mut T
 impl<T> core::convert::From<T> for sacn::detector::SourceDetector<S>
 pub fn sacn::detector::SourceDetector<S>::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::detector::SourceDetector<S>
+impl<T> tracing::instrument::WithSubscriber for sacn::detector::SourceDetector<S>
 pub struct sacn::SourceDetectorConfig
 impl sacn::detector::SourceDetectorConfig
 pub fn sacn::detector::SourceDetectorConfig::new() -> Self
@@ -4190,6 +4547,8 @@ impl<T> core::clone::CloneToUninit for sacn::detector::SourceDetectorConfig wher
 pub unsafe fn sacn::detector::SourceDetectorConfig::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::detector::SourceDetectorConfig
 pub fn sacn::detector::SourceDetectorConfig::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::detector::SourceDetectorConfig
+impl<T> tracing::instrument::WithSubscriber for sacn::detector::SourceDetectorConfig
 pub struct sacn::SourceId(_)
 impl sacn::merger::SourceId
 pub fn sacn::merger::SourceId::index(self) -> SourceIndex
@@ -4233,6 +4592,8 @@ impl<T> core::clone::CloneToUninit for sacn::merger::SourceId where T: core::clo
 pub unsafe fn sacn::merger::SourceId::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::merger::SourceId
 pub fn sacn::merger::SourceId::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::merger::SourceId
+impl<T> tracing::instrument::WithSubscriber for sacn::merger::SourceId
 pub struct sacn::SourceName(_)
 impl sacn::SourceName
 pub fn sacn::SourceName::as_str(&self) -> &str
@@ -4294,6 +4655,8 @@ impl<T> core::clone::CloneToUninit for sacn::SourceName where T: core::clone::Cl
 pub unsafe fn sacn::SourceName::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::SourceName
 pub fn sacn::SourceName::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::SourceName
+impl<T> tracing::instrument::WithSubscriber for sacn::SourceName
 pub struct sacn::SourceResources<S: sacn::source::SourceStorage>
 impl<S: sacn::source::SourceStorage> sacn::source::SourceResources<S>
 pub fn sacn::source::SourceResources<S>::current_packet(&self) -> &[u8]
@@ -4324,6 +4687,8 @@ impl<T> core::borrow::BorrowMut<T> for sacn::source::SourceResources<S> where T:
 pub fn sacn::source::SourceResources<S>::borrow_mut(&mut self) -> &mut T
 impl<T> core::convert::From<T> for sacn::source::SourceResources<S>
 pub fn sacn::source::SourceResources<S>::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::source::SourceResources<S>
+impl<T> tracing::instrument::WithSubscriber for sacn::source::SourceResources<S>
 pub struct sacn::StartCode(_)
 impl sacn::StartCode
 pub const sacn::StartCode::NULL: sacn::StartCode
@@ -4379,6 +4744,8 @@ impl<T> core::clone::CloneToUninit for sacn::StartCode where T: core::clone::Clo
 pub unsafe fn sacn::StartCode::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::StartCode
 pub fn sacn::StartCode::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::StartCode
+impl<T> tracing::instrument::WithSubscriber for sacn::StartCode
 #[non_exhaustive] pub struct sacn::Transmission<'a>
 pub sacn::Transmission::data: &'a [u8]
 pub sacn::Transmission::route: sacn::Route
@@ -4416,6 +4783,8 @@ impl<T> core::clone::CloneToUninit for sacn::Transmission<'a> where T: core::clo
 pub unsafe fn sacn::Transmission<'a>::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::Transmission<'a>
 pub fn sacn::Transmission<'a>::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::Transmission<'a>
+impl<T> tracing::instrument::WithSubscriber for sacn::Transmission<'a>
 pub struct sacn::Universe(_)
 impl sacn::Universe
 pub const sacn::Universe::MAX: u16
@@ -4439,6 +4808,8 @@ impl core::hash::Hash for sacn::Universe
 pub fn sacn::Universe::hash<__H: core::hash::Hasher>(&self, &mut __H)
 impl core::marker::Copy for sacn::Universe
 impl core::marker::StructuralPartialEq for sacn::Universe
+impl defmt::traits::Format for sacn::Universe
+pub fn sacn::Universe::format(&self, defmt::formatter::Formatter<'_>)
 impl core::marker::Freeze for sacn::Universe
 impl core::marker::Send for sacn::Universe
 impl core::marker::Sync for sacn::Universe
@@ -4470,6 +4841,8 @@ impl<T> core::clone::CloneToUninit for sacn::Universe where T: core::clone::Clon
 pub unsafe fn sacn::Universe::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::Universe
 pub fn sacn::Universe::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::Universe
+impl<T> tracing::instrument::WithSubscriber for sacn::Universe
 pub struct sacn::UniverseConfig
 impl sacn::source::UniverseConfig
 pub fn sacn::source::UniverseConfig::new(sacn::Universe) -> Self
@@ -4515,6 +4888,8 @@ impl<T> core::clone::CloneToUninit for sacn::source::UniverseConfig where T: cor
 pub unsafe fn sacn::source::UniverseConfig::clone_to_uninit(&self, *mut u8)
 impl<T> core::convert::From<T> for sacn::source::UniverseConfig
 pub fn sacn::source::UniverseConfig::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::source::UniverseConfig
+impl<T> tracing::instrument::WithSubscriber for sacn::source::UniverseConfig
 pub trait sacn::BasicReceiverStorage: core::marker::Sized
 pub type sacn::BasicReceiverStorage::BasicSources: sacn::storage::MapLike<sacn::Cid, source::TrackedSource>
 pub type sacn::BasicReceiverStorage::BasicUniverses: sacn::storage::MapLike<sacn::Universe, basic::BasicUniverseState<Self>>

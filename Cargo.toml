@@ -24,19 +24,19 @@ std = ["alloc", "thiserror/std"]
 # The tokio runtime adapter.
 tokio = ["std", "dep:tokio", "dep:socket2", "dep:if-addrs"]
 # The embassy runtime adapter.
-embassy = ["dep:embassy-net", "dep:embassy-time"]
+embassy = ["dep:embassy-net", "dep:embassy-time", "embassy-net/medium-ethernet"]
 # Structured logging via the `tracing` crate.
 tracing = ["dep:tracing"]
 # Logging via the `log` crate facade.
 log = ["dep:log"]
 # Logging via `defmt`
-defmt = ["dep:defmt", "embassy-net/defmt"]
+defmt = ["dep:defmt", "embassy-net?/defmt"]
 # `From`/`Into` conversions between `Cid` and `uuid::Uuid`.
 uuid = ["dep:uuid"]
 
 [dependencies]
 thiserror = { version = "2.0.18", default-features = false }
-heapless = "0.8.0"
+heapless = "0.9.3"
 derive-where = "1.6.1"
 uuid = { version = "1.23.3", default-features = false, optional = true }
 log = { version = "0.4", default-features = false, optional = true }
@@ -73,10 +73,10 @@ rustdoc-json = "0.9"
 tokio = { version = "1.52.3", features = ["rt-multi-thread", "sync", "signal"] }
 
 # TUI example dependencies.
-ansi-to-tui = "7.0.0"
+ansi-to-tui = "8.0.1"
 anyhow = "1.0.95"
 crossterm = "0.29.0"
-ratatui = "0.29.0"
+ratatui = "0.30.2"
 tracing = "0.1.44"
 tracing-subscriber = "0.3.19"
 uuid = { version = "1.23.3", default-features = false, features = ["v4"] }
@@ -107,4 +107,3 @@ required-features = ["tokio"]
 
 [package.metadata.docs.rs]
 all-features = true
-features = ["embassy-net/medium-ethernet"]
