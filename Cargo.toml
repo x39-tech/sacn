@@ -1,5 +1,5 @@
 [workspace]
-members = ["extras/merge-lab"]
+members = ["extras/merge-lab", "xtask"]
 
 [package]
 name = "x39-sacn"

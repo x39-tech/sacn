@@ -67,6 +67,9 @@ jobs:
       - run: cargo install cargo-hack
       - run: cargo hack build $CARGO_HACK_ARGS
       - run: cargo hack clippy $CARGO_HACK_ARGS
+      - name: Build Embassy example
+        working-directory: ./examples/embassy
+        run: cargo build --release
 
   msrv:
     name: MSRV (1.91)
