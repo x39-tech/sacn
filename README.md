@@ -9,7 +9,7 @@ A full-featured, production-ready, embedded-friendly Rust implementation of the 
 x39-sacn = "0.1"
 ```
 
-In a tokio application, to receive merged DMX for a universe:
+In a [tokio](https://tokio.rs/) application, to receive merged DMX for a universe:
 
 ```rust,no_run
 use sacn::tokio::Receiver;
@@ -81,7 +81,9 @@ This also means that this crate is obsessively tested, with a full suite of unit
 
 ### Embedded-friendly
 
-**Embedded-friendly** means that the core logic of this library is `no_std`, and `alloc`-free configurations are also supported. Binary compilation size and memory usage are routinely checked against sane limits. An interface adapter for the popular [Embassy](https://embassy.dev/) embedded framework is provided.
+**Embedded-friendly** means that this library intends to provide first-class support for embedded applications. The core logic is `no_std`, and `alloc`-free configurations are also supported. Binary compilation size and memory usage are routinely checked against sane limits. A runtime adapter for the popular [Embassy](https://embassy.dev/) embedded framework is provided.
+
+Embedded users should check out the [Embassy example](/examples/embassy/README.md) for a starting point.
 
 ## Acknowledgments
 
