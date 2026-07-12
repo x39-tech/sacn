@@ -1,0 +1,13 @@
+# Configuration for release-plz (https://release-plz.dev).
+
+[workspace]
+git_tag_name = "v{{ version }}"
+git_release_name = "{{ version }}"
+
+[[package]]
+name = "merge-lab"
+release = false
+
+[[package]]
+name = "xtask"
+release = false
