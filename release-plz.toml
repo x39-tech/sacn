@@ -7,7 +7,9 @@ git_release_name = "{{ version }}"
 [[package]]
 name = "merge-lab"
 release = false
+publish = false
 
 [[package]]
 name = "xtask"
 release = false
+publish = false
