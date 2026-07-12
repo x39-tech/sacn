@@ -30,6 +30,7 @@ fn public_api_matches_snapshot() {
 
     let rustdoc_json = rustdoc_json::Builder::default()
         .toolchain(toolchain)
+        .all_features(true)
         .build()
         .expect("failed to build rustdoc JSON; a nightly toolchain is required");
 

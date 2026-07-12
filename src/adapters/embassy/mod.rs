@@ -9,20 +9,6 @@
 //! On a target with no allocator, size the source's fixed-capacity storage
 //! (including its unicast destination tables and socket buffers) with
 //! [`embassy_static_storage!`](crate::embassy_static_storage!).
-//!
-//! # Setup
-//!
-//! This adapter depends on `embassy-net` but deliberately does not select a
-//! link-layer *medium* for it, because the right one depends on your hardware.
-//! `embassy-net` (via `smoltcp`) needs at least one `medium-*` feature enabled
-//! to compile, so your own crate must turn one on. Without it the network stack
-//! fails to build. For example, to use ethernet:
-//!
-//! ```toml
-//! [dependencies]
-//! sacn = { version = "0.1", default-features = false, features = ["embassy"] }
-//! embassy-net = { version = "0.9", features = ["medium-ethernet"] }
-//! ```
 
 mod error;
 mod sending;
