@@ -610,6 +610,43 @@ macro_rules! static_storage {
                     $crate::heapless::Vec::new(),
                 )
             }
+
+            /// Construct a
+            /// [`BasicReceiverResources`](sacn::receiver::BasicReceiverResources)
+            /// in a const context.
+            ///
+            /// The returned value is large, so it's recommended to place it
+            /// directly in `const`/`static` storage - e.g. a `ConstStaticCell` -
+            /// rather than building it on the stack.
+            #[allow(dead_code)]
+            #[allow(clippy::large_stack_frames)]
+            $vis const fn basic_receiver_resources()
+            -> $crate::receiver::BasicReceiverResources<$name> {
+                $crate::receiver::BasicReceiverResources::from_parts(
+                    $crate::SortedVecMap::new(),
+                    $crate::heapless::Vec::new(),
+                    $crate::heapless::Vec::new(),
+                )
+            }
+
+            /// Construct a
+            /// [`ReceiverResources`](sacn::receiver::ReceiverResources) in a const
+            /// context.
+            ///
+            /// The returned value is large, so it's recommended to place it
+            /// directly in `const`/`static` storage - e.g. a `ConstStaticCell` -
+            /// rather than building it on the stack.
+            #[allow(dead_code)]
+            #[allow(clippy::large_stack_frames)]
+            $vis const fn receiver_resources() -> $crate::receiver::ReceiverResources<$name> {
+                $crate::receiver::ReceiverResources::from_parts(
+                    $name::basic_receiver_resources(),
+                    $crate::SortedVecMap::new(),
+                    $crate::SortedVecMap::new(),
+                    $crate::heapless::Vec::new(),
+                    $crate::heapless::Vec::new(),
+                )
+            }
         }
 
         impl $crate::detector::DetectorStorage for $name {

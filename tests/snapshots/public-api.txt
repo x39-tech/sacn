@@ -1532,15 +1532,15 @@ pub fn sacn::BasicReceiver<S>::listen(&mut self, sacn::time::Instant, sacn::Univ
 pub fn sacn::BasicReceiver<S>::poll(&mut self, sacn::time::Instant) -> sacn::receiver::PollOutcome<'_, S>
 pub fn sacn::BasicReceiver<S>::stop_listening(&mut self, sacn::Universe) -> sacn::receiver::StopOutcome
 pub fn sacn::BasicReceiver<S>::with_config(sacn::receiver::ReceiverConfig) -> Self
-impl<S: core::fmt::Debug + sacn::receiver::BasicReceiverStorage> core::fmt::Debug for sacn::BasicReceiver<S> where <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::fmt::Debug, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::fmt::Debug, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::fmt::Debug
+impl<S: core::fmt::Debug + sacn::receiver::BasicReceiverStorage> core::fmt::Debug for sacn::BasicReceiver<S>
 pub fn sacn::BasicReceiver<S>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
 impl<S> core::marker::Freeze for sacn::BasicReceiver<S> where <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::marker::Freeze, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::marker::Freeze, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::marker::Freeze
-impl<S> core::marker::Send for sacn::BasicReceiver<S> where <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::marker::Send, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::marker::Send, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::marker::Send
-impl<S> core::marker::Sync for sacn::BasicReceiver<S> where <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::marker::Sync, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::marker::Sync, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::marker::Sync
-impl<S> core::marker::Unpin for sacn::BasicReceiver<S> where <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::marker::Unpin, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::marker::Unpin, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::marker::Unpin
+impl<S> core::marker::Send for sacn::BasicReceiver<S> where <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::marker::Send, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::marker::Send, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::marker::Send, S: core::marker::Send
+impl<S> core::marker::Sync for sacn::BasicReceiver<S> where <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::marker::Sync, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::marker::Sync, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::marker::Sync, S: core::marker::Sync
+impl<S> core::marker::Unpin for sacn::BasicReceiver<S> where <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::marker::Unpin, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::marker::Unpin, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::marker::Unpin, S: core::marker::Unpin
 impl<S> core::marker::UnsafeUnpin for sacn::BasicReceiver<S> where <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::marker::UnsafeUnpin, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::marker::UnsafeUnpin, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::marker::UnsafeUnpin
-impl<S> core::panic::unwind_safe::RefUnwindSafe for sacn::BasicReceiver<S> where <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::panic::unwind_safe::RefUnwindSafe
-impl<S> core::panic::unwind_safe::UnwindSafe for sacn::BasicReceiver<S> where <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::panic::unwind_safe::UnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::panic::unwind_safe::UnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::panic::unwind_safe::UnwindSafe
+impl<S> core::panic::unwind_safe::RefUnwindSafe for sacn::BasicReceiver<S> where <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::panic::unwind_safe::RefUnwindSafe, S: core::panic::unwind_safe::RefUnwindSafe
+impl<S> core::panic::unwind_safe::UnwindSafe for sacn::BasicReceiver<S> where <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::panic::unwind_safe::UnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::panic::unwind_safe::UnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::panic::unwind_safe::UnwindSafe, S: core::panic::unwind_safe::UnwindSafe
 impl<T, U> core::convert::Into<U> for sacn::BasicReceiver<S> where U: core::convert::From<T>
 pub fn sacn::BasicReceiver<S>::into(self) -> U
 impl<T, U> core::convert::TryFrom<U> for sacn::BasicReceiver<S> where U: core::convert::Into<T>
@@ -1559,6 +1559,71 @@ impl<T> core::convert::From<T> for sacn::BasicReceiver<S>
 pub fn sacn::BasicReceiver<S>::from(T) -> T
 impl<T> tracing::instrument::Instrument for sacn::BasicReceiver<S>
 impl<T> tracing::instrument::WithSubscriber for sacn::BasicReceiver<S>
+pub struct sacn::receiver::BasicReceiverCore<S: sacn::receiver::BasicReceiverStorage>
+impl<S: sacn::receiver::BasicReceiverStorage> sacn::BasicReceiverCore<S>
+pub fn sacn::BasicReceiverCore<S>::config(&self) -> &sacn::receiver::ReceiverConfig
+pub fn sacn::BasicReceiverCore<S>::handle_packet<'p>(&self, &mut sacn::BasicReceiverResources<S>, sacn::time::Instant, core::net::socket_addr::SocketAddr, sacn::NetintId, &sacn::packet::Packet<'p>) -> sacn::receiver::PacketOutcome<'p>
+pub fn sacn::BasicReceiverCore<S>::listen(&self, &mut sacn::BasicReceiverResources<S>, sacn::time::Instant, sacn::Universe) -> core::result::Result<sacn::receiver::ListenOutcome, sacn::error::Error>
+pub fn sacn::BasicReceiverCore<S>::poll<'a>(&'a self, &'a mut sacn::BasicReceiverResources<S>, sacn::time::Instant) -> sacn::receiver::PollOutcome<'a, S>
+pub fn sacn::BasicReceiverCore<S>::stop_listening(&self, &mut sacn::BasicReceiverResources<S>, sacn::Universe) -> sacn::receiver::StopOutcome
+pub fn sacn::BasicReceiverCore<S>::with_config(sacn::receiver::ReceiverConfig) -> Self
+impl<S: core::fmt::Debug + sacn::receiver::BasicReceiverStorage> core::fmt::Debug for sacn::BasicReceiverCore<S>
+pub fn sacn::BasicReceiverCore<S>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<S> core::marker::Freeze for sacn::BasicReceiverCore<S>
+impl<S> core::marker::Send for sacn::BasicReceiverCore<S> where S: core::marker::Send
+impl<S> core::marker::Sync for sacn::BasicReceiverCore<S> where S: core::marker::Sync
+impl<S> core::marker::Unpin for sacn::BasicReceiverCore<S> where S: core::marker::Unpin
+impl<S> core::marker::UnsafeUnpin for sacn::BasicReceiverCore<S>
+impl<S> core::panic::unwind_safe::RefUnwindSafe for sacn::BasicReceiverCore<S> where S: core::panic::unwind_safe::RefUnwindSafe
+impl<S> core::panic::unwind_safe::UnwindSafe for sacn::BasicReceiverCore<S> where S: core::panic::unwind_safe::UnwindSafe
+impl<T, U> core::convert::Into<U> for sacn::BasicReceiverCore<S> where U: core::convert::From<T>
+pub fn sacn::BasicReceiverCore<S>::into(self) -> U
+impl<T, U> core::convert::TryFrom<U> for sacn::BasicReceiverCore<S> where U: core::convert::Into<T>
+pub type sacn::BasicReceiverCore<S>::Error = core::convert::Infallible
+pub fn sacn::BasicReceiverCore<S>::try_from(U) -> core::result::Result<T, <T as core::convert::TryFrom<U>>::Error>
+impl<T, U> core::convert::TryInto<U> for sacn::BasicReceiverCore<S> where U: core::convert::TryFrom<T>
+pub type sacn::BasicReceiverCore<S>::Error = <U as core::convert::TryFrom<T>>::Error
+pub fn sacn::BasicReceiverCore<S>::try_into(self) -> core::result::Result<U, <U as core::convert::TryFrom<T>>::Error>
+impl<T> core::any::Any for sacn::BasicReceiverCore<S> where T: 'static + ?core::marker::Sized
+pub fn sacn::BasicReceiverCore<S>::type_id(&self) -> core::any::TypeId
+impl<T> core::borrow::Borrow<T> for sacn::BasicReceiverCore<S> where T: ?core::marker::Sized
+pub fn sacn::BasicReceiverCore<S>::borrow(&self) -> &T
+impl<T> core::borrow::BorrowMut<T> for sacn::BasicReceiverCore<S> where T: ?core::marker::Sized
+pub fn sacn::BasicReceiverCore<S>::borrow_mut(&mut self) -> &mut T
+impl<T> core::convert::From<T> for sacn::BasicReceiverCore<S>
+pub fn sacn::BasicReceiverCore<S>::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::BasicReceiverCore<S>
+impl<T> tracing::instrument::WithSubscriber for sacn::BasicReceiverCore<S>
+pub struct sacn::receiver::BasicReceiverResources<S: sacn::receiver::BasicReceiverStorage>
+impl<S: core::fmt::Debug + sacn::receiver::BasicReceiverStorage> core::fmt::Debug for sacn::BasicReceiverResources<S> where <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::fmt::Debug, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::fmt::Debug, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::fmt::Debug
+pub fn sacn::BasicReceiverResources<S>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<S: sacn::receiver::BasicReceiverStorage> core::default::Default for sacn::BasicReceiverResources<S>
+pub fn sacn::BasicReceiverResources<S>::default() -> Self
+impl<S> core::marker::Freeze for sacn::BasicReceiverResources<S> where <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::marker::Freeze, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::marker::Freeze, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::marker::Freeze
+impl<S> core::marker::Send for sacn::BasicReceiverResources<S> where <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::marker::Send, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::marker::Send, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::marker::Send
+impl<S> core::marker::Sync for sacn::BasicReceiverResources<S> where <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::marker::Sync, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::marker::Sync, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::marker::Sync
+impl<S> core::marker::Unpin for sacn::BasicReceiverResources<S> where <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::marker::Unpin, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::marker::Unpin, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::marker::Unpin
+impl<S> core::marker::UnsafeUnpin for sacn::BasicReceiverResources<S> where <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::marker::UnsafeUnpin, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::marker::UnsafeUnpin, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::marker::UnsafeUnpin
+impl<S> core::panic::unwind_safe::RefUnwindSafe for sacn::BasicReceiverResources<S> where <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::panic::unwind_safe::RefUnwindSafe
+impl<S> core::panic::unwind_safe::UnwindSafe for sacn::BasicReceiverResources<S> where <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::panic::unwind_safe::UnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::panic::unwind_safe::UnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::panic::unwind_safe::UnwindSafe
+impl<T, U> core::convert::Into<U> for sacn::BasicReceiverResources<S> where U: core::convert::From<T>
+pub fn sacn::BasicReceiverResources<S>::into(self) -> U
+impl<T, U> core::convert::TryFrom<U> for sacn::BasicReceiverResources<S> where U: core::convert::Into<T>
+pub type sacn::BasicReceiverResources<S>::Error = core::convert::Infallible
+pub fn sacn::BasicReceiverResources<S>::try_from(U) -> core::result::Result<T, <T as core::convert::TryFrom<U>>::Error>
+impl<T, U> core::convert::TryInto<U> for sacn::BasicReceiverResources<S> where U: core::convert::TryFrom<T>
+pub type sacn::BasicReceiverResources<S>::Error = <U as core::convert::TryFrom<T>>::Error
+pub fn sacn::BasicReceiverResources<S>::try_into(self) -> core::result::Result<U, <U as core::convert::TryFrom<T>>::Error>
+impl<T> core::any::Any for sacn::BasicReceiverResources<S> where T: 'static + ?core::marker::Sized
+pub fn sacn::BasicReceiverResources<S>::type_id(&self) -> core::any::TypeId
+impl<T> core::borrow::Borrow<T> for sacn::BasicReceiverResources<S> where T: ?core::marker::Sized
+pub fn sacn::BasicReceiverResources<S>::borrow(&self) -> &T
+impl<T> core::borrow::BorrowMut<T> for sacn::BasicReceiverResources<S> where T: ?core::marker::Sized
+pub fn sacn::BasicReceiverResources<S>::borrow_mut(&mut self) -> &mut T
+impl<T> core::convert::From<T> for sacn::BasicReceiverResources<S>
+pub fn sacn::BasicReceiverResources<S>::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::BasicReceiverResources<S>
+impl<T> tracing::instrument::WithSubscriber for sacn::BasicReceiverResources<S>
 #[non_exhaustive] pub struct sacn::receiver::ListenOutcome
 pub sacn::receiver::ListenOutcome::sampling_started: bool
 impl core::clone::Clone for sacn::receiver::ListenOutcome
@@ -1786,11 +1851,11 @@ pub fn sacn::receiver::MergedPollOutcome<'a, S>::next_event(&mut self) -> core::
 impl<S: sacn::receiver::ReceiverStorage> core::fmt::Debug for sacn::receiver::MergedPollOutcome<'_, S>
 pub fn sacn::receiver::MergedPollOutcome<'_, S>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
 impl<'a, S> core::marker::Freeze for sacn::receiver::MergedPollOutcome<'a, S>
-impl<'a, S> core::marker::Send for sacn::receiver::MergedPollOutcome<'a, S> where <S as sacn::receiver::ReceiverStorage>::Universes: core::marker::Send, <S as sacn::receiver::ReceiverStorage>::SyncAddresses: core::marker::Sync, <S as sacn::receiver::ReceiverStorage>::MergeLossList: core::marker::Send, <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::marker::Send, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::marker::Send, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::marker::Send
-impl<'a, S> core::marker::Sync for sacn::receiver::MergedPollOutcome<'a, S> where <S as sacn::receiver::ReceiverStorage>::Universes: core::marker::Sync, <S as sacn::receiver::ReceiverStorage>::SyncAddresses: core::marker::Sync, <S as sacn::receiver::ReceiverStorage>::MergeLossList: core::marker::Sync, <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::marker::Sync, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::marker::Sync, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::marker::Sync
+impl<'a, S> core::marker::Send for sacn::receiver::MergedPollOutcome<'a, S> where <S as sacn::receiver::ReceiverStorage>::Universes: core::marker::Send, <S as sacn::receiver::ReceiverStorage>::SyncAddresses: core::marker::Sync, <S as sacn::receiver::ReceiverStorage>::MergeLossList: core::marker::Send, <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::marker::Send, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::marker::Send, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::marker::Send, S: core::marker::Sync
+impl<'a, S> core::marker::Sync for sacn::receiver::MergedPollOutcome<'a, S> where <S as sacn::receiver::ReceiverStorage>::Universes: core::marker::Sync, <S as sacn::receiver::ReceiverStorage>::SyncAddresses: core::marker::Sync, <S as sacn::receiver::ReceiverStorage>::MergeLossList: core::marker::Sync, <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::marker::Sync, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::marker::Sync, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::marker::Sync, S: core::marker::Sync
 impl<'a, S> core::marker::Unpin for sacn::receiver::MergedPollOutcome<'a, S>
 impl<'a, S> core::marker::UnsafeUnpin for sacn::receiver::MergedPollOutcome<'a, S>
-impl<'a, S> core::panic::unwind_safe::RefUnwindSafe for sacn::receiver::MergedPollOutcome<'a, S> where <S as sacn::receiver::ReceiverStorage>::Universes: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::receiver::ReceiverStorage>::SyncAddresses: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::receiver::ReceiverStorage>::MergeLossList: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::panic::unwind_safe::RefUnwindSafe
+impl<'a, S> core::panic::unwind_safe::RefUnwindSafe for sacn::receiver::MergedPollOutcome<'a, S> where <S as sacn::receiver::ReceiverStorage>::Universes: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::receiver::ReceiverStorage>::SyncAddresses: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::receiver::ReceiverStorage>::MergeLossList: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::panic::unwind_safe::RefUnwindSafe, S: core::panic::unwind_safe::RefUnwindSafe
 impl<'a, S> !core::panic::unwind_safe::UnwindSafe for sacn::receiver::MergedPollOutcome<'a, S>
 impl<T, U> core::convert::Into<U> for sacn::receiver::MergedPollOutcome<'a, S> where U: core::convert::From<T>
 pub fn sacn::receiver::MergedPollOutcome<'a, S>::into(self) -> U
@@ -1910,11 +1975,11 @@ pub fn sacn::receiver::PollOutcome<'a, S>::next_event(&mut self) -> core::option
 impl<'a, S: core::fmt::Debug + sacn::receiver::BasicReceiverStorage> core::fmt::Debug for sacn::receiver::PollOutcome<'a, S>
 pub fn sacn::receiver::PollOutcome<'a, S>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
 impl<'a, S> core::marker::Freeze for sacn::receiver::PollOutcome<'a, S>
-impl<'a, S> core::marker::Send for sacn::receiver::PollOutcome<'a, S> where <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::marker::Send, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::marker::Send, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::marker::Send
-impl<'a, S> core::marker::Sync for sacn::receiver::PollOutcome<'a, S> where <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::marker::Sync, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::marker::Sync, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::marker::Sync
+impl<'a, S> core::marker::Send for sacn::receiver::PollOutcome<'a, S> where <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::marker::Send, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::marker::Send, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::marker::Send, S: core::marker::Sync
+impl<'a, S> core::marker::Sync for sacn::receiver::PollOutcome<'a, S> where <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::marker::Sync, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::marker::Sync, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::marker::Sync, S: core::marker::Sync
 impl<'a, S> core::marker::Unpin for sacn::receiver::PollOutcome<'a, S>
 impl<'a, S> core::marker::UnsafeUnpin for sacn::receiver::PollOutcome<'a, S>
-impl<'a, S> core::panic::unwind_safe::RefUnwindSafe for sacn::receiver::PollOutcome<'a, S> where <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::panic::unwind_safe::RefUnwindSafe
+impl<'a, S> core::panic::unwind_safe::RefUnwindSafe for sacn::receiver::PollOutcome<'a, S> where <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::panic::unwind_safe::RefUnwindSafe, S: core::panic::unwind_safe::RefUnwindSafe
 impl<'a, S> !core::panic::unwind_safe::UnwindSafe for sacn::receiver::PollOutcome<'a, S>
 impl<T, U> core::convert::Into<U> for sacn::receiver::PollOutcome<'a, S> where U: core::convert::From<T>
 pub fn sacn::receiver::PollOutcome<'a, S>::into(self) -> U
@@ -1946,15 +2011,15 @@ pub fn sacn::Receiver<S>::poll(&mut self, sacn::time::Instant) -> sacn::receiver
 pub fn sacn::Receiver<S>::stop_listening(&mut self, sacn::Universe) -> sacn::receiver::StopOutcome
 pub fn sacn::Receiver<S>::sync_group_interest(&self) -> impl core::iter::traits::iterator::Iterator<Item = sacn::Universe> + '_
 pub fn sacn::Receiver<S>::with_config(sacn::receiver::ReceiverConfig) -> Self
-impl<S: core::fmt::Debug + sacn::receiver::ReceiverStorage> core::fmt::Debug for sacn::Receiver<S> where <S as sacn::receiver::ReceiverStorage>::Universes: core::fmt::Debug, <S as sacn::receiver::ReceiverStorage>::SyncAddresses: core::fmt::Debug, <S as sacn::receiver::ReceiverStorage>::SyncReleases: core::fmt::Debug, <S as sacn::receiver::ReceiverStorage>::MergeLossList: core::fmt::Debug
+impl<S: core::fmt::Debug + sacn::receiver::ReceiverStorage> core::fmt::Debug for sacn::Receiver<S>
 pub fn sacn::Receiver<S>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
 impl<S> core::marker::Freeze for sacn::Receiver<S> where <S as sacn::receiver::ReceiverStorage>::Universes: core::marker::Freeze, <S as sacn::receiver::ReceiverStorage>::SyncAddresses: core::marker::Freeze, <S as sacn::receiver::ReceiverStorage>::SyncReleases: core::marker::Freeze, <S as sacn::receiver::ReceiverStorage>::MergeLossList: core::marker::Freeze, <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::marker::Freeze, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::marker::Freeze, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::marker::Freeze
-impl<S> core::marker::Send for sacn::Receiver<S> where <S as sacn::receiver::ReceiverStorage>::Universes: core::marker::Send, <S as sacn::receiver::ReceiverStorage>::SyncAddresses: core::marker::Send, <S as sacn::receiver::ReceiverStorage>::SyncReleases: core::marker::Send, <S as sacn::receiver::ReceiverStorage>::MergeLossList: core::marker::Send, <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::marker::Send, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::marker::Send, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::marker::Send
-impl<S> core::marker::Sync for sacn::Receiver<S> where <S as sacn::receiver::ReceiverStorage>::Universes: core::marker::Sync, <S as sacn::receiver::ReceiverStorage>::SyncAddresses: core::marker::Sync, <S as sacn::receiver::ReceiverStorage>::SyncReleases: core::marker::Sync, <S as sacn::receiver::ReceiverStorage>::MergeLossList: core::marker::Sync, <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::marker::Sync, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::marker::Sync, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::marker::Sync
-impl<S> core::marker::Unpin for sacn::Receiver<S> where <S as sacn::receiver::ReceiverStorage>::Universes: core::marker::Unpin, <S as sacn::receiver::ReceiverStorage>::SyncAddresses: core::marker::Unpin, <S as sacn::receiver::ReceiverStorage>::SyncReleases: core::marker::Unpin, <S as sacn::receiver::ReceiverStorage>::MergeLossList: core::marker::Unpin, <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::marker::Unpin, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::marker::Unpin, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::marker::Unpin
+impl<S> core::marker::Send for sacn::Receiver<S> where <S as sacn::receiver::ReceiverStorage>::Universes: core::marker::Send, <S as sacn::receiver::ReceiverStorage>::SyncAddresses: core::marker::Send, <S as sacn::receiver::ReceiverStorage>::SyncReleases: core::marker::Send, <S as sacn::receiver::ReceiverStorage>::MergeLossList: core::marker::Send, <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::marker::Send, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::marker::Send, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::marker::Send, S: core::marker::Send
+impl<S> core::marker::Sync for sacn::Receiver<S> where <S as sacn::receiver::ReceiverStorage>::Universes: core::marker::Sync, <S as sacn::receiver::ReceiverStorage>::SyncAddresses: core::marker::Sync, <S as sacn::receiver::ReceiverStorage>::SyncReleases: core::marker::Sync, <S as sacn::receiver::ReceiverStorage>::MergeLossList: core::marker::Sync, <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::marker::Sync, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::marker::Sync, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::marker::Sync, S: core::marker::Sync
+impl<S> core::marker::Unpin for sacn::Receiver<S> where <S as sacn::receiver::ReceiverStorage>::Universes: core::marker::Unpin, <S as sacn::receiver::ReceiverStorage>::SyncAddresses: core::marker::Unpin, <S as sacn::receiver::ReceiverStorage>::SyncReleases: core::marker::Unpin, <S as sacn::receiver::ReceiverStorage>::MergeLossList: core::marker::Unpin, <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::marker::Unpin, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::marker::Unpin, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::marker::Unpin, S: core::marker::Unpin
 impl<S> core::marker::UnsafeUnpin for sacn::Receiver<S> where <S as sacn::receiver::ReceiverStorage>::Universes: core::marker::UnsafeUnpin, <S as sacn::receiver::ReceiverStorage>::SyncAddresses: core::marker::UnsafeUnpin, <S as sacn::receiver::ReceiverStorage>::SyncReleases: core::marker::UnsafeUnpin, <S as sacn::receiver::ReceiverStorage>::MergeLossList: core::marker::UnsafeUnpin, <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::marker::UnsafeUnpin, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::marker::UnsafeUnpin, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::marker::UnsafeUnpin
-impl<S> core::panic::unwind_safe::RefUnwindSafe for sacn::Receiver<S> where <S as sacn::receiver::ReceiverStorage>::Universes: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::receiver::ReceiverStorage>::SyncAddresses: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::receiver::ReceiverStorage>::SyncReleases: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::receiver::ReceiverStorage>::MergeLossList: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::panic::unwind_safe::RefUnwindSafe
-impl<S> core::panic::unwind_safe::UnwindSafe for sacn::Receiver<S> where <S as sacn::receiver::ReceiverStorage>::Universes: core::panic::unwind_safe::UnwindSafe, <S as sacn::receiver::ReceiverStorage>::SyncAddresses: core::panic::unwind_safe::UnwindSafe, <S as sacn::receiver::ReceiverStorage>::SyncReleases: core::panic::unwind_safe::UnwindSafe, <S as sacn::receiver::ReceiverStorage>::MergeLossList: core::panic::unwind_safe::UnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::panic::unwind_safe::UnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::panic::unwind_safe::UnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::panic::unwind_safe::UnwindSafe
+impl<S> core::panic::unwind_safe::RefUnwindSafe for sacn::Receiver<S> where <S as sacn::receiver::ReceiverStorage>::Universes: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::receiver::ReceiverStorage>::SyncAddresses: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::receiver::ReceiverStorage>::SyncReleases: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::receiver::ReceiverStorage>::MergeLossList: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::panic::unwind_safe::RefUnwindSafe, S: core::panic::unwind_safe::RefUnwindSafe
+impl<S> core::panic::unwind_safe::UnwindSafe for sacn::Receiver<S> where <S as sacn::receiver::ReceiverStorage>::Universes: core::panic::unwind_safe::UnwindSafe, <S as sacn::receiver::ReceiverStorage>::SyncAddresses: core::panic::unwind_safe::UnwindSafe, <S as sacn::receiver::ReceiverStorage>::SyncReleases: core::panic::unwind_safe::UnwindSafe, <S as sacn::receiver::ReceiverStorage>::MergeLossList: core::panic::unwind_safe::UnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::panic::unwind_safe::UnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::panic::unwind_safe::UnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::panic::unwind_safe::UnwindSafe, S: core::panic::unwind_safe::UnwindSafe
 impl<T, U> core::convert::Into<U> for sacn::Receiver<S> where U: core::convert::From<T>
 pub fn sacn::Receiver<S>::into(self) -> U
 impl<T, U> core::convert::TryFrom<U> for sacn::Receiver<S> where U: core::convert::Into<T>
@@ -2026,6 +2091,72 @@ impl<T> core::convert::From<T> for sacn::receiver::ReceiverConfig
 pub fn sacn::receiver::ReceiverConfig::from(T) -> T
 impl<T> tracing::instrument::Instrument for sacn::receiver::ReceiverConfig
 impl<T> tracing::instrument::WithSubscriber for sacn::receiver::ReceiverConfig
+pub struct sacn::receiver::ReceiverCore<S: sacn::receiver::ReceiverStorage>
+impl<S: sacn::receiver::ReceiverStorage> sacn::ReceiverCore<S>
+pub fn sacn::ReceiverCore<S>::config(&self) -> &sacn::receiver::ReceiverConfig
+pub fn sacn::ReceiverCore<S>::handle_packet<'r, 'p>(&self, &'r mut sacn::ReceiverResources<S>, sacn::time::Instant, core::net::socket_addr::SocketAddr, sacn::NetintId, &sacn::packet::Packet<'p>) -> sacn::receiver::MergedPacketOutcome<'r, 'p, S>
+pub fn sacn::ReceiverCore<S>::listen(&self, &mut sacn::ReceiverResources<S>, sacn::time::Instant, sacn::Universe) -> core::result::Result<sacn::receiver::ListenOutcome, sacn::error::Error>
+pub fn sacn::ReceiverCore<S>::poll<'a>(&'a self, &'a mut sacn::ReceiverResources<S>, sacn::time::Instant) -> sacn::receiver::MergedPollOutcome<'a, S>
+pub fn sacn::ReceiverCore<S>::stop_listening(&self, &mut sacn::ReceiverResources<S>, sacn::Universe) -> sacn::receiver::StopOutcome
+pub fn sacn::ReceiverCore<S>::sync_group_interest<'a>(&self, &'a sacn::ReceiverResources<S>) -> impl core::iter::traits::iterator::Iterator<Item = sacn::Universe> + 'a
+pub fn sacn::ReceiverCore<S>::with_config(sacn::receiver::ReceiverConfig) -> Self
+impl<S: core::fmt::Debug + sacn::receiver::ReceiverStorage> core::fmt::Debug for sacn::ReceiverCore<S>
+pub fn sacn::ReceiverCore<S>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<S> core::marker::Freeze for sacn::ReceiverCore<S>
+impl<S> core::marker::Send for sacn::ReceiverCore<S> where S: core::marker::Send
+impl<S> core::marker::Sync for sacn::ReceiverCore<S> where S: core::marker::Sync
+impl<S> core::marker::Unpin for sacn::ReceiverCore<S> where S: core::marker::Unpin
+impl<S> core::marker::UnsafeUnpin for sacn::ReceiverCore<S>
+impl<S> core::panic::unwind_safe::RefUnwindSafe for sacn::ReceiverCore<S> where S: core::panic::unwind_safe::RefUnwindSafe
+impl<S> core::panic::unwind_safe::UnwindSafe for sacn::ReceiverCore<S> where S: core::panic::unwind_safe::UnwindSafe
+impl<T, U> core::convert::Into<U> for sacn::ReceiverCore<S> where U: core::convert::From<T>
+pub fn sacn::ReceiverCore<S>::into(self) -> U
+impl<T, U> core::convert::TryFrom<U> for sacn::ReceiverCore<S> where U: core::convert::Into<T>
+pub type sacn::ReceiverCore<S>::Error = core::convert::Infallible
+pub fn sacn::ReceiverCore<S>::try_from(U) -> core::result::Result<T, <T as core::convert::TryFrom<U>>::Error>
+impl<T, U> core::convert::TryInto<U> for sacn::ReceiverCore<S> where U: core::convert::TryFrom<T>
+pub type sacn::ReceiverCore<S>::Error = <U as core::convert::TryFrom<T>>::Error
+pub fn sacn::ReceiverCore<S>::try_into(self) -> core::result::Result<U, <U as core::convert::TryFrom<T>>::Error>
+impl<T> core::any::Any for sacn::ReceiverCore<S> where T: 'static + ?core::marker::Sized
+pub fn sacn::ReceiverCore<S>::type_id(&self) -> core::any::TypeId
+impl<T> core::borrow::Borrow<T> for sacn::ReceiverCore<S> where T: ?core::marker::Sized
+pub fn sacn::ReceiverCore<S>::borrow(&self) -> &T
+impl<T> core::borrow::BorrowMut<T> for sacn::ReceiverCore<S> where T: ?core::marker::Sized
+pub fn sacn::ReceiverCore<S>::borrow_mut(&mut self) -> &mut T
+impl<T> core::convert::From<T> for sacn::ReceiverCore<S>
+pub fn sacn::ReceiverCore<S>::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::ReceiverCore<S>
+impl<T> tracing::instrument::WithSubscriber for sacn::ReceiverCore<S>
+pub struct sacn::receiver::ReceiverResources<S: sacn::receiver::ReceiverStorage>
+impl<S: core::fmt::Debug + sacn::receiver::ReceiverStorage> core::fmt::Debug for sacn::ReceiverResources<S> where <S as sacn::receiver::ReceiverStorage>::Universes: core::fmt::Debug, <S as sacn::receiver::ReceiverStorage>::SyncAddresses: core::fmt::Debug, <S as sacn::receiver::ReceiverStorage>::SyncReleases: core::fmt::Debug, <S as sacn::receiver::ReceiverStorage>::MergeLossList: core::fmt::Debug
+pub fn sacn::ReceiverResources<S>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<S: sacn::receiver::ReceiverStorage> core::default::Default for sacn::ReceiverResources<S>
+pub fn sacn::ReceiverResources<S>::default() -> Self
+impl<S> core::marker::Freeze for sacn::ReceiverResources<S> where <S as sacn::receiver::ReceiverStorage>::Universes: core::marker::Freeze, <S as sacn::receiver::ReceiverStorage>::SyncAddresses: core::marker::Freeze, <S as sacn::receiver::ReceiverStorage>::SyncReleases: core::marker::Freeze, <S as sacn::receiver::ReceiverStorage>::MergeLossList: core::marker::Freeze, <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::marker::Freeze, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::marker::Freeze, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::marker::Freeze
+impl<S> core::marker::Send for sacn::ReceiverResources<S> where <S as sacn::receiver::ReceiverStorage>::Universes: core::marker::Send, <S as sacn::receiver::ReceiverStorage>::SyncAddresses: core::marker::Send, <S as sacn::receiver::ReceiverStorage>::SyncReleases: core::marker::Send, <S as sacn::receiver::ReceiverStorage>::MergeLossList: core::marker::Send, <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::marker::Send, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::marker::Send, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::marker::Send
+impl<S> core::marker::Sync for sacn::ReceiverResources<S> where <S as sacn::receiver::ReceiverStorage>::Universes: core::marker::Sync, <S as sacn::receiver::ReceiverStorage>::SyncAddresses: core::marker::Sync, <S as sacn::receiver::ReceiverStorage>::SyncReleases: core::marker::Sync, <S as sacn::receiver::ReceiverStorage>::MergeLossList: core::marker::Sync, <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::marker::Sync, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::marker::Sync, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::marker::Sync
+impl<S> core::marker::Unpin for sacn::ReceiverResources<S> where <S as sacn::receiver::ReceiverStorage>::Universes: core::marker::Unpin, <S as sacn::receiver::ReceiverStorage>::SyncAddresses: core::marker::Unpin, <S as sacn::receiver::ReceiverStorage>::SyncReleases: core::marker::Unpin, <S as sacn::receiver::ReceiverStorage>::MergeLossList: core::marker::Unpin, <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::marker::Unpin, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::marker::Unpin, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::marker::Unpin
+impl<S> core::marker::UnsafeUnpin for sacn::ReceiverResources<S> where <S as sacn::receiver::ReceiverStorage>::Universes: core::marker::UnsafeUnpin, <S as sacn::receiver::ReceiverStorage>::SyncAddresses: core::marker::UnsafeUnpin, <S as sacn::receiver::ReceiverStorage>::SyncReleases: core::marker::UnsafeUnpin, <S as sacn::receiver::ReceiverStorage>::MergeLossList: core::marker::UnsafeUnpin, <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::marker::UnsafeUnpin, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::marker::UnsafeUnpin, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::marker::UnsafeUnpin
+impl<S> core::panic::unwind_safe::RefUnwindSafe for sacn::ReceiverResources<S> where <S as sacn::receiver::ReceiverStorage>::Universes: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::receiver::ReceiverStorage>::SyncAddresses: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::receiver::ReceiverStorage>::SyncReleases: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::receiver::ReceiverStorage>::MergeLossList: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::panic::unwind_safe::RefUnwindSafe
+impl<S> core::panic::unwind_safe::UnwindSafe for sacn::ReceiverResources<S> where <S as sacn::receiver::ReceiverStorage>::Universes: core::panic::unwind_safe::UnwindSafe, <S as sacn::receiver::ReceiverStorage>::SyncAddresses: core::panic::unwind_safe::UnwindSafe, <S as sacn::receiver::ReceiverStorage>::SyncReleases: core::panic::unwind_safe::UnwindSafe, <S as sacn::receiver::ReceiverStorage>::MergeLossList: core::panic::unwind_safe::UnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::panic::unwind_safe::UnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::panic::unwind_safe::UnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::panic::unwind_safe::UnwindSafe
+impl<T, U> core::convert::Into<U> for sacn::ReceiverResources<S> where U: core::convert::From<T>
+pub fn sacn::ReceiverResources<S>::into(self) -> U
+impl<T, U> core::convert::TryFrom<U> for sacn::ReceiverResources<S> where U: core::convert::Into<T>
+pub type sacn::ReceiverResources<S>::Error = core::convert::Infallible
+pub fn sacn::ReceiverResources<S>::try_from(U) -> core::result::Result<T, <T as core::convert::TryFrom<U>>::Error>
+impl<T, U> core::convert::TryInto<U> for sacn::ReceiverResources<S> where U: core::convert::TryFrom<T>
+pub type sacn::ReceiverResources<S>::Error = <U as core::convert::TryFrom<T>>::Error
+pub fn sacn::ReceiverResources<S>::try_into(self) -> core::result::Result<U, <U as core::convert::TryFrom<T>>::Error>
+impl<T> core::any::Any for sacn::ReceiverResources<S> where T: 'static + ?core::marker::Sized
+pub fn sacn::ReceiverResources<S>::type_id(&self) -> core::any::TypeId
+impl<T> core::borrow::Borrow<T> for sacn::ReceiverResources<S> where T: ?core::marker::Sized
+pub fn sacn::ReceiverResources<S>::borrow(&self) -> &T
+impl<T> core::borrow::BorrowMut<T> for sacn::ReceiverResources<S> where T: ?core::marker::Sized
+pub fn sacn::ReceiverResources<S>::borrow_mut(&mut self) -> &mut T
+impl<T> core::convert::From<T> for sacn::ReceiverResources<S>
+pub fn sacn::ReceiverResources<S>::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::ReceiverResources<S>
+impl<T> tracing::instrument::WithSubscriber for sacn::ReceiverResources<S>
 #[non_exhaustive] pub struct sacn::receiver::SourceInfo
 pub sacn::receiver::SourceInfo::cid: sacn::Cid
 pub sacn::receiver::SourceInfo::name: alloc::string::String
@@ -3574,15 +3705,15 @@ pub fn sacn::BasicReceiver<S>::listen(&mut self, sacn::time::Instant, sacn::Univ
 pub fn sacn::BasicReceiver<S>::poll(&mut self, sacn::time::Instant) -> sacn::receiver::PollOutcome<'_, S>
 pub fn sacn::BasicReceiver<S>::stop_listening(&mut self, sacn::Universe) -> sacn::receiver::StopOutcome
 pub fn sacn::BasicReceiver<S>::with_config(sacn::receiver::ReceiverConfig) -> Self
-impl<S: core::fmt::Debug + sacn::receiver::BasicReceiverStorage> core::fmt::Debug for sacn::BasicReceiver<S> where <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::fmt::Debug, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::fmt::Debug, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::fmt::Debug
+impl<S: core::fmt::Debug + sacn::receiver::BasicReceiverStorage> core::fmt::Debug for sacn::BasicReceiver<S>
 pub fn sacn::BasicReceiver<S>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
 impl<S> core::marker::Freeze for sacn::BasicReceiver<S> where <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::marker::Freeze, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::marker::Freeze, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::marker::Freeze
-impl<S> core::marker::Send for sacn::BasicReceiver<S> where <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::marker::Send, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::marker::Send, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::marker::Send
-impl<S> core::marker::Sync for sacn::BasicReceiver<S> where <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::marker::Sync, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::marker::Sync, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::marker::Sync
-impl<S> core::marker::Unpin for sacn::BasicReceiver<S> where <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::marker::Unpin, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::marker::Unpin, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::marker::Unpin
+impl<S> core::marker::Send for sacn::BasicReceiver<S> where <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::marker::Send, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::marker::Send, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::marker::Send, S: core::marker::Send
+impl<S> core::marker::Sync for sacn::BasicReceiver<S> where <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::marker::Sync, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::marker::Sync, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::marker::Sync, S: core::marker::Sync
+impl<S> core::marker::Unpin for sacn::BasicReceiver<S> where <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::marker::Unpin, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::marker::Unpin, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::marker::Unpin, S: core::marker::Unpin
 impl<S> core::marker::UnsafeUnpin for sacn::BasicReceiver<S> where <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::marker::UnsafeUnpin, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::marker::UnsafeUnpin, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::marker::UnsafeUnpin
-impl<S> core::panic::unwind_safe::RefUnwindSafe for sacn::BasicReceiver<S> where <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::panic::unwind_safe::RefUnwindSafe
-impl<S> core::panic::unwind_safe::UnwindSafe for sacn::BasicReceiver<S> where <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::panic::unwind_safe::UnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::panic::unwind_safe::UnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::panic::unwind_safe::UnwindSafe
+impl<S> core::panic::unwind_safe::RefUnwindSafe for sacn::BasicReceiver<S> where <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::panic::unwind_safe::RefUnwindSafe, S: core::panic::unwind_safe::RefUnwindSafe
+impl<S> core::panic::unwind_safe::UnwindSafe for sacn::BasicReceiver<S> where <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::panic::unwind_safe::UnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::panic::unwind_safe::UnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::panic::unwind_safe::UnwindSafe, S: core::panic::unwind_safe::UnwindSafe
 impl<T, U> core::convert::Into<U> for sacn::BasicReceiver<S> where U: core::convert::From<T>
 pub fn sacn::BasicReceiver<S>::into(self) -> U
 impl<T, U> core::convert::TryFrom<U> for sacn::BasicReceiver<S> where U: core::convert::Into<T>
@@ -3601,6 +3732,71 @@ impl<T> core::convert::From<T> for sacn::BasicReceiver<S>
 pub fn sacn::BasicReceiver<S>::from(T) -> T
 impl<T> tracing::instrument::Instrument for sacn::BasicReceiver<S>
 impl<T> tracing::instrument::WithSubscriber for sacn::BasicReceiver<S>
+pub struct sacn::BasicReceiverCore<S: sacn::receiver::BasicReceiverStorage>
+impl<S: sacn::receiver::BasicReceiverStorage> sacn::BasicReceiverCore<S>
+pub fn sacn::BasicReceiverCore<S>::config(&self) -> &sacn::receiver::ReceiverConfig
+pub fn sacn::BasicReceiverCore<S>::handle_packet<'p>(&self, &mut sacn::BasicReceiverResources<S>, sacn::time::Instant, core::net::socket_addr::SocketAddr, sacn::NetintId, &sacn::packet::Packet<'p>) -> sacn::receiver::PacketOutcome<'p>
+pub fn sacn::BasicReceiverCore<S>::listen(&self, &mut sacn::BasicReceiverResources<S>, sacn::time::Instant, sacn::Universe) -> core::result::Result<sacn::receiver::ListenOutcome, sacn::error::Error>
+pub fn sacn::BasicReceiverCore<S>::poll<'a>(&'a self, &'a mut sacn::BasicReceiverResources<S>, sacn::time::Instant) -> sacn::receiver::PollOutcome<'a, S>
+pub fn sacn::BasicReceiverCore<S>::stop_listening(&self, &mut sacn::BasicReceiverResources<S>, sacn::Universe) -> sacn::receiver::StopOutcome
+pub fn sacn::BasicReceiverCore<S>::with_config(sacn::receiver::ReceiverConfig) -> Self
+impl<S: core::fmt::Debug + sacn::receiver::BasicReceiverStorage> core::fmt::Debug for sacn::BasicReceiverCore<S>
+pub fn sacn::BasicReceiverCore<S>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<S> core::marker::Freeze for sacn::BasicReceiverCore<S>
+impl<S> core::marker::Send for sacn::BasicReceiverCore<S> where S: core::marker::Send
+impl<S> core::marker::Sync for sacn::BasicReceiverCore<S> where S: core::marker::Sync
+impl<S> core::marker::Unpin for sacn::BasicReceiverCore<S> where S: core::marker::Unpin
+impl<S> core::marker::UnsafeUnpin for sacn::BasicReceiverCore<S>
+impl<S> core::panic::unwind_safe::RefUnwindSafe for sacn::BasicReceiverCore<S> where S: core::panic::unwind_safe::RefUnwindSafe
+impl<S> core::panic::unwind_safe::UnwindSafe for sacn::BasicReceiverCore<S> where S: core::panic::unwind_safe::UnwindSafe
+impl<T, U> core::convert::Into<U> for sacn::BasicReceiverCore<S> where U: core::convert::From<T>
+pub fn sacn::BasicReceiverCore<S>::into(self) -> U
+impl<T, U> core::convert::TryFrom<U> for sacn::BasicReceiverCore<S> where U: core::convert::Into<T>
+pub type sacn::BasicReceiverCore<S>::Error = core::convert::Infallible
+pub fn sacn::BasicReceiverCore<S>::try_from(U) -> core::result::Result<T, <T as core::convert::TryFrom<U>>::Error>
+impl<T, U> core::convert::TryInto<U> for sacn::BasicReceiverCore<S> where U: core::convert::TryFrom<T>
+pub type sacn::BasicReceiverCore<S>::Error = <U as core::convert::TryFrom<T>>::Error
+pub fn sacn::BasicReceiverCore<S>::try_into(self) -> core::result::Result<U, <U as core::convert::TryFrom<T>>::Error>
+impl<T> core::any::Any for sacn::BasicReceiverCore<S> where T: 'static + ?core::marker::Sized
+pub fn sacn::BasicReceiverCore<S>::type_id(&self) -> core::any::TypeId
+impl<T> core::borrow::Borrow<T> for sacn::BasicReceiverCore<S> where T: ?core::marker::Sized
+pub fn sacn::BasicReceiverCore<S>::borrow(&self) -> &T
+impl<T> core::borrow::BorrowMut<T> for sacn::BasicReceiverCore<S> where T: ?core::marker::Sized
+pub fn sacn::BasicReceiverCore<S>::borrow_mut(&mut self) -> &mut T
+impl<T> core::convert::From<T> for sacn::BasicReceiverCore<S>
+pub fn sacn::BasicReceiverCore<S>::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::BasicReceiverCore<S>
+impl<T> tracing::instrument::WithSubscriber for sacn::BasicReceiverCore<S>
+pub struct sacn::BasicReceiverResources<S: sacn::receiver::BasicReceiverStorage>
+impl<S: core::fmt::Debug + sacn::receiver::BasicReceiverStorage> core::fmt::Debug for sacn::BasicReceiverResources<S> where <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::fmt::Debug, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::fmt::Debug, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::fmt::Debug
+pub fn sacn::BasicReceiverResources<S>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<S: sacn::receiver::BasicReceiverStorage> core::default::Default for sacn::BasicReceiverResources<S>
+pub fn sacn::BasicReceiverResources<S>::default() -> Self
+impl<S> core::marker::Freeze for sacn::BasicReceiverResources<S> where <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::marker::Freeze, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::marker::Freeze, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::marker::Freeze
+impl<S> core::marker::Send for sacn::BasicReceiverResources<S> where <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::marker::Send, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::marker::Send, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::marker::Send
+impl<S> core::marker::Sync for sacn::BasicReceiverResources<S> where <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::marker::Sync, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::marker::Sync, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::marker::Sync
+impl<S> core::marker::Unpin for sacn::BasicReceiverResources<S> where <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::marker::Unpin, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::marker::Unpin, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::marker::Unpin
+impl<S> core::marker::UnsafeUnpin for sacn::BasicReceiverResources<S> where <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::marker::UnsafeUnpin, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::marker::UnsafeUnpin, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::marker::UnsafeUnpin
+impl<S> core::panic::unwind_safe::RefUnwindSafe for sacn::BasicReceiverResources<S> where <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::panic::unwind_safe::RefUnwindSafe
+impl<S> core::panic::unwind_safe::UnwindSafe for sacn::BasicReceiverResources<S> where <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::panic::unwind_safe::UnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::panic::unwind_safe::UnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::panic::unwind_safe::UnwindSafe
+impl<T, U> core::convert::Into<U> for sacn::BasicReceiverResources<S> where U: core::convert::From<T>
+pub fn sacn::BasicReceiverResources<S>::into(self) -> U
+impl<T, U> core::convert::TryFrom<U> for sacn::BasicReceiverResources<S> where U: core::convert::Into<T>
+pub type sacn::BasicReceiverResources<S>::Error = core::convert::Infallible
+pub fn sacn::BasicReceiverResources<S>::try_from(U) -> core::result::Result<T, <T as core::convert::TryFrom<U>>::Error>
+impl<T, U> core::convert::TryInto<U> for sacn::BasicReceiverResources<S> where U: core::convert::TryFrom<T>
+pub type sacn::BasicReceiverResources<S>::Error = <U as core::convert::TryFrom<T>>::Error
+pub fn sacn::BasicReceiverResources<S>::try_into(self) -> core::result::Result<U, <U as core::convert::TryFrom<T>>::Error>
+impl<T> core::any::Any for sacn::BasicReceiverResources<S> where T: 'static + ?core::marker::Sized
+pub fn sacn::BasicReceiverResources<S>::type_id(&self) -> core::any::TypeId
+impl<T> core::borrow::Borrow<T> for sacn::BasicReceiverResources<S> where T: ?core::marker::Sized
+pub fn sacn::BasicReceiverResources<S>::borrow(&self) -> &T
+impl<T> core::borrow::BorrowMut<T> for sacn::BasicReceiverResources<S> where T: ?core::marker::Sized
+pub fn sacn::BasicReceiverResources<S>::borrow_mut(&mut self) -> &mut T
+impl<T> core::convert::From<T> for sacn::BasicReceiverResources<S>
+pub fn sacn::BasicReceiverResources<S>::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::BasicReceiverResources<S>
+impl<T> tracing::instrument::WithSubscriber for sacn::BasicReceiverResources<S>
 pub struct sacn::Cid(_)
 impl sacn::Cid
 pub const fn sacn::Cid::as_bytes(&self) -> &[u8; 16]
@@ -4085,15 +4281,15 @@ pub fn sacn::Receiver<S>::poll(&mut self, sacn::time::Instant) -> sacn::receiver
 pub fn sacn::Receiver<S>::stop_listening(&mut self, sacn::Universe) -> sacn::receiver::StopOutcome
 pub fn sacn::Receiver<S>::sync_group_interest(&self) -> impl core::iter::traits::iterator::Iterator<Item = sacn::Universe> + '_
 pub fn sacn::Receiver<S>::with_config(sacn::receiver::ReceiverConfig) -> Self
-impl<S: core::fmt::Debug + sacn::receiver::ReceiverStorage> core::fmt::Debug for sacn::Receiver<S> where <S as sacn::receiver::ReceiverStorage>::Universes: core::fmt::Debug, <S as sacn::receiver::ReceiverStorage>::SyncAddresses: core::fmt::Debug, <S as sacn::receiver::ReceiverStorage>::SyncReleases: core::fmt::Debug, <S as sacn::receiver::ReceiverStorage>::MergeLossList: core::fmt::Debug
+impl<S: core::fmt::Debug + sacn::receiver::ReceiverStorage> core::fmt::Debug for sacn::Receiver<S>
 pub fn sacn::Receiver<S>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
 impl<S> core::marker::Freeze for sacn::Receiver<S> where <S as sacn::receiver::ReceiverStorage>::Universes: core::marker::Freeze, <S as sacn::receiver::ReceiverStorage>::SyncAddresses: core::marker::Freeze, <S as sacn::receiver::ReceiverStorage>::SyncReleases: core::marker::Freeze, <S as sacn::receiver::ReceiverStorage>::MergeLossList: core::marker::Freeze, <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::marker::Freeze, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::marker::Freeze, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::marker::Freeze
-impl<S> core::marker::Send for sacn::Receiver<S> where <S as sacn::receiver::ReceiverStorage>::Universes: core::marker::Send, <S as sacn::receiver::ReceiverStorage>::SyncAddresses: core::marker::Send, <S as sacn::receiver::ReceiverStorage>::SyncReleases: core::marker::Send, <S as sacn::receiver::ReceiverStorage>::MergeLossList: core::marker::Send, <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::marker::Send, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::marker::Send, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::marker::Send
-impl<S> core::marker::Sync for sacn::Receiver<S> where <S as sacn::receiver::ReceiverStorage>::Universes: core::marker::Sync, <S as sacn::receiver::ReceiverStorage>::SyncAddresses: core::marker::Sync, <S as sacn::receiver::ReceiverStorage>::SyncReleases: core::marker::Sync, <S as sacn::receiver::ReceiverStorage>::MergeLossList: core::marker::Sync, <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::marker::Sync, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::marker::Sync, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::marker::Sync
-impl<S> core::marker::Unpin for sacn::Receiver<S> where <S as sacn::receiver::ReceiverStorage>::Universes: core::marker::Unpin, <S as sacn::receiver::ReceiverStorage>::SyncAddresses: core::marker::Unpin, <S as sacn::receiver::ReceiverStorage>::SyncReleases: core::marker::Unpin, <S as sacn::receiver::ReceiverStorage>::MergeLossList: core::marker::Unpin, <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::marker::Unpin, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::marker::Unpin, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::marker::Unpin
+impl<S> core::marker::Send for sacn::Receiver<S> where <S as sacn::receiver::ReceiverStorage>::Universes: core::marker::Send, <S as sacn::receiver::ReceiverStorage>::SyncAddresses: core::marker::Send, <S as sacn::receiver::ReceiverStorage>::SyncReleases: core::marker::Send, <S as sacn::receiver::ReceiverStorage>::MergeLossList: core::marker::Send, <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::marker::Send, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::marker::Send, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::marker::Send, S: core::marker::Send
+impl<S> core::marker::Sync for sacn::Receiver<S> where <S as sacn::receiver::ReceiverStorage>::Universes: core::marker::Sync, <S as sacn::receiver::ReceiverStorage>::SyncAddresses: core::marker::Sync, <S as sacn::receiver::ReceiverStorage>::SyncReleases: core::marker::Sync, <S as sacn::receiver::ReceiverStorage>::MergeLossList: core::marker::Sync, <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::marker::Sync, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::marker::Sync, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::marker::Sync, S: core::marker::Sync
+impl<S> core::marker::Unpin for sacn::Receiver<S> where <S as sacn::receiver::ReceiverStorage>::Universes: core::marker::Unpin, <S as sacn::receiver::ReceiverStorage>::SyncAddresses: core::marker::Unpin, <S as sacn::receiver::ReceiverStorage>::SyncReleases: core::marker::Unpin, <S as sacn::receiver::ReceiverStorage>::MergeLossList: core::marker::Unpin, <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::marker::Unpin, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::marker::Unpin, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::marker::Unpin, S: core::marker::Unpin
 impl<S> core::marker::UnsafeUnpin for sacn::Receiver<S> where <S as sacn::receiver::ReceiverStorage>::Universes: core::marker::UnsafeUnpin, <S as sacn::receiver::ReceiverStorage>::SyncAddresses: core::marker::UnsafeUnpin, <S as sacn::receiver::ReceiverStorage>::SyncReleases: core::marker::UnsafeUnpin, <S as sacn::receiver::ReceiverStorage>::MergeLossList: core::marker::UnsafeUnpin, <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::marker::UnsafeUnpin, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::marker::UnsafeUnpin, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::marker::UnsafeUnpin
-impl<S> core::panic::unwind_safe::RefUnwindSafe for sacn::Receiver<S> where <S as sacn::receiver::ReceiverStorage>::Universes: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::receiver::ReceiverStorage>::SyncAddresses: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::receiver::ReceiverStorage>::SyncReleases: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::receiver::ReceiverStorage>::MergeLossList: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::panic::unwind_safe::RefUnwindSafe
-impl<S> core::panic::unwind_safe::UnwindSafe for sacn::Receiver<S> where <S as sacn::receiver::ReceiverStorage>::Universes: core::panic::unwind_safe::UnwindSafe, <S as sacn::receiver::ReceiverStorage>::SyncAddresses: core::panic::unwind_safe::UnwindSafe, <S as sacn::receiver::ReceiverStorage>::SyncReleases: core::panic::unwind_safe::UnwindSafe, <S as sacn::receiver::ReceiverStorage>::MergeLossList: core::panic::unwind_safe::UnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::panic::unwind_safe::UnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::panic::unwind_safe::UnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::panic::unwind_safe::UnwindSafe
+impl<S> core::panic::unwind_safe::RefUnwindSafe for sacn::Receiver<S> where <S as sacn::receiver::ReceiverStorage>::Universes: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::receiver::ReceiverStorage>::SyncAddresses: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::receiver::ReceiverStorage>::SyncReleases: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::receiver::ReceiverStorage>::MergeLossList: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::panic::unwind_safe::RefUnwindSafe, S: core::panic::unwind_safe::RefUnwindSafe
+impl<S> core::panic::unwind_safe::UnwindSafe for sacn::Receiver<S> where <S as sacn::receiver::ReceiverStorage>::Universes: core::panic::unwind_safe::UnwindSafe, <S as sacn::receiver::ReceiverStorage>::SyncAddresses: core::panic::unwind_safe::UnwindSafe, <S as sacn::receiver::ReceiverStorage>::SyncReleases: core::panic::unwind_safe::UnwindSafe, <S as sacn::receiver::ReceiverStorage>::MergeLossList: core::panic::unwind_safe::UnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::panic::unwind_safe::UnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::panic::unwind_safe::UnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::panic::unwind_safe::UnwindSafe, S: core::panic::unwind_safe::UnwindSafe
 impl<T, U> core::convert::Into<U> for sacn::Receiver<S> where U: core::convert::From<T>
 pub fn sacn::Receiver<S>::into(self) -> U
 impl<T, U> core::convert::TryFrom<U> for sacn::Receiver<S> where U: core::convert::Into<T>
@@ -4165,6 +4361,72 @@ impl<T> core::convert::From<T> for sacn::receiver::ReceiverConfig
 pub fn sacn::receiver::ReceiverConfig::from(T) -> T
 impl<T> tracing::instrument::Instrument for sacn::receiver::ReceiverConfig
 impl<T> tracing::instrument::WithSubscriber for sacn::receiver::ReceiverConfig
+pub struct sacn::ReceiverCore<S: sacn::receiver::ReceiverStorage>
+impl<S: sacn::receiver::ReceiverStorage> sacn::ReceiverCore<S>
+pub fn sacn::ReceiverCore<S>::config(&self) -> &sacn::receiver::ReceiverConfig
+pub fn sacn::ReceiverCore<S>::handle_packet<'r, 'p>(&self, &'r mut sacn::ReceiverResources<S>, sacn::time::Instant, core::net::socket_addr::SocketAddr, sacn::NetintId, &sacn::packet::Packet<'p>) -> sacn::receiver::MergedPacketOutcome<'r, 'p, S>
+pub fn sacn::ReceiverCore<S>::listen(&self, &mut sacn::ReceiverResources<S>, sacn::time::Instant, sacn::Universe) -> core::result::Result<sacn::receiver::ListenOutcome, sacn::error::Error>
+pub fn sacn::ReceiverCore<S>::poll<'a>(&'a self, &'a mut sacn::ReceiverResources<S>, sacn::time::Instant) -> sacn::receiver::MergedPollOutcome<'a, S>
+pub fn sacn::ReceiverCore<S>::stop_listening(&self, &mut sacn::ReceiverResources<S>, sacn::Universe) -> sacn::receiver::StopOutcome
+pub fn sacn::ReceiverCore<S>::sync_group_interest<'a>(&self, &'a sacn::ReceiverResources<S>) -> impl core::iter::traits::iterator::Iterator<Item = sacn::Universe> + 'a
+pub fn sacn::ReceiverCore<S>::with_config(sacn::receiver::ReceiverConfig) -> Self
+impl<S: core::fmt::Debug + sacn::receiver::ReceiverStorage> core::fmt::Debug for sacn::ReceiverCore<S>
+pub fn sacn::ReceiverCore<S>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<S> core::marker::Freeze for sacn::ReceiverCore<S>
+impl<S> core::marker::Send for sacn::ReceiverCore<S> where S: core::marker::Send
+impl<S> core::marker::Sync for sacn::ReceiverCore<S> where S: core::marker::Sync
+impl<S> core::marker::Unpin for sacn::ReceiverCore<S> where S: core::marker::Unpin
+impl<S> core::marker::UnsafeUnpin for sacn::ReceiverCore<S>
+impl<S> core::panic::unwind_safe::RefUnwindSafe for sacn::ReceiverCore<S> where S: core::panic::unwind_safe::RefUnwindSafe
+impl<S> core::panic::unwind_safe::UnwindSafe for sacn::ReceiverCore<S> where S: core::panic::unwind_safe::UnwindSafe
+impl<T, U> core::convert::Into<U> for sacn::ReceiverCore<S> where U: core::convert::From<T>
+pub fn sacn::ReceiverCore<S>::into(self) -> U
+impl<T, U> core::convert::TryFrom<U> for sacn::ReceiverCore<S> where U: core::convert::Into<T>
+pub type sacn::ReceiverCore<S>::Error = core::convert::Infallible
+pub fn sacn::ReceiverCore<S>::try_from(U) -> core::result::Result<T, <T as core::convert::TryFrom<U>>::Error>
+impl<T, U> core::convert::TryInto<U> for sacn::ReceiverCore<S> where U: core::convert::TryFrom<T>
+pub type sacn::ReceiverCore<S>::Error = <U as core::convert::TryFrom<T>>::Error
+pub fn sacn::ReceiverCore<S>::try_into(self) -> core::result::Result<U, <U as core::convert::TryFrom<T>>::Error>
+impl<T> core::any::Any for sacn::ReceiverCore<S> where T: 'static + ?core::marker::Sized
+pub fn sacn::ReceiverCore<S>::type_id(&self) -> core::any::TypeId
+impl<T> core::borrow::Borrow<T> for sacn::ReceiverCore<S> where T: ?core::marker::Sized
+pub fn sacn::ReceiverCore<S>::borrow(&self) -> &T
+impl<T> core::borrow::BorrowMut<T> for sacn::ReceiverCore<S> where T: ?core::marker::Sized
+pub fn sacn::ReceiverCore<S>::borrow_mut(&mut self) -> &mut T
+impl<T> core::convert::From<T> for sacn::ReceiverCore<S>
+pub fn sacn::ReceiverCore<S>::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::ReceiverCore<S>
+impl<T> tracing::instrument::WithSubscriber for sacn::ReceiverCore<S>
+pub struct sacn::ReceiverResources<S: sacn::receiver::ReceiverStorage>
+impl<S: core::fmt::Debug + sacn::receiver::ReceiverStorage> core::fmt::Debug for sacn::ReceiverResources<S> where <S as sacn::receiver::ReceiverStorage>::Universes: core::fmt::Debug, <S as sacn::receiver::ReceiverStorage>::SyncAddresses: core::fmt::Debug, <S as sacn::receiver::ReceiverStorage>::SyncReleases: core::fmt::Debug, <S as sacn::receiver::ReceiverStorage>::MergeLossList: core::fmt::Debug
+pub fn sacn::ReceiverResources<S>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<S: sacn::receiver::ReceiverStorage> core::default::Default for sacn::ReceiverResources<S>
+pub fn sacn::ReceiverResources<S>::default() -> Self
+impl<S> core::marker::Freeze for sacn::ReceiverResources<S> where <S as sacn::receiver::ReceiverStorage>::Universes: core::marker::Freeze, <S as sacn::receiver::ReceiverStorage>::SyncAddresses: core::marker::Freeze, <S as sacn::receiver::ReceiverStorage>::SyncReleases: core::marker::Freeze, <S as sacn::receiver::ReceiverStorage>::MergeLossList: core::marker::Freeze, <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::marker::Freeze, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::marker::Freeze, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::marker::Freeze
+impl<S> core::marker::Send for sacn::ReceiverResources<S> where <S as sacn::receiver::ReceiverStorage>::Universes: core::marker::Send, <S as sacn::receiver::ReceiverStorage>::SyncAddresses: core::marker::Send, <S as sacn::receiver::ReceiverStorage>::SyncReleases: core::marker::Send, <S as sacn::receiver::ReceiverStorage>::MergeLossList: core::marker::Send, <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::marker::Send, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::marker::Send, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::marker::Send
+impl<S> core::marker::Sync for sacn::ReceiverResources<S> where <S as sacn::receiver::ReceiverStorage>::Universes: core::marker::Sync, <S as sacn::receiver::ReceiverStorage>::SyncAddresses: core::marker::Sync, <S as sacn::receiver::ReceiverStorage>::SyncReleases: core::marker::Sync, <S as sacn::receiver::ReceiverStorage>::MergeLossList: core::marker::Sync, <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::marker::Sync, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::marker::Sync, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::marker::Sync
+impl<S> core::marker::Unpin for sacn::ReceiverResources<S> where <S as sacn::receiver::ReceiverStorage>::Universes: core::marker::Unpin, <S as sacn::receiver::ReceiverStorage>::SyncAddresses: core::marker::Unpin, <S as sacn::receiver::ReceiverStorage>::SyncReleases: core::marker::Unpin, <S as sacn::receiver::ReceiverStorage>::MergeLossList: core::marker::Unpin, <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::marker::Unpin, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::marker::Unpin, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::marker::Unpin
+impl<S> core::marker::UnsafeUnpin for sacn::ReceiverResources<S> where <S as sacn::receiver::ReceiverStorage>::Universes: core::marker::UnsafeUnpin, <S as sacn::receiver::ReceiverStorage>::SyncAddresses: core::marker::UnsafeUnpin, <S as sacn::receiver::ReceiverStorage>::SyncReleases: core::marker::UnsafeUnpin, <S as sacn::receiver::ReceiverStorage>::MergeLossList: core::marker::UnsafeUnpin, <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::marker::UnsafeUnpin, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::marker::UnsafeUnpin, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::marker::UnsafeUnpin
+impl<S> core::panic::unwind_safe::RefUnwindSafe for sacn::ReceiverResources<S> where <S as sacn::receiver::ReceiverStorage>::Universes: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::receiver::ReceiverStorage>::SyncAddresses: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::receiver::ReceiverStorage>::SyncReleases: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::receiver::ReceiverStorage>::MergeLossList: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::panic::unwind_safe::RefUnwindSafe
+impl<S> core::panic::unwind_safe::UnwindSafe for sacn::ReceiverResources<S> where <S as sacn::receiver::ReceiverStorage>::Universes: core::panic::unwind_safe::UnwindSafe, <S as sacn::receiver::ReceiverStorage>::SyncAddresses: core::panic::unwind_safe::UnwindSafe, <S as sacn::receiver::ReceiverStorage>::SyncReleases: core::panic::unwind_safe::UnwindSafe, <S as sacn::receiver::ReceiverStorage>::MergeLossList: core::panic::unwind_safe::UnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::BasicUniverses: core::panic::unwind_safe::UnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::PollKeys: core::panic::unwind_safe::UnwindSafe, <S as sacn::receiver::BasicReceiverStorage>::LossList: core::panic::unwind_safe::UnwindSafe
+impl<T, U> core::convert::Into<U> for sacn::ReceiverResources<S> where U: core::convert::From<T>
+pub fn sacn::ReceiverResources<S>::into(self) -> U
+impl<T, U> core::convert::TryFrom<U> for sacn::ReceiverResources<S> where U: core::convert::Into<T>
+pub type sacn::ReceiverResources<S>::Error = core::convert::Infallible
+pub fn sacn::ReceiverResources<S>::try_from(U) -> core::result::Result<T, <T as core::convert::TryFrom<U>>::Error>
+impl<T, U> core::convert::TryInto<U> for sacn::ReceiverResources<S> where U: core::convert::TryFrom<T>
+pub type sacn::ReceiverResources<S>::Error = <U as core::convert::TryFrom<T>>::Error
+pub fn sacn::ReceiverResources<S>::try_into(self) -> core::result::Result<U, <U as core::convert::TryFrom<T>>::Error>
+impl<T> core::any::Any for sacn::ReceiverResources<S> where T: 'static + ?core::marker::Sized
+pub fn sacn::ReceiverResources<S>::type_id(&self) -> core::any::TypeId
+impl<T> core::borrow::Borrow<T> for sacn::ReceiverResources<S> where T: ?core::marker::Sized
+pub fn sacn::ReceiverResources<S>::borrow(&self) -> &T
+impl<T> core::borrow::BorrowMut<T> for sacn::ReceiverResources<S> where T: ?core::marker::Sized
+pub fn sacn::ReceiverResources<S>::borrow_mut(&mut self) -> &mut T
+impl<T> core::convert::From<T> for sacn::ReceiverResources<S>
+pub fn sacn::ReceiverResources<S>::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::ReceiverResources<S>
+impl<T> tracing::instrument::WithSubscriber for sacn::ReceiverResources<S>
 pub struct sacn::SequenceNumber(_)
 impl sacn::SequenceNumber
 pub const fn sacn::SequenceNumber::get(self) -> u8

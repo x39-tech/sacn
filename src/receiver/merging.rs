@@ -11,8 +11,8 @@ use crate::types::{Cid, NetintId, Priority, SourceName, Universe};
 
 use super::event::{ListenOutcome, SourceInfoRef, StopOutcome, UniverseDataRef};
 use super::{
-    BasicReceiver, DMX_NULL_START_CODE, LostSource, PAP_START_CODE, PacketOutcome, ReceiverConfig,
-    ReceiverStorage, SOURCE_LOSS_TIMEOUT,
+    BasicReceiverCore, BasicReceiverResources, DMX_NULL_START_CODE, LostSource, PAP_START_CODE,
+    PacketOutcome, ReceiverConfig, ReceiverStorage, SOURCE_LOSS_TIMEOUT,
 };
 
 mod event;
@@ -340,7 +340,7 @@ impl<S: ReceiverStorage> UniverseMerge<S> {
 
 /// A merging sACN receiver: the top tier of the receive path.
 ///
-/// `Receiver` combines a [`BasicReceiver`] with a per-universe
+/// `Receiver` combines a [`BasicReceiver`](super::BasicReceiver) with a per-universe
 /// [`DmxMerger`](crate::merger::DmxMerger). The basic receiver tracks the
 /// sources on each universe and forwards their data per-source; the merging
 /// receiver feeds that data into a merger and emits a single **merged** result
@@ -363,12 +363,12 @@ impl<S: ReceiverStorage> UniverseMerge<S> {
 ///
 /// # Driving the state machine
 ///
-/// The interface mirrors [`BasicReceiver`]: [`listen`](Self::listen) /
-/// [`stop_listening`](Self::stop_listening) register interest,
-/// [`handle_packet`](Self::handle_packet) feeds in a parsed packet, and
-/// [`poll`](Self::poll) advances time. Outcomes borrow either the packet passed
-/// in or buffers held inside the receiver (notably the merger's output); a
-/// borrowed outcome must be used and dropped before the next call.
+/// The interface mirrors [`BasicReceiver`](super::BasicReceiver):
+/// [`listen`](Self::listen) / [`stop_listening`](Self::stop_listening) register
+/// interest, [`handle_packet`](Self::handle_packet) feeds in a parsed packet,
+/// and [`poll`](Self::poll) advances time. Outcomes borrow either the packet
+/// passed in or buffers held inside the receiver (notably the merger's output);
+/// a borrowed outcome must be used and dropped before the next call.
 ///
 /// ```
 /// use sacn::{Receiver, ReceiverConfig, NetintId, Universe};
@@ -457,8 +457,9 @@ impl<S: ReceiverStorage> UniverseMerge<S> {
 /// [`OnSyncLoss`](crate::source::OnSyncLoss) policy: hold the last synchronized
 /// look, or revert to live output.
 ///
-/// This holding behavior is exclusive to this type - a [`BasicReceiver`] only
-/// forwards sync packets to its caller and never holds data itself.
+/// This holding behavior is exclusive to this type - a
+/// [`BasicReceiver`](super::BasicReceiver) only forwards sync packets to its
+/// caller and never holds data itself.
 ///
 /// Two deliberate limitations keep the state handling tractable:
 ///
@@ -469,7 +470,48 @@ impl<S: ReceiverStorage> UniverseMerge<S> {
 ///   alternate START codes are always passed through live.
 #[derive(Debug)]
 pub struct Receiver<S: ReceiverStorage = HeapStorage> {
-    basic: BasicReceiver<S>,
+    core: ReceiverCore<S>,
+    store: ReceiverResources<S>,
+}
+
+/// The sACN merging receiver state machine: the receive-path logic, separated
+/// from its working memory.
+///
+/// [`Receiver`] contains one of these as well as a [`ReceiverResources`].
+/// Usually, just using [`Receiver`] is the right choice. Use this type alongside
+/// [`ReceiverResources`] if you need maximum control of your memory layout;
+/// [`ReceiverResources`] contains all of the bulk memory associated with a
+/// receiver, and can be const-initialized statically.
+///
+/// This has all the same functionality as [`Receiver`]; the only difference is
+/// that each method takes a mutable reference to a separate [`ReceiverResources`].
+/// Each [`ReceiverCore`] should be associated with exactly one
+/// [`ReceiverResources`] and you should pass the same [`ReceiverResources`]
+/// instance to every call to a [`ReceiverCore`] method.
+#[derive(Debug)]
+pub struct ReceiverCore<S: ReceiverStorage = HeapStorage> {
+    basic: BasicReceiverCore<S>,
+}
+
+/// The mutable working memory a [`ReceiverCore`] operates on.
+///
+/// This struct holds everything about a merging receiver that scales with the
+/// number of universes, their tracked sources, and the per-universe merge, so it
+/// is the potentially large allocation. It can be constructed in a const
+/// expression with statically-allocated storage (see below).
+///
+/// Most users should just use [`Receiver`] rather than [`ReceiverCore`] and
+/// [`ReceiverResources`].
+///
+/// To construct:
+///
+/// - **Heap:** construct with [`ReceiverResources::default`].
+/// - **Fixed-capacity:** use the [`static_storage!`](crate::static_storage!)
+///   macro, which emits a `const fn` `receiver_resources()` returning an empty
+///   `ReceiverResources`, suitable for static allocation in a const context.
+#[derive(Debug)]
+pub struct ReceiverResources<S: ReceiverStorage = HeapStorage> {
+    basic: BasicReceiverResources<S>,
     universes: S::Universes,
     sync_addresses: S::SyncAddresses,
     sync_release: S::SyncReleases,
@@ -494,21 +536,10 @@ impl<S: ReceiverStorage> Receiver<S> {
     /// storage policy `S`. It listens to no universes until
     /// [`listen`](Self::listen) is called.
     pub fn with_config(config: ReceiverConfig) -> Self {
-        let () = super::AssertMergingCoherent::<S>::CHECK;
-        let () = crate::merger::AssertCoherent::<S>::CHECK;
         Self {
-            basic: BasicReceiver::with_config(config),
-            universes: S::Universes::default(),
-            sync_addresses: S::SyncAddresses::default(),
-            sync_release: S::SyncReleases::default(),
-            loss_scratch: S::MergeLossList::default(),
+            core: ReceiverCore::with_config(config),
+            store: ReceiverResources::default(),
         }
-    }
-
-    /// Whether synchronization address `sync_address` is currently Active: a
-    /// sync packet has been seen on it within the sync-loss timeout.
-    fn sync_active(&self, sync_address: u16, now: Instant) -> bool {
-        addr_active(&self.sync_addresses, sync_address, now)
     }
 
     /// The synchronization universes the receiver is currently interested in:
@@ -520,20 +551,12 @@ impl<S: ReceiverStorage> Receiver<S> {
     /// declares it), so a caller that wants a set should collect into one. The
     /// iterator is empty when synchronization is disabled.
     pub fn sync_group_interest(&self) -> impl Iterator<Item = Universe> + '_ {
-        let enabled = self.config().synchronization;
-        self.universes
-            .values()
-            .flat_map(|um| um.sources.values())
-            .filter_map(move |src| {
-                enabled
-                    .then(|| Universe::new(src.sync_address).ok())
-                    .flatten()
-            })
+        self.core.sync_group_interest(&self.store)
     }
 
     /// Get the config with which this receiver was created.
     pub fn config(&self) -> &ReceiverConfig {
-        self.basic.config()
+        self.core.config()
     }
 
     /// Begins listening for a universe.
@@ -545,21 +568,14 @@ impl<S: ReceiverStorage> Receiver<S> {
     /// leaves the sampling period and tracked sources untouched (the returned
     /// [`ListenOutcome`] reports no new sampling period).
     pub fn listen(&mut self, now: Instant, universe: Universe) -> Result<ListenOutcome, Error> {
-        let outcome = self.basic.listen(now, universe)?;
-        if !self.universes.contains_key(&universe) {
-            // The basic receiver accepted a new universe and the merge map is
-            // asserted at least as large, so it is guaranteed to have room.
-            self.universes.upsert_expect(universe, UniverseMerge::new());
-        }
-        Ok(outcome)
+        self.core.listen(&mut self.store, now, universe)
     }
 
     /// Stops listening for a universe. The returned [`StopOutcome`] reports
     /// whether the universe was being listened to. All merge state for the
     /// universe is discarded.
     pub fn stop_listening(&mut self, universe: Universe) -> StopOutcome {
-        self.universes.remove(&universe);
-        self.basic.stop_listening(universe)
+        self.core.stop_listening(&mut self.store, universe)
     }
 
     /// Feeds in a parsed packet received from `from`, routing it through the
@@ -580,11 +596,173 @@ impl<S: ReceiverStorage> Receiver<S> {
         netint: NetintId,
         packet: &Packet<'p>,
     ) -> MergedPacketOutcome<'r, 'p, S> {
-        let basic = self.basic.handle_packet(now, from, netint, packet);
+        self.core
+            .handle_packet(&mut self.store, now, from, netint, packet)
+    }
+
+    /// Advances time to `now`, running the basic receiver's sampling, timeout and
+    /// source-loss logic and translating the results into merged poll events.
+    ///
+    /// When a sampling period ends, or a source loss changes a live universe, a
+    /// [`MergedDataChanged`](ReceiverPollEvent::MergedDataChanged) signal is
+    /// emitted for the affected universe; resolve it to the borrowed result with
+    /// [`MergedPollOutcome::merged`]. Returns the next timer deadline alongside
+    /// the events.
+    pub fn poll(&mut self, now: Instant) -> MergedPollOutcome<'_, S> {
+        self.core.poll(&mut self.store, now)
+    }
+
+    /// The current merged result for a universe, or `None` if the universe is
+    /// not listened to or is still in its sampling period.
+    ///
+    /// This borrows the receiver's merger buffers and source table, valid until
+    /// the next mutating call. It resolves a
+    /// [`MergedDataChanged`](ReceiverPollEvent::MergedDataChanged) event and can
+    /// also be queried at any time to read a universe's latest merge.
+    #[must_use]
+    pub fn merged(&self, universe: Universe) -> Option<MergedDataRef<'_, S>> {
+        merged(&self.store.universes, universe)
+    }
+}
+
+impl<S: ReceiverStorage> ReceiverResources<S> {
+    /// Assembles resources from already-constructed (empty) collections.
+    ///
+    /// Not used directly; used only from [`static_storage!`](crate::static_storage!)
+    /// or [`Default::default()`].
+    #[doc(hidden)]
+    pub const fn from_parts(
+        basic: BasicReceiverResources<S>,
+        universes: S::Universes,
+        sync_addresses: S::SyncAddresses,
+        sync_release: S::SyncReleases,
+        loss_scratch: S::MergeLossList,
+    ) -> Self {
+        Self {
+            basic,
+            universes,
+            sync_addresses,
+            sync_release,
+            loss_scratch,
+        }
+    }
+
+    /// The universes latched by the most recent synchronization packet, borrowed
+    /// from the receiver's reusable scratch. Resolves the frames yielded by
+    /// [`SyncRelease::merged_frames`](event::SyncRelease::merged_frames).
+    pub(super) fn sync_release(&self) -> &[Universe] {
+        self.sync_release.as_slice()
+    }
+}
+
+impl<S: ReceiverStorage> Default for ReceiverResources<S> {
+    /// Empty resources with empty collections. For a fixed-capacity policy this
+    /// builds the value at runtime; prefer the macro-generated
+    /// `receiver_resources()` `const fn` to place it in static memory without a
+    /// stack copy.
+    fn default() -> Self {
+        Self::from_parts(
+            BasicReceiverResources::default(),
+            S::Universes::default(),
+            S::SyncAddresses::default(),
+            S::SyncReleases::default(),
+            S::MergeLossList::default(),
+        )
+    }
+}
+
+impl<S: ReceiverStorage> ReceiverCore<S> {
+    /// Creates a merging receiver controller with the given configuration, backed
+    /// by the storage policy `S`. It listens to no universes until
+    /// [`listen`](Self::listen) is called.
+    ///
+    /// The controller holds only the configuration; its working memory lives in
+    /// a separate [`ReceiverResources`] passed to each method. Most users should
+    /// use [`Receiver`] instead of [`ReceiverCore`] and [`ReceiverResources`].
+    pub fn with_config(config: ReceiverConfig) -> Self {
+        let () = super::AssertMergingCoherent::<S>::CHECK;
+        let () = crate::merger::AssertCoherent::<S>::CHECK;
+        Self {
+            basic: BasicReceiverCore::with_config(config),
+        }
+    }
+
+    /// Get the config with which this receiver was created.
+    pub fn config(&self) -> &ReceiverConfig {
+        self.basic.config()
+    }
+
+    /// The synchronization universes the receiver is currently interested in.
+    ///
+    /// See [`Receiver::sync_group_interest`].
+    pub fn sync_group_interest<'a>(
+        &self,
+        store: &'a ReceiverResources<S>,
+    ) -> impl Iterator<Item = Universe> + 'a {
+        let enabled = self.config().synchronization;
+        store
+            .universes
+            .values()
+            .flat_map(|um| um.sources.values())
+            .filter_map(move |src| {
+                enabled
+                    .then(|| Universe::new(src.sync_address).ok())
+                    .flatten()
+            })
+    }
+
+    /// Begins listening for a universe.
+    ///
+    /// See [`Receiver::listen`].
+    pub fn listen(
+        &self,
+        store: &mut ReceiverResources<S>,
+        now: Instant,
+        universe: Universe,
+    ) -> Result<ListenOutcome, Error> {
+        let outcome = self.basic.listen(&mut store.basic, now, universe)?;
+        if !store.universes.contains_key(&universe) {
+            // The basic receiver accepted a new universe and the merge map is
+            // asserted at least as large, so it is guaranteed to have room.
+            store
+                .universes
+                .upsert_expect(universe, UniverseMerge::new());
+        }
+        Ok(outcome)
+    }
+
+    /// Stops listening for a universe.
+    ///
+    /// See [`Receiver::stop_listening`].
+    pub fn stop_listening(
+        &self,
+        store: &mut ReceiverResources<S>,
+        universe: Universe,
+    ) -> StopOutcome {
+        store.universes.remove(&universe);
+        self.basic.stop_listening(&mut store.basic, universe)
+    }
+
+    /// Feeds in a parsed packet received from `from`.
+    ///
+    /// See [`Receiver::handle_packet`].
+    pub fn handle_packet<'r, 'p>(
+        &self,
+        store: &'r mut ReceiverResources<S>,
+        now: Instant,
+        from: SocketAddr,
+        netint: NetintId,
+        packet: &Packet<'p>,
+    ) -> MergedPacketOutcome<'r, 'p, S> {
+        let basic = self
+            .basic
+            .handle_packet(&mut store.basic, now, from, netint, packet);
 
         let (universe, data, pap_lost) = match basic {
             PacketOutcome::Ignored => return MergedPacketOutcome::Ignored,
-            PacketOutcome::Sync { sync_address, .. } => return self.on_sync(now, sync_address),
+            PacketOutcome::Sync { sync_address, .. } => {
+                return self.on_sync(store, now, sync_address);
+            }
             PacketOutcome::LimitExceeded { universe } => {
                 return MergedPacketOutcome::LimitExceeded { universe };
             }
@@ -608,11 +786,11 @@ impl<S: ReceiverStorage> Receiver<S> {
             _ => (0, false),
         };
 
-        let Self {
+        let ReceiverResources {
             universes,
             sync_addresses,
             ..
-        } = self;
+        } = store;
         let um = universes
             .get_mut(&universe)
             .expect("a listened universe has merge state");
@@ -654,6 +832,36 @@ impl<S: ReceiverStorage> Receiver<S> {
         }
     }
 
+    /// Advances time to `now`, running the periodic sampling, timeout and
+    /// source-loss logic and translating the results into merged poll events.
+    ///
+    /// See [`Receiver::poll`].
+    pub fn poll<'a>(
+        &'a self,
+        store: &'a mut ReceiverResources<S>,
+        now: Instant,
+    ) -> MergedPollOutcome<'a, S> {
+        let sync_deadline = self.eager_sync_pass(store, now);
+
+        let ReceiverResources {
+            basic,
+            universes,
+            sync_addresses,
+            loss_scratch,
+            ..
+        } = store;
+        let basic_outcome = self.basic.poll(basic, now);
+        let deadline = fold_deadline(sync_deadline, basic_outcome.deadline);
+        MergedPollOutcome::new(
+            deadline,
+            basic_outcome,
+            universes,
+            sync_addresses,
+            loss_scratch,
+            now,
+        )
+    }
+
     /// Handles a received synchronization packet on `sync_address`: marks the
     /// address Active (refreshing its 2.5s loss timer) and releases the held
     /// frame of every universe agreed on it.
@@ -662,13 +870,14 @@ impl<S: ReceiverStorage> Receiver<S> {
     /// address Active so that subsequent data starts being withheld. Each later
     /// sync latches the accumulated frame for its agreed universes.
     fn on_sync<'r, 'p>(
-        &'r mut self,
+        &self,
+        store: &'r mut ReceiverResources<S>,
         now: Instant,
         sync_address: u16,
     ) -> MergedPacketOutcome<'r, 'p, S> {
-        self.sync_release.clear();
-        let was_active = self.sync_active(sync_address, now);
-        if self
+        store.sync_release.clear();
+        let was_active = addr_active(&store.sync_addresses, sync_address, now);
+        if store
             .sync_addresses
             .upsert(sync_address, now.saturating_add(SOURCE_LOSS_TIMEOUT))
             .is_err()
@@ -678,11 +887,11 @@ impl<S: ReceiverStorage> Receiver<S> {
 
         // Record each latched universe so the returned `SyncRelease` can read its
         // (uncopied) coherent frame back.
-        let Self {
+        let ReceiverResources {
             universes,
             sync_release,
             ..
-        } = self;
+        } = &mut *store;
         for (&universe, um) in universes.iter_mut() {
             if um.agreed_sync != Some(sync_address) {
                 continue;
@@ -700,37 +909,7 @@ impl<S: ReceiverStorage> Receiver<S> {
             }
         }
 
-        MergedPacketOutcome::Sync(SyncRelease::new(self))
-    }
-
-    /// Advances time to `now`, running the basic receiver's sampling, timeout and
-    /// source-loss logic and translating the results into merged poll events.
-    ///
-    /// When a sampling period ends, or a source loss changes a live universe, a
-    /// [`MergedDataChanged`](ReceiverPollEvent::MergedDataChanged) signal is
-    /// emitted for the affected universe; resolve it to the borrowed result with
-    /// [`MergedPollOutcome::merged`]. Returns the next timer deadline alongside
-    /// the events.
-    pub fn poll(&mut self, now: Instant) -> MergedPollOutcome<'_, S> {
-        let sync_deadline = self.eager_sync_pass(now);
-
-        let Self {
-            basic,
-            universes,
-            sync_addresses,
-            loss_scratch,
-            ..
-        } = self;
-        let basic_outcome = basic.poll(now);
-        let deadline = fold_deadline(sync_deadline, basic_outcome.deadline);
-        MergedPollOutcome::new(
-            deadline,
-            basic_outcome,
-            universes,
-            sync_addresses,
-            loss_scratch,
-            now,
-        )
+        MergedPacketOutcome::Sync(SyncRelease::new(store))
     }
 
     /// Runs the synchronization-loss timeout pass and returns its contribution to
@@ -738,12 +917,12 @@ impl<S: ReceiverStorage> Receiver<S> {
     /// Inactive; each universe agreed on it either reverts to live output
     /// (`force_sync == true`, recording a merged-change) or stays frozen
     /// (`force_sync == false`). Expired addresses are then dropped.
-    fn eager_sync_pass(&mut self, now: Instant) -> Option<Instant> {
-        let Self {
+    fn eager_sync_pass(&self, store: &mut ReceiverResources<S>, now: Instant) -> Option<Instant> {
+        let ReceiverResources {
             universes,
             sync_addresses,
             ..
-        } = self;
+        } = store;
 
         for (&addr, &expiry) in sync_addresses.iter() {
             if now < expiry {
@@ -778,29 +957,6 @@ impl<S: ReceiverStorage> Receiver<S> {
             }
         }
         deadline
-    }
-
-    /// The current merged result for a universe, or `None` if the universe is
-    /// not listened to or is still in its sampling period.
-    ///
-    /// This borrows the receiver's merger buffers and source table, valid until
-    /// the next mutating call. It resolves a
-    /// [`MergedDataChanged`](ReceiverPollEvent::MergedDataChanged) event and can
-    /// also be queried at any time to read a universe's latest merge.
-    #[must_use]
-    pub fn merged(&self, universe: Universe) -> Option<MergedDataRef<'_, S>> {
-        let um = self.universes.get(&universe)?;
-        if um.sampling {
-            return None;
-        }
-        Some(um.merged_ref(universe))
-    }
-
-    /// The universes latched by the most recent synchronization packet, borrowed
-    /// from the receiver's reusable scratch. Resolves the frames yielded by
-    /// [`SyncRelease::merged_frames`](event::SyncRelease::merged_frames).
-    pub(super) fn sync_release(&self) -> &[Universe] {
-        self.sync_release.as_slice()
     }
 }
 
