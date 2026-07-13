@@ -16,6 +16,8 @@ use crate::{ReceiverStorage, static_storage};
 use alloc::vec::Vec;
 use core::net::{IpAddr, Ipv4Addr, SocketAddr};
 
+use static_cell::ConstStaticCell;
+
 // --- test storage policies --------------------------------------------------
 
 static_storage! {
@@ -861,4 +863,51 @@ fn pap_lost_under_sync_is_withheld_until_release() {
     // higher level.
     assert_eq!(m.levels()[0], 250);
     assert_eq!(owner_cid(m, 0), Some(cid(2)));
+}
+
+#[test]
+fn split_core_and_resources_merge_a_frame() {
+    static STORE: ConstStaticCell<ReceiverResources<TestCaps>> =
+        ConstStaticCell::new(TestCaps::receiver_resources());
+    let store = STORE.take();
+    let config = ReceiverConfig::default().with_per_address_priority_handling(false);
+    let core = ReceiverCore::<TestCaps>::with_config(config);
+
+    core.listen(store, instant(0), uni(1)).unwrap();
+    // Draining the poll ends the sampling period, so a live merged frame is
+    // published by the next packet.
+    {
+        let mut poll = core.poll(store, instant(5000));
+        while poll.next_event().is_some() {}
+    }
+
+    let packet = Packet {
+        cid: cid(1),
+        payload: Payload::Data(DataPacket {
+            source_name: "src",
+            priority: 100,
+            sync_address: 0,
+            sequence_number: SequenceNumber::new(0),
+            preview: false,
+            stream_terminated: false,
+            force_sync: false,
+            universe: 1,
+            start_code: DMX_NULL_START_CODE,
+            values: &[10, 20, 30],
+        }),
+    };
+    let outcome = core.handle_packet(
+        store,
+        instant(5000),
+        test_addr(),
+        NetintId::UNKNOWN,
+        &packet,
+    );
+    let MergedPacketOutcome::Data { merged, .. } = outcome else {
+        panic!("expected a merged data outcome");
+    };
+    assert_eq!(
+        &merged.expect("merged frame published").levels()[..3],
+        &[10, 20, 30]
+    );
 }

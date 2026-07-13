@@ -19,7 +19,7 @@ use crate::storage::{MapLike, VecLike};
 use crate::time::Instant;
 use crate::types::{Cid, SourceName, Universe};
 
-use super::Receiver;
+use super::ReceiverResources;
 
 // --- Owned events used by adapter layers ------------------------------------
 
@@ -466,29 +466,29 @@ impl<S: ReceiverStorage> MergedPacketOutcome<'_, '_, S> {
 /// synchronization address.
 #[derive_where(Clone, Copy)]
 pub struct SyncRelease<'r, S: ReceiverStorage> {
-    receiver: &'r Receiver<S>,
+    store: &'r ReceiverResources<S>,
 }
 
 impl<'r, S: ReceiverStorage> SyncRelease<'r, S> {
-    pub(super) fn new(receiver: &'r Receiver<S>) -> Self {
-        Self { receiver }
+    pub(super) fn new(store: &'r ReceiverResources<S>) -> Self {
+        Self { store }
     }
 
     /// Lazy generator of the latched frames, one per released universe
     /// (possibly none - the first sync on an address releases nothing).
     pub fn merged_frames(&self) -> impl Iterator<Item = MergedDataRef<'r, S>> + 'r + use<'r, S> {
-        let receiver = self.receiver;
-        receiver
+        let store = self.store;
+        store
             .sync_release()
             .iter()
-            .filter_map(move |&universe| receiver.merged(universe))
+            .filter_map(move |&universe| super::merged(&store.universes, universe))
     }
 }
 
 impl<S: ReceiverStorage> core::fmt::Debug for SyncRelease<'_, S> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         f.debug_struct("SyncRelease")
-            .field("released", &self.receiver.sync_release())
+            .field("released", &self.store.sync_release())
             .finish()
     }
 }

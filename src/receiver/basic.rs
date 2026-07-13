@@ -1,5 +1,6 @@
 //! The basic receiver.
 
+use core::marker::PhantomData;
 use core::net::SocketAddr;
 
 use crate::error::Error;
@@ -153,7 +154,51 @@ pub struct BasicUniverseState<S: BasicReceiverStorage> {
 /// ```
 #[derive(Debug)]
 pub struct BasicReceiver<S: BasicReceiverStorage = HeapStorage> {
+    core: BasicReceiverCore<S>,
+    store: BasicReceiverResources<S>,
+}
+
+/// The sACN basic receiver state machine: the receive-path logic, separated from
+/// its working memory.
+///
+/// [`BasicReceiver`] contains one of these as well as a
+/// [`BasicReceiverResources`]. Usually, just using [`BasicReceiver`] is the right
+/// choice. Use this type alongside [`BasicReceiverResources`] if you need maximum
+/// control of your memory layout; [`BasicReceiverResources`] contains all of the
+/// bulk memory associated with a receiver, and can be const-initialized
+/// statically.
+///
+/// This has all the same functionality as [`BasicReceiver`]; the only difference
+/// is that each method takes a mutable reference to a separate
+/// [`BasicReceiverResources`]. Each [`BasicReceiverCore`] should be associated
+/// with exactly one [`BasicReceiverResources`] and you should pass the same
+/// [`BasicReceiverResources`] instance to every call to a [`BasicReceiverCore`]
+/// method.
+#[derive(Debug)]
+pub struct BasicReceiverCore<S: BasicReceiverStorage = HeapStorage> {
     config: ReceiverConfig,
+    _marker: PhantomData<S>,
+}
+
+/// The mutable working memory a [`BasicReceiverCore`] operates on.
+///
+/// This struct holds everything about a receiver that scales with the number of
+/// universes and their tracked sources, so it is the potentially large
+/// allocation. It can be constructed in a const expression with
+/// statically-allocated storage (see below).
+///
+/// Most users should just use [`BasicReceiver`] rather than [`BasicReceiverCore`]
+/// and [`BasicReceiverResources`].
+///
+/// To construct:
+///
+/// - **Heap:** construct with [`BasicReceiverResources::default`].
+/// - **Fixed-capacity:** use the [`static_storage!`](crate::static_storage!)
+///   macro, which emits a `const fn` `basic_receiver_resources()` returning an
+///   empty `BasicReceiverResources`, suitable for static allocation in a const
+///   context.
+#[derive(Debug)]
+pub struct BasicReceiverResources<S: BasicReceiverStorage = HeapStorage> {
     universes: S::BasicUniverses,
     poll_keys: S::PollKeys,
     loss_scratch: S::LossList,
@@ -177,18 +222,15 @@ impl<S: BasicReceiverStorage> BasicReceiver<S> {
     /// policy `S`. It listens to no universes until [`listen`](Self::listen) is
     /// called.
     pub fn with_config(config: ReceiverConfig) -> Self {
-        let () = super::AssertReceiverCoherent::<S>::CHECK;
         Self {
-            config,
-            universes: S::BasicUniverses::default(),
-            poll_keys: S::PollKeys::default(),
-            loss_scratch: S::LossList::default(),
+            core: BasicReceiverCore::with_config(config),
+            store: BasicReceiverResources::default(),
         }
     }
 
     /// Get the config with which this receiver was created.
     pub fn config(&self) -> &ReceiverConfig {
-        &self.config
+        self.core.config()
     }
 
     /// Begins listening for a universe.
@@ -203,26 +245,7 @@ impl<S: BasicReceiverStorage> BasicReceiver<S> {
     /// Returns [`Error::NoCapacity`] when a fixed-capacity receiver's universe
     /// table is full and this universe is not already listened to.
     pub fn listen(&mut self, now: Instant, universe: Universe) -> Result<ListenOutcome, Error> {
-        if self.universes.contains_key(&universe) {
-            return Ok(ListenOutcome::new(false));
-        }
-        let state = BasicUniverseState {
-            sources: S::BasicSources::default(),
-            sampling: true,
-            sample_end: now.saturating_add(self.config.sample_period),
-            term_sets: S::TermSets::default(),
-            suppress_limit_exceeded: false,
-        };
-        match self.universes.upsert(universe, state) {
-            Ok(()) => {
-                debug!(
-                    "began listening on universe {}, sampling period started",
-                    universe
-                );
-                Ok(ListenOutcome::new(true))
-            }
-            Err(_) => Err(Error::NoCapacity),
-        }
+        self.core.listen(&mut self.store, now, universe)
     }
 
     /// Stops listening for a universe. The returned [`StopOutcome`] reports
@@ -231,8 +254,7 @@ impl<S: BasicReceiverStorage> BasicReceiver<S> {
     /// All sources tracked on this universe are considered lost and no
     /// notifications will be delivered.
     pub fn stop_listening(&mut self, universe: Universe) -> StopOutcome {
-        let was_listening = self.universes.remove(&universe);
-        StopOutcome::new(was_listening)
+        self.core.stop_listening(&mut self.store, universe)
     }
 
     /// Feeds in a parsed packet received from `from` on interface `netint`,
@@ -255,10 +277,153 @@ impl<S: BasicReceiverStorage> BasicReceiver<S> {
         netint: NetintId,
         packet: &Packet<'p>,
     ) -> PacketOutcome<'p> {
+        self.core
+            .handle_packet(&mut self.store, now, from, netint, packet)
+    }
+
+    /// Advances time to `now`, running the periodic sampling, source-timeout and
+    /// source-loss settling logic, and returning the events it produced.
+    ///
+    /// The returned [`PollOutcome`] carries the next timer deadline (final as
+    /// soon as `poll` returns) and a lazily-drained sequence of events. Calling
+    /// `poll` earlier than the deadline is harmless; calling it later only
+    /// delays notifications.
+    ///
+    /// Each `poll` first classifies every listened universe's sources and
+    /// updates its termination sets eagerly, then leaves the settled losses and
+    /// ended sampling periods to be drawn out one universe at a time by
+    /// [`PollOutcome::next_event`]. A caller that stops draining early simply
+    /// has those universes handled on the next `poll` rather than losing their
+    /// events.
+    pub fn poll(&mut self, now: Instant) -> PollOutcome<'_, S> {
+        self.core.poll(&mut self.store, now)
+    }
+}
+
+impl<S: BasicReceiverStorage> BasicReceiverResources<S> {
+    /// Assembles resources from already-constructed (empty) collections.
+    ///
+    /// Not used directly; used only from [`static_storage!`](crate::static_storage!)
+    /// or [`Default::default()`].
+    #[doc(hidden)]
+    pub const fn from_parts(
+        universes: S::BasicUniverses,
+        poll_keys: S::PollKeys,
+        loss_scratch: S::LossList,
+    ) -> Self {
+        Self {
+            universes,
+            poll_keys,
+            loss_scratch,
+        }
+    }
+
+    /// The sources lost by the most recent settled termination set.
+    fn lost_sources(&self) -> &[LostSource] {
+        self.loss_scratch.as_slice()
+    }
+
+    /// The listened universe recorded at `index` in this poll's key snapshot.
+    fn polled_universe(&self, index: usize) -> Option<&Universe> {
+        self.poll_keys.as_slice().get(index)
+    }
+}
+
+impl<S: BasicReceiverStorage> Default for BasicReceiverResources<S> {
+    /// Empty resources with empty collections. For a fixed-capacity policy this
+    /// builds the value at runtime; prefer the macro-generated
+    /// `basic_receiver_resources()` `const fn` to place it in static memory
+    /// without a stack copy.
+    fn default() -> Self {
+        Self::from_parts(
+            S::BasicUniverses::default(),
+            S::PollKeys::default(),
+            S::LossList::default(),
+        )
+    }
+}
+
+impl<S: BasicReceiverStorage> BasicReceiverCore<S> {
+    /// Creates a receiver controller with the given configuration, backed by the
+    /// storage policy `S`. It listens to no universes until
+    /// [`listen`](Self::listen) is called.
+    ///
+    /// The controller holds only the configuration; its working memory lives in
+    /// a separate [`BasicReceiverResources`] passed to each method. Most users
+    /// should use [`BasicReceiver`] instead of [`BasicReceiverCore`] and
+    /// [`BasicReceiverResources`].
+    pub fn with_config(config: ReceiverConfig) -> Self {
+        let () = super::AssertReceiverCoherent::<S>::CHECK;
+        Self {
+            config,
+            _marker: PhantomData,
+        }
+    }
+
+    /// Get the config with which this receiver was created.
+    pub fn config(&self) -> &ReceiverConfig {
+        &self.config
+    }
+
+    /// Begins listening for a universe.
+    ///
+    /// See [`BasicReceiver::listen`].
+    pub fn listen(
+        &self,
+        store: &mut BasicReceiverResources<S>,
+        now: Instant,
+        universe: Universe,
+    ) -> Result<ListenOutcome, Error> {
+        if store.universes.contains_key(&universe) {
+            return Ok(ListenOutcome::new(false));
+        }
+        let state = BasicUniverseState {
+            sources: S::BasicSources::default(),
+            sampling: true,
+            sample_end: now.saturating_add(self.config.sample_period),
+            term_sets: S::TermSets::default(),
+            suppress_limit_exceeded: false,
+        };
+        match store.universes.upsert(universe, state) {
+            Ok(()) => {
+                debug!(
+                    "began listening on universe {}, sampling period started",
+                    universe
+                );
+                Ok(ListenOutcome::new(true))
+            }
+            Err(_) => Err(Error::NoCapacity),
+        }
+    }
+
+    /// Stops listening for a universe.
+    ///
+    /// See [`BasicReceiver::stop_listening`].
+    pub fn stop_listening(
+        &self,
+        store: &mut BasicReceiverResources<S>,
+        universe: Universe,
+    ) -> StopOutcome {
+        let was_listening = store.universes.remove(&universe);
+        StopOutcome::new(was_listening)
+    }
+
+    /// Feeds in a parsed packet received from `from` on interface `netint`.
+    ///
+    /// See [`BasicReceiver::handle_packet`].
+    pub fn handle_packet<'p>(
+        &self,
+        store: &mut BasicReceiverResources<S>,
+        now: Instant,
+        from: SocketAddr,
+        netint: NetintId,
+        packet: &Packet<'p>,
+    ) -> PacketOutcome<'p> {
         let _ = netint;
+        let config = &self.config;
         // Sync packets are simply surfaced immediately unless sync is disabled.
         if let Payload::Sync(sync) = &packet.payload {
-            if !self.config.synchronization {
+            if !config.synchronization {
                 return PacketOutcome::Ignored;
             }
             return PacketOutcome::Sync {
@@ -274,10 +439,7 @@ impl<S: BasicReceiverStorage> BasicReceiver<S> {
             return PacketOutcome::Ignored;
         };
 
-        let Self {
-            config, universes, ..
-        } = self;
-        let Some(state) = universes.get_mut(&universe) else {
+        let Some(state) = store.universes.get_mut(&universe) else {
             return PacketOutcome::Ignored;
         };
 
@@ -409,28 +571,22 @@ impl<S: BasicReceiverStorage> BasicReceiver<S> {
     }
 
     /// Advances time to `now`, running the periodic sampling, source-timeout and
-    /// source-loss settling logic, and returning the events it produced.
+    /// source-loss settling logic.
     ///
-    /// The returned [`PollOutcome`] carries the next timer deadline (final as
-    /// soon as `poll` returns) and a lazily-drained sequence of events. Calling
-    /// `poll` earlier than the deadline is harmless; calling it later only
-    /// delays notifications.
-    ///
-    /// Each `poll` first classifies every listened universe's sources and
-    /// updates its termination sets eagerly, then leaves the settled losses and
-    /// ended sampling periods to be drawn out one universe at a time by
-    /// [`PollOutcome::next_event`]. A caller that stops draining early simply
-    /// has those universes handled on the next `poll` rather than losing their
-    /// events.
-    pub fn poll(&mut self, now: Instant) -> PollOutcome<'_, S> {
+    /// See [`BasicReceiver::poll`].
+    pub fn poll<'a>(
+        &'a self,
+        store: &'a mut BasicReceiverResources<S>,
+        now: Instant,
+    ) -> PollOutcome<'a, S> {
         let mut deadline = None;
         {
-            let Self {
-                config,
+            let config = &self.config;
+            let BasicReceiverResources {
                 universes,
                 poll_keys,
                 ..
-            } = &mut *self;
+            } = &mut *store;
 
             poll_keys.clear();
             for (&universe, state) in universes.iter_mut() {
@@ -439,7 +595,7 @@ impl<S: BasicReceiverStorage> BasicReceiver<S> {
             }
         }
 
-        PollOutcome::new(deadline, self, now)
+        PollOutcome::new(deadline, self, store, now)
     }
 
     /// Runs the eager half of one `poll` tick for a single universe: classifies
@@ -510,11 +666,17 @@ impl<S: BasicReceiverStorage> BasicReceiver<S> {
     }
 
     /// Ends the sampling period for a universe if applicable. Returns whether
-    /// the sampling period was ended. Used by PollOutcome.
+    /// the sampling period was ended.
     ///
-    /// Invariant: must be called with a valid universe from [`polled_universe`]
-    fn maybe_end_sampling_period(&mut self, universe: &Universe, now: Instant) -> bool {
-        let state = self
+    /// Invariant: must be called with a valid universe from
+    /// [`BasicReceiverResources::polled_universe`].
+    fn maybe_end_sampling_period(
+        &self,
+        store: &mut BasicReceiverResources<S>,
+        universe: &Universe,
+        now: Instant,
+    ) -> bool {
+        let state = store
             .universes
             .get_mut(universe)
             .expect("must be called with a valid universe");
@@ -529,15 +691,21 @@ impl<S: BasicReceiverStorage> BasicReceiver<S> {
 
     /// Fires any settled termination set on `universe`, writing the lost sources
     /// into the reusable `loss_scratch` and dropping them from the tracked set.
-    /// Returns whether any were lost. Used by PollOutcome.
+    /// Returns whether any were lost.
     ///
-    /// Invariant: must be called with a valid universe from [`polled_universe`]
-    fn maybe_fire_lost_sources(&mut self, universe: &Universe, now: Instant) -> bool {
-        let BasicReceiver {
+    /// Invariant: must be called with a valid universe from
+    /// [`BasicReceiverResources::polled_universe`].
+    fn maybe_fire_lost_sources(
+        &self,
+        store: &mut BasicReceiverResources<S>,
+        universe: &Universe,
+        now: Instant,
+    ) -> bool {
+        let BasicReceiverResources {
             universes,
             loss_scratch,
             ..
-        } = self;
+        } = store;
         let state = universes
             .get_mut(universe)
             .expect("must be called with a valid universe");
@@ -557,16 +725,6 @@ impl<S: BasicReceiverStorage> BasicReceiver<S> {
             universe
         );
         true
-    }
-
-    /// Get the lost sources scratch buffer (used by PollOutcome)
-    fn lost_sources(&self) -> &[LostSource] {
-        self.loss_scratch.as_slice()
-    }
-
-    /// Get the polled universe at the given index (used by PollOutcome)
-    fn polled_universe(&self, index: usize) -> Option<&Universe> {
-        self.poll_keys.as_slice().get(index)
     }
 }
 

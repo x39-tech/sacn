@@ -26,11 +26,20 @@ use crate::types::{Cid, Universe};
 #[cfg(feature = "alloc")]
 pub use basic::BasicReceiverEvent;
 pub use basic::{
-    BasicReceiver, BasicReceiverPollEvent, BasicUniverseState, LostSource, PacketOutcome,
-    PollOutcome,
+    BasicReceiver, BasicReceiverCore, BasicReceiverPollEvent, BasicReceiverResources,
+    BasicUniverseState, LostSource, PacketOutcome, PollOutcome,
 };
+pub use event::{ListenOutcome, SourceInfoRef, StopOutcome, UniverseDataRef};
+#[cfg(feature = "alloc")]
+pub use event::{SourceInfo, UniverseData};
 pub use loss::{TerminationSet, TerminationSetSource};
 pub use merging::{MergeSource, UniverseMerge};
+#[cfg(feature = "alloc")]
+pub use merging::{MergedData, MergedSource, ReceiverEvent};
+pub use merging::{
+    MergedDataRef, MergedLostSource, MergedPacketOutcome, MergedPollOutcome, MergedSourceRef,
+    Receiver, ReceiverCore, ReceiverPollEvent, ReceiverResources, SyncRelease,
+};
 pub use source::TrackedSource;
 
 // --- Storage types ----------------------------------------------------------
@@ -187,16 +196,6 @@ impl ReceiverStorage for HeapStorage {
     type MergeLossList = heapless::Vec<merging::MergedLostSource, 0>;
     type SyncReleases = heapless::Vec<Universe, 0>;
 }
-
-pub use event::{ListenOutcome, SourceInfoRef, StopOutcome, UniverseDataRef};
-#[cfg(feature = "alloc")]
-pub use event::{SourceInfo, UniverseData};
-#[cfg(feature = "alloc")]
-pub use merging::{MergedData, MergedSource, ReceiverEvent};
-pub use merging::{
-    MergedDataRef, MergedLostSource, MergedPacketOutcome, MergedPollOutcome, MergedSourceRef,
-    Receiver, ReceiverPollEvent, SyncRelease,
-};
 
 // --- Timing constants -------------------------------------------------------
 

@@ -9,7 +9,7 @@ use crate::receiver::event::{SourceInfoRef, UniverseDataRef};
 use crate::time::Instant;
 use crate::types::{Cid, Universe};
 
-use super::{BasicReceiver, BasicReceiverStorage};
+use super::{BasicReceiverCore, BasicReceiverResources, BasicReceiverStorage};
 
 // --- Owned events used by adapter layers ------------------------------------
 
@@ -233,8 +233,8 @@ pub enum BasicReceiverPollEvent<'a> {
     },
 }
 
-/// The outcome of a [`poll`](BasicReceiver::poll) call: the next timer deadline
-/// plus a lazily-drained sequence of the events the poll produced.
+/// The outcome of a [`poll`](super::BasicReceiver::poll) call: the next timer
+/// deadline plus a lazily-drained sequence of the events the poll produced.
 ///
 /// The events are drawn out one at a time with [`next_event`](Self::next_event);
 /// each borrows the receiver's reusable loss scratch and is invalidated by the
@@ -245,7 +245,8 @@ pub struct PollOutcome<'a, S: BasicReceiverStorage> {
     /// The earliest instant at which calling `poll` again could produce a
     /// different result (a timer deadline), or `None` if nothing is pending.
     pub deadline: Option<Instant>,
-    receiver: &'a mut BasicReceiver<S>,
+    core: &'a BasicReceiverCore<S>,
+    store: &'a mut BasicReceiverResources<S>,
     now: Instant,
     polled_univ_index: usize,
     state: UniversePollPhase,
@@ -254,12 +255,14 @@ pub struct PollOutcome<'a, S: BasicReceiverStorage> {
 impl<'a, S: BasicReceiverStorage> PollOutcome<'a, S> {
     pub(super) fn new(
         deadline: Option<Instant>,
-        receiver: &'a mut BasicReceiver<S>,
+        core: &'a BasicReceiverCore<S>,
+        store: &'a mut BasicReceiverResources<S>,
         now: Instant,
     ) -> Self {
         Self {
             deadline,
-            receiver,
+            core,
+            store,
             now,
             polled_univ_index: 0,
             state: UniversePollPhase::SamplingEnded,
@@ -275,7 +278,7 @@ impl<'a, S: BasicReceiverStorage> PollOutcome<'a, S> {
             }
             Emit::SourcesLost(universe) => Some(BasicReceiverPollEvent::SourcesLost {
                 universe,
-                sources: self.receiver.lost_sources(),
+                sources: self.store.lost_sources(),
             }),
         }
     }
@@ -285,19 +288,25 @@ impl<'a, S: BasicReceiverStorage> PollOutcome<'a, S> {
     /// universe is drained.
     fn advance(&mut self) -> Option<Emit> {
         loop {
-            let &universe = self.receiver.polled_universe(self.polled_univ_index)?;
+            let &universe = self.store.polled_universe(self.polled_univ_index)?;
             match self.state {
                 // End the sampling period and emit, if it is due.
                 UniversePollPhase::SamplingEnded => {
                     self.state = UniversePollPhase::SourcesLost;
-                    if self.receiver.maybe_end_sampling_period(&universe, self.now) {
+                    if self
+                        .core
+                        .maybe_end_sampling_period(self.store, &universe, self.now)
+                    {
                         return Some(Emit::SamplingEnded(universe));
                     }
                 }
                 // Fire any settled termination set and emit its lost sources.
                 UniversePollPhase::SourcesLost => {
                     self.state = UniversePollPhase::Done;
-                    if self.receiver.maybe_fire_lost_sources(&universe, self.now) {
+                    if self
+                        .core
+                        .maybe_fire_lost_sources(self.store, &universe, self.now)
+                    {
                         return Some(Emit::SourcesLost(universe));
                     }
                 }

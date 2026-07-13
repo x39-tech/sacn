@@ -16,6 +16,8 @@ use core::net::{IpAddr, Ipv4Addr, SocketAddr};
 use alloc::vec;
 use alloc::vec::Vec;
 
+use static_cell::ConstStaticCell;
+
 // --- test storage policies --------------------------------------------------
 
 static_storage! {
@@ -1062,4 +1064,35 @@ fn sync_address_is_zeroed_when_synchronization_disabled() {
     rx.handle_packet(instant(0), test_addr(), NetintId::UNKNOWN, &packet)
         .for_each_owned(|e| events.push(e));
     assert_eq!(data_events(&events)[0].sync_address, 0);
+}
+
+#[test]
+fn split_core_and_resources_track_a_source() {
+    static STORE: ConstStaticCell<BasicReceiverResources<TestCaps>> =
+        ConstStaticCell::new(TestCaps::basic_receiver_resources());
+    let store = STORE.take();
+    let core = BasicReceiverCore::<TestCaps>::with_config(ReceiverConfig::default());
+
+    core.listen(store, instant(0), uni(1)).unwrap();
+
+    let packet = Packet {
+        cid: cid(1),
+        payload: Payload::Data(DataPacket {
+            source_name: "src",
+            priority: 100,
+            sync_address: 0,
+            sequence_number: SequenceNumber::new(0),
+            preview: false,
+            stream_terminated: false,
+            force_sync: false,
+            universe: 1,
+            start_code: DMX_NULL_START_CODE,
+            values: &[1, 2, 3],
+        }),
+    };
+    let outcome = core.handle_packet(store, instant(0), test_addr(), NetintId::UNKNOWN, &packet);
+    let PacketOutcome::Data { data, .. } = outcome else {
+        panic!("expected a data outcome");
+    };
+    assert_eq!(data.expect("first frame delivered").values, &[1, 2, 3]);
 }
