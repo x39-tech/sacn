@@ -13,6 +13,9 @@ use super::Routes;
 
 crate::embassy_static_storage! {
     struct Caps {
+        rx_universes: 0,
+        rx_sources_per_universe: 0,
+        rx_sync_addresses: 0,
         tx_universes: 4,
         tx_unicast_per_universe: 4,
     }

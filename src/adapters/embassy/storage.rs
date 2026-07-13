@@ -15,6 +15,11 @@
 use embassy_net::IpEndpoint;
 use embassy_net::udp::PacketMetadata;
 
+use crate::receiver::{
+    BasicReceiverResources as CoreBasicReceiverResources,
+    BasicReceiverStorage as CoreBasicReceiverStorage, ReceiverResources as CoreReceiverResources,
+    ReceiverStorage as CoreReceiverStorage,
+};
 use crate::source::{SourceResources as CoreSourceResources, SourceStorage as CoreSourceStorage};
 use crate::storage::{MapLike, VecLike, coherence_check};
 use crate::types::Universe;
@@ -41,10 +46,6 @@ pub trait SourceStorage: CoreSourceStorage {
     /// A buffer holding every endpoint whose last send is currently failing.
     type FailingTargets: VecLike<IpEndpoint>;
 
-    /// Packet-metadata storage for the socket's receive ring.
-    type RxMeta: AsMut<[PacketMetadata]>;
-    /// Payload storage for the socket's receive ring.
-    type RxBuffer: AsMut<[u8]>;
     /// Packet-metadata storage for the socket's transmit ring.
     type TxMeta: AsMut<[PacketMetadata]>;
     /// Payload storage for the socket's transmit ring.
@@ -176,10 +177,6 @@ pub struct SourceResources<S: SourceStorage> {
     pub(super) destinations: S::Destinations,
     /// The current in-progress packet delivery fanout.
     pub(super) in_flight: Option<Fanout<S>>,
-    /// The socket's receive-ring metadata and payload storage. A source only
-    /// transmits, but `UdpSocket::new` requires receive buffers all the same.
-    pub(super) rx_meta: S::RxMeta,
-    pub(super) rx_buffer: S::RxBuffer,
     /// The socket's transmit-ring metadata and payload storage.
     pub(super) tx_meta: S::TxMeta,
     pub(super) tx_buffer: S::TxBuffer,
@@ -195,8 +192,6 @@ impl<S: SourceStorage> SourceResources<S> {
     pub const fn from_parts(
         source: CoreSourceResources<S>,
         destinations: S::Destinations,
-        rx_meta: S::RxMeta,
-        rx_buffer: S::RxBuffer,
         tx_meta: S::TxMeta,
         tx_buffer: S::TxBuffer,
     ) -> Self {
@@ -204,8 +199,6 @@ impl<S: SourceStorage> SourceResources<S> {
             source,
             destinations,
             in_flight: None,
-            rx_meta,
-            rx_buffer,
             tx_meta,
             tx_buffer,
         }
@@ -229,8 +222,6 @@ impl SourceStorage for crate::HeapStorage {
     type Unicast = alloc::vec::Vec<IpEndpoint>;
     type SendTargets = alloc::vec::Vec<IpEndpoint>;
     type FailingTargets = alloc::vec::Vec<IpEndpoint>;
-    type RxMeta = [PacketMetadata; 4];
-    type RxBuffer = [u8; crate::packet::MAX_PACKET_SIZE];
     type TxMeta = [PacketMetadata; 4];
     type TxBuffer = [u8; crate::packet::MAX_PACKET_SIZE];
 }
@@ -241,8 +232,6 @@ impl SourceStorage for crate::HeapStorage {
     type Unicast = heapless::Vec<IpEndpoint, 0>;
     type SendTargets = heapless::Vec<IpEndpoint, 0>;
     type FailingTargets = heapless::Vec<IpEndpoint, 0>;
-    type RxMeta = [PacketMetadata; 4];
-    type RxBuffer = [u8; crate::packet::MAX_PACKET_SIZE];
     type TxMeta = [PacketMetadata; 4];
     type TxBuffer = [u8; crate::packet::MAX_PACKET_SIZE];
 }
@@ -255,8 +244,260 @@ impl Default for SourceResources<crate::HeapStorage> {
             alloc::collections::BTreeMap::new(),
             [PacketMetadata::EMPTY; 4],
             [0u8; crate::packet::MAX_PACKET_SIZE],
+        )
+    }
+}
+
+// --- Receiver storage --------------------------------------------------------
+
+/// Storage types for [`BasicReceiver`](crate::embassy::BasicReceiver).
+///
+/// Use [`embassy_static_storage!`](crate::embassy_static_storage!) to produce
+/// a type that implements this trait for statically-allocated storage, or use
+/// [`HeapStorage`](crate::HeapStorage) for heap-based storage.
+pub trait BasicReceiverStorage: CoreBasicReceiverStorage {
+    /// Packet-metadata storage for the socket's receive ring.
+    type RxMeta: AsMut<[PacketMetadata]>;
+    /// Payload storage for the socket's receive ring.
+    type RxBuffer: AsMut<[u8]>;
+    /// The persistent datagram buffer that a received packet is copied into and
+    /// parsed from. It must hold the largest possible sACN packet, and it
+    /// outlives one `next_event` call so a deferred data event can be rebuilt
+    /// from it.
+    type RecvBuffer: AsMut<[u8]>;
+    /// The per-universe multicast-join and sampling records, keyed by universe.
+    type Joined: MapLike<Universe, JoinState>;
+}
+
+coherence_check! {
+    /// Capacity coherence assertion for the embassy
+    /// [`BasicReceiver`](super::BasicReceiver).
+    AssertEmbassyBasicReceiverCoherent<S: BasicReceiverStorage> = {
+        let universes = <<S as CoreBasicReceiverStorage>::BasicUniverses as MapLike<
+            Universe,
+            crate::receiver::BasicUniverseState<S>,
+        >>::CAPACITY;
+
+        // The adapter's multicast-join map must have room for every universe
+        // the core can list, since `listen` records one entry per listened
+        // universe.
+        assert!(
+            <S::Joined as MapLike<Universe, JoinState>>::CAPACITY >= universes,
+            "embassy BasicReceiverStorage::Joined capacity must be >= core BasicUniverses capacity",
+        );
+    }
+}
+
+/// Storage types for the embassy merging [`Receiver`](crate::embassy::Receiver).
+///
+/// Extends the embassy [`BasicReceiverStorage`] and the core
+/// [`ReceiverStorage`](crate::receiver::ReceiverStorage) with a join map for the
+/// synchronization multicast groups.
+pub trait ReceiverStorage: CoreReceiverStorage + BasicReceiverStorage {
+    /// The per-synchronization-group multicast-join records, keyed by sync
+    /// universe.
+    type SyncJoined: MapLike<Universe, JoinState>;
+}
+
+coherence_check! {
+    /// Capacity coherence assertion for the embassy [`Receiver`](super::Receiver):
+    /// the sync-group join map must have room for every synchronization address
+    /// the core can track, since `reconcile_sync_groups` records one entry per
+    /// joined group with `upsert_expect`. (The `Joined` map is covered by
+    /// [`AssertEmbassyBasicReceiverCoherent`], also forced by `Receiver::bind`.)
+    AssertEmbassyReceiverCoherent<S: ReceiverStorage> = {
+        let sync_addresses =
+            <<S as CoreReceiverStorage>::SyncAddresses as MapLike<u16, crate::time::Instant>>::CAPACITY;
+        assert!(
+            <S::SyncJoined as MapLike<Universe, JoinState>>::CAPACITY >= sync_addresses,
+            "embassy ReceiverStorage::SyncJoined capacity must be >= core SyncAddresses capacity",
+        );
+    }
+}
+
+/// The multicast-join and sampling state the embassy receiver tracks for one
+/// listened universe (data universe) or one joined synchronization group.
+#[doc(hidden)]
+#[derive(Clone, Copy, Debug, Default)]
+pub struct JoinState {
+    /// Whether the IPv6 multicast group was joined.(the IPv4 group is always
+    /// joined while the universe is in the map).
+    pub(super) joined_v6: bool,
+    /// Whether a `SamplingStarted` event is owed for this universe.
+    pub(super) sampling_pending: bool,
+}
+
+/// The mutable working memory an embassy [`BasicReceiver`](crate::embassy::BasicReceiver)
+/// operates on.
+///
+/// This struct holds everything about a basic receiver that scales with
+/// parameters like the number of universes, so it is the potentially large
+/// allocation.
+///
+/// To construct:
+///
+/// - **Fixed-capacity:** use the
+///   [`embassy_static_storage!`](crate::embassy_static_storage!) macro, which
+///   emits a `const fn` `embassy_basic_receiver_resources()` returning an empty
+///   `BasicRecieverResources`, suitable for static allocation in a const context.
+/// - **Heap:** construct with [`BasicReceiverResources::default`].
+pub struct BasicReceiverResources<S: BasicReceiverStorage> {
+    /// The core protocol working memory.
+    pub(super) core: CoreBasicReceiverResources<S>,
+    /// The per-universe multicast-join and sampling records.
+    pub(super) joined: S::Joined,
+    /// The socket's receive-ring metadata and payload storage.
+    pub(super) rx_meta: S::RxMeta,
+    pub(super) rx_buffer: S::RxBuffer,
+    /// The persistent datagram buffer received packets are parsed from.
+    pub(super) recv_buffer: S::RecvBuffer,
+}
+
+impl<S: BasicReceiverStorage> BasicReceiverResources<S> {
+    /// Assembles the resources from already-constructed (empty) parts.
+    ///
+    /// Not used directly; used only from
+    /// [`embassy_static_storage!`](crate::embassy_static_storage!) or
+    /// [`Default::default()`].
+    #[doc(hidden)]
+    pub const fn from_parts(
+        core: CoreBasicReceiverResources<S>,
+        joined: S::Joined,
+        rx_meta: S::RxMeta,
+        rx_buffer: S::RxBuffer,
+        recv_buffer: S::RecvBuffer,
+    ) -> Self {
+        Self {
+            core,
+            joined,
+            rx_meta,
+            rx_buffer,
+            recv_buffer,
+        }
+    }
+}
+
+impl<S: BasicReceiverStorage> core::fmt::Debug for BasicReceiverResources<S> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_struct("BasicReceiverResources")
+            .field("joined", &self.joined)
+            .finish_non_exhaustive()
+    }
+}
+
+/// The mutable working memory an embassy merging [`Receiver`](crate::embassy::Receiver)
+/// operates on.
+///
+/// This struct holds everything about a receiver that scales with parameters
+/// like the number of universes, so it is the potentially large allocation.
+///
+/// To construct:
+///
+/// - **Fixed-capacity:** use the
+///   [`embassy_static_storage!`](crate::embassy_static_storage!) macro, which
+///   emits a `const fn` `embassy_receiver_resources()` returning an empty
+///   `RecieverResources`, suitable for static allocation in a const context.
+/// - **Heap:** construct with [`ReceiverResources::default`].
+pub struct ReceiverResources<S: ReceiverStorage> {
+    /// The core merging working memory (which itself contains the basic
+    /// receiver's working memory).
+    pub(super) core: CoreReceiverResources<S>,
+    /// The per-universe multicast-join and sampling records for data universes.
+    pub(super) joined: S::Joined,
+    /// The per-sync-group multicast-join records.
+    pub(super) sync_joined: S::SyncJoined,
+    /// The socket's receive-ring metadata and payload storage.
+    pub(super) rx_meta: S::RxMeta,
+    pub(super) rx_buffer: S::RxBuffer,
+    /// The persistent datagram buffer received packets are parsed from.
+    pub(super) recv_buffer: S::RecvBuffer,
+}
+
+impl<S: ReceiverStorage> ReceiverResources<S> {
+    /// Assembles the resources from already-constructed (empty) parts.
+    ///
+    /// Not used directly; used only from
+    /// [`embassy_static_storage!`](crate::embassy_static_storage!) or
+    /// [`Default::default()`].
+    #[doc(hidden)]
+    #[allow(clippy::too_many_arguments)]
+    pub const fn from_parts(
+        core: CoreReceiverResources<S>,
+        joined: S::Joined,
+        sync_joined: S::SyncJoined,
+        rx_meta: S::RxMeta,
+        rx_buffer: S::RxBuffer,
+        recv_buffer: S::RecvBuffer,
+    ) -> Self {
+        Self {
+            core,
+            joined,
+            sync_joined,
+            rx_meta,
+            rx_buffer,
+            recv_buffer,
+        }
+    }
+}
+
+impl<S: ReceiverStorage> core::fmt::Debug for ReceiverResources<S> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_struct("ReceiverResources")
+            .field("joined", &self.joined)
+            .field("sync_joined", &self.sync_joined)
+            .finish_non_exhaustive()
+    }
+}
+
+#[cfg(feature = "alloc")]
+impl BasicReceiverStorage for crate::HeapStorage {
+    type RxMeta = [PacketMetadata; 4];
+    type RxBuffer = alloc::vec::Vec<u8>;
+    type RecvBuffer = alloc::vec::Vec<u8>;
+    type Joined = alloc::collections::BTreeMap<Universe, JoinState>;
+}
+
+#[cfg(feature = "alloc")]
+impl ReceiverStorage for crate::HeapStorage {
+    type SyncJoined = alloc::collections::BTreeMap<Universe, JoinState>;
+}
+
+#[cfg(not(feature = "alloc"))]
+impl BasicReceiverStorage for crate::HeapStorage {
+    type RxMeta = [PacketMetadata; 4];
+    type RxBuffer = [u8; crate::packet::MAX_PACKET_SIZE];
+    type RecvBuffer = [u8; crate::packet::MAX_PACKET_SIZE];
+    type Joined = crate::SortedVecMap<Universe, JoinState, 0>;
+}
+
+#[cfg(not(feature = "alloc"))]
+impl ReceiverStorage for crate::HeapStorage {
+    type SyncJoined = crate::SortedVecMap<Universe, JoinState, 0>;
+}
+
+#[cfg(feature = "alloc")]
+impl Default for BasicReceiverResources<crate::HeapStorage> {
+    fn default() -> Self {
+        Self::from_parts(
+            CoreBasicReceiverResources::default(),
+            alloc::collections::BTreeMap::new(),
             [PacketMetadata::EMPTY; 4],
-            [0u8; crate::packet::MAX_PACKET_SIZE],
+            alloc::vec![0u8; crate::packet::MAX_PACKET_SIZE],
+            alloc::vec![0u8; crate::packet::MAX_PACKET_SIZE],
+        )
+    }
+}
+
+#[cfg(feature = "alloc")]
+impl Default for ReceiverResources<crate::HeapStorage> {
+    fn default() -> Self {
+        Self::from_parts(
+            CoreReceiverResources::default(),
+            alloc::collections::BTreeMap::new(),
+            alloc::collections::BTreeMap::new(),
+            [PacketMetadata::EMPTY; 4],
+            alloc::vec![0u8; crate::packet::MAX_PACKET_SIZE],
+            alloc::vec![0u8; crate::packet::MAX_PACKET_SIZE],
         )
     }
 }
@@ -268,23 +509,28 @@ impl Default for SourceResources<crate::HeapStorage> {
 /// the macro defines a zero-sized type and implements the necessary traits for
 /// all of the embassy types to use it.
 ///
-/// The resulting marker (e.g. `Caps`) is used as the storage parameter of each
-/// embassy type (currently just `Source<'_, Caps>`). The macro also defines
-/// associated `const fn`s such as `Caps::embassy_source_resources()`, which
-/// return empty resource structures for the embassy types. This is helpful if
-/// you want to place memory resources in a static context like a
-/// `ConstStaticCell`.
+/// The resulting marker (e.g. `Caps`) is used as the storage parameter of every
+/// embassy type: `Source<'_, Caps>`, `BasicReceiver<'_, Caps>` and
+/// `Receiver<'_, Caps>`. The macro also defines associated `const fn`s such as
+/// `Caps::embassy_source_resources()`, `Caps::embassy_basic_receiver_resources()`
+/// and `Caps::embassy_receiver_resources()`, which return empty resource
+/// structures for the embassy types. This is helpful if you want to place memory
+/// resources in a static context like a `ConstStaticCell`.
 ///
 /// # User-defined capacities
 ///
 /// The following user-defined capacities are required, in order. Note that
 /// capacities can be zero if you are not using the corresponding module (e.g.
-/// tx_* can be set to 0 if you do not use any `Source` types).
+/// the `rx_*` capacities can be set to 0 if you use no receiver types, and the
+/// `tx_*` capacities can be set to 0 if you use no `Source` types).
 ///
-/// | Capacity                  | Bounds                                             |
-/// | ------------------------- | -------------------------------------------------- |
-/// | `tx_universes`            | universes the source transmits on                  |
-/// | `tx_unicast_per_universe` | unicast destinations configured on one universe    |
+/// | Capacity                   | Bounds                                            |
+/// | -------------------------- | ------------------------------------------------- |
+/// | `rx_universes`             | universes a receiver listens to                   |
+/// | `rx_sources_per_universe`  | sources tracked on one universe                   |
+/// | `rx_sync_addresses`        | synchronization addresses tracked by a receiver   |
+/// | `tx_universes`             | universes the source transmits on                 |
+/// | `tx_unicast_per_universe`  | unicast destinations configured on one universe   |
 ///
 /// Every other capacity used internally is derived from these.
 ///
@@ -295,18 +541,27 @@ impl Default for SourceResources<crate::HeapStorage> {
 /// can be present in the buffer at once, and the byte buffer sizes limit the
 /// total length of all packets that can be in the buffer at once.
 ///
-/// | Capacity    | Bounds                                |
-/// | ----------- | ------------------------------------- |
-/// | `tx_buffer` | The socket's transmit byte buffer     |
-/// | `tx_meta`   | The socket's transmit metadata buffer |
-/// | `rx_buffer` | The socket's receive byte buffer      |
-/// | `rx_meta`   | The socket's receive metadata buffer  |
+/// Each socket uses only one direction: a [`Source`](crate::embassy::Source)
+/// only transmits and the receiver types only receive. The unused direction
+/// (a source's receive ring, a receiver's transmit ring) is always zero-sized,
+/// so `tx_*` sizes only the source's transmit ring and `rx_*` sizes only the
+/// receivers' receive ring.
+///
+/// | Capacity    | Bounds                                        |
+/// | ----------- | --------------------------------------------- |
+/// | `tx_buffer` | The source's transmit byte buffer             |
+/// | `tx_meta`   | The source's transmit metadata buffer         |
+/// | `rx_buffer` | The receivers' receive byte buffer            |
+/// | `rx_meta`   | The receivers' receive metadata buffer        |
 ///
 /// # Example
 ///
 /// ```
 /// sacn::embassy_static_storage! {
 ///     pub struct Caps {
+///         rx_universes: 4,
+///         rx_sources_per_universe: 8,
+///         rx_sync_addresses: 4,
 ///         tx_universes: 4,
 ///         tx_unicast_per_universe: 4,
 ///     }
@@ -327,6 +582,9 @@ macro_rules! embassy_static_storage {
     (
         $(#[$attr:meta])*
         $vis:vis struct $name:ident {
+            rx_universes: $rx_universes:expr,
+            rx_sources_per_universe: $rx_sources:expr,
+            rx_sync_addresses: $rx_sync:expr,
             tx_universes: $tx_universes:expr,
             tx_unicast_per_universe: $unicast:expr,
             rx_meta: $rx_meta:expr,
@@ -340,6 +598,12 @@ macro_rules! embassy_static_storage {
         $vis struct $name;
 
         $crate::__impl_source_storage!($name, $tx_universes);
+        $crate::__impl_receiver_storage!(
+            $vis $name,
+            $rx_universes,
+            $rx_sources,
+            $rx_sync,
+        );
 
         impl $crate::embassy::SourceStorage for $name {
             type Destinations = $crate::SortedVecMap<
@@ -356,10 +620,27 @@ macro_rules! embassy_static_storage {
                 $crate::embassy::IpEndpoint,
                 { ($unicast + 4) * $tx_universes + 2 },
             >;
-            type RxMeta = [$crate::embassy::PacketMetadata; { $rx_meta }];
-            type RxBuffer = [u8; { $rx_buffer }];
             type TxMeta = [$crate::embassy::PacketMetadata; { $tx_meta }];
             type TxBuffer = [u8; { $tx_buffer }];
+        }
+
+        impl $crate::embassy::BasicReceiverStorage for $name {
+            type RxMeta = [$crate::embassy::PacketMetadata; { $rx_meta }];
+            type RxBuffer = [u8; { $rx_buffer }];
+            type RecvBuffer = [u8; $crate::packet::MAX_PACKET_SIZE];
+            type Joined = $crate::SortedVecMap<
+                $crate::Universe,
+                $crate::embassy::JoinState,
+                { $rx_universes },
+            >;
+        }
+
+        impl $crate::embassy::ReceiverStorage for $name {
+            type SyncJoined = $crate::SortedVecMap<
+                $crate::Universe,
+                $crate::embassy::JoinState,
+                { $rx_sync },
+            >;
         }
 
         impl $name {
@@ -382,10 +663,49 @@ macro_rules! embassy_static_storage {
                         $crate::heapless::Vec::new(),
                     ),
                     $crate::SortedVecMap::new(),
-                    [$crate::embassy::PacketMetadata::EMPTY; { $rx_meta }],
-                    [0u8; { $rx_buffer }],
                     [$crate::embassy::PacketMetadata::EMPTY; { $tx_meta }],
                     [0u8; { $tx_buffer }],
+                )
+            }
+
+            /// Construct an empty
+            /// [`BasicReceiverResources`](crate::embassy::BasicReceiverResources)
+            /// in a const context.
+            ///
+            /// The returned value is large, so it's recommended to place it
+            /// directly in `const`/`static` storage - e.g. a `ConstStaticCell` -
+            /// rather than building it on the stack.
+            #[allow(dead_code)]
+            #[allow(clippy::large_stack_frames)]
+            $vis const fn embassy_basic_receiver_resources()
+            -> $crate::embassy::BasicReceiverResources<$name> {
+                $crate::embassy::BasicReceiverResources::from_parts(
+                    $name::basic_receiver_resources(),
+                    $crate::SortedVecMap::new(),
+                    [$crate::embassy::PacketMetadata::EMPTY; { $rx_meta }],
+                    [0u8; { $rx_buffer }],
+                    [0u8; $crate::packet::MAX_PACKET_SIZE],
+                )
+            }
+
+            /// Construct an empty
+            /// [`ReceiverResources`](crate::embassy::ReceiverResources)
+            /// in a const context.
+            ///
+            /// The returned value is large, so it's recommended to place it
+            /// directly in `const`/`static` storage - e.g. a `ConstStaticCell` -
+            /// rather than building it on the stack.
+            #[allow(dead_code)]
+            #[allow(clippy::large_stack_frames)]
+            $vis const fn embassy_receiver_resources()
+            -> $crate::embassy::ReceiverResources<$name> {
+                $crate::embassy::ReceiverResources::from_parts(
+                    $name::receiver_resources(),
+                    $crate::SortedVecMap::new(),
+                    $crate::SortedVecMap::new(),
+                    [$crate::embassy::PacketMetadata::EMPTY; { $rx_meta }],
+                    [0u8; { $rx_buffer }],
+                    [0u8; $crate::packet::MAX_PACKET_SIZE],
                 )
             }
         }
@@ -395,6 +715,9 @@ macro_rules! embassy_static_storage {
     (
         $(#[$attr:meta])*
         $vis:vis struct $name:ident {
+            rx_universes: $rx_universes:expr,
+            rx_sources_per_universe: $rx_sources:expr,
+            rx_sync_addresses: $rx_sync:expr,
             tx_universes: $tx_universes:expr,
             tx_unicast_per_universe: $unicast:expr $(,)?
         }
@@ -402,6 +725,9 @@ macro_rules! embassy_static_storage {
         $crate::embassy_static_storage! {
             $(#[$attr])*
             $vis struct $name {
+                rx_universes: $rx_universes,
+                rx_sources_per_universe: $rx_sources,
+                rx_sync_addresses: $rx_sync,
                 tx_universes: $tx_universes,
                 tx_unicast_per_universe: $unicast,
                 rx_meta: 4,

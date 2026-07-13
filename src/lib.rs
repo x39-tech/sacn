@@ -84,8 +84,9 @@ pub use detector::{DetectorStorage, SourceDetector, SourceDetectorConfig};
 pub use merger::{DmxMerger, MergeOutput, MergerStorage, SlotOwner, SourceId};
 
 pub use receiver::{
-    BasicReceiver, BasicReceiverCore, BasicReceiverResources, BasicReceiverStorage, Receiver,
-    ReceiverConfig, ReceiverCore, ReceiverResources, ReceiverStorage,
+    BasicReceiver, BasicReceiverCore, BasicReceiverEventRef, BasicReceiverResources,
+    BasicReceiverStorage, Receiver, ReceiverConfig, ReceiverCore, ReceiverEventRef,
+    ReceiverResources, ReceiverStorage,
 };
 #[cfg(feature = "alloc")]
 pub use receiver::{BasicReceiverEvent, MergedData, MergedSource, ReceiverEvent};

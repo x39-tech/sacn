@@ -19,7 +19,9 @@ mod event;
 
 #[cfg(feature = "alloc")]
 pub use event::BasicReceiverEvent;
-pub use event::{BasicReceiverPollEvent, LostSource, PacketOutcome, PollOutcome};
+pub use event::{
+    BasicReceiverEventRef, BasicReceiverPollEvent, LostSource, PacketOutcome, PollOutcome,
+};
 
 #[cfg(test)]
 #[path = "tests.rs"]
@@ -596,6 +598,15 @@ impl<S: BasicReceiverStorage> BasicReceiverCore<S> {
         }
 
         PollOutcome::new(deadline, self, store, now)
+    }
+
+    /// The sources lost by the most recent settled termination set.
+    #[cfg(feature = "embassy")]
+    pub(crate) fn lost_sources<'a>(
+        &self,
+        store: &'a BasicReceiverResources<S>,
+    ) -> &'a [LostSource] {
+        store.lost_sources()
     }
 
     /// Runs the eager half of one `poll` tick for a single universe: classifies

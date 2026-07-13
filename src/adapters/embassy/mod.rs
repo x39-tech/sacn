@@ -2,22 +2,43 @@
 //!
 //! This is the default entrypoint to sACN for embedded targets using the
 //! [embassy](https://embassy.dev) async runtime and its `embassy-net` stack.
-//! It is `no_std` and allocation-free.
+//! It is `no_std` and can be allocation-free.
 //!
+//! - [`BasicReceiver`] wraps [`crate::receiver::BasicReceiver`] and delivers
+//!   per-source data.
+//! - [`Receiver`] wraps the merging [`crate::receiver::Receiver`] and delivers
+//!   merged universe data.
 //! - [`Source`] wraps [`crate::source::Source`] and transmits sACN.
 //!
-//! On a target with no allocator, size the source's fixed-capacity storage
-//! (including its unicast destination tables and socket buffers) with
+//! Each owns an `embassy_net::udp::UdpSocket`, treats `embassy_time`'s clock as
+//! the core's monotonic epoch, and runs an async loop over the socket and the
+//! core's timers.
+//!
+//! Unlike the tokio adapter, `embassy-net` joins multicast groups per stack
+//! (single interface) rather than per named interface, so the receivers expose
+//! only `listen(universe)` (no `listen_on`).
+//!
+//! On a target with no allocator, size each type's fixed-capacity storage
+//! (working memory, socket buffers, etc.) with
 //! [`embassy_static_storage!`](crate::embassy_static_storage!).
 
+mod basic;
 mod error;
+mod merging;
 mod sending;
 mod source;
 mod storage;
 
+pub use basic::BasicReceiver;
 pub use error::EmbassyError;
+pub use merging::Receiver;
 pub use source::Source;
-pub use storage::{Destinations, SourceResources, SourceStorage};
+#[doc(hidden)]
+pub use storage::JoinState;
+pub use storage::{
+    BasicReceiverResources, BasicReceiverStorage, Destinations, ReceiverResources, ReceiverStorage,
+    SourceResources, SourceStorage,
+};
 
 // Re-exported so the `embassy_static_storage!` macro can name these through
 // `$crate::embassy::...` without the user's crate depending on `embassy-net`
