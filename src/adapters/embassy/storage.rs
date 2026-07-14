@@ -15,6 +15,9 @@
 use embassy_net::IpEndpoint;
 use embassy_net::udp::PacketMetadata;
 
+use crate::detector::{
+    DetectorStorage as CoreDetectorStorage, SourceDetectorResources as CoreDetectorResources,
+};
 use crate::receiver::{
     BasicReceiverResources as CoreBasicReceiverResources,
     BasicReceiverStorage as CoreBasicReceiverStorage, ReceiverResources as CoreReceiverResources,
@@ -502,6 +505,103 @@ impl Default for ReceiverResources<crate::HeapStorage> {
     }
 }
 
+// --- Detector storage --------------------------------------------------------
+
+/// Storage types for the embassy [`SourceDetector`](crate::embassy::SourceDetector).
+///
+/// Use [`embassy_static_storage!`](crate::embassy_static_storage!) to produce
+/// a type that implements this trait for statically-allocated storage, or use
+/// [`HeapStorage`](crate::HeapStorage) for heap-based storage.
+pub trait DetectorStorage: CoreDetectorStorage {
+    /// Packet-metadata storage for the socket's receive ring.
+    type RxMeta: AsMut<[PacketMetadata]>;
+    /// Payload storage for the socket's receive ring.
+    type RxBuffer: AsMut<[u8]>;
+    /// The datagram buffer a received packet is copied into and parsed from. It
+    /// must hold the largest possible sACN packet.
+    type RecvBuffer: AsMut<[u8]>;
+}
+
+/// The mutable working memory an embassy
+/// [`SourceDetector`](crate::embassy::SourceDetector) operates on.
+///
+/// This struct holds everything about a detector that scales with the number of
+/// tracked sources and their universe lists, so it is the potentially large
+/// allocation.
+///
+/// To construct:
+///
+/// - **Fixed-capacity:** use the
+///   [`embassy_static_storage!`](crate::embassy_static_storage!) macro, which
+///   emits a `const fn` `embassy_detector_resources()` returning an empty
+///   `DetectorResources`, suitable for static allocation in a const context.
+/// - **Heap:** construct with [`DetectorResources::default`].
+pub struct DetectorResources<S: DetectorStorage> {
+    /// The core discovery-tracking working memory.
+    pub(super) detector: CoreDetectorResources<S>,
+    /// The socket's receive-ring metadata and payload storage.
+    pub(super) rx_meta: S::RxMeta,
+    pub(super) rx_buffer: S::RxBuffer,
+    /// The datagram buffer received packets are parsed from.
+    pub(super) recv_buffer: S::RecvBuffer,
+}
+
+impl<S: DetectorStorage> DetectorResources<S> {
+    /// Assembles the resources from already-constructed (empty) parts.
+    ///
+    /// Not used directly; used only from
+    /// [`embassy_static_storage!`](crate::embassy_static_storage!) or
+    /// [`Default::default()`].
+    #[doc(hidden)]
+    pub const fn from_parts(
+        detector: CoreDetectorResources<S>,
+        rx_meta: S::RxMeta,
+        rx_buffer: S::RxBuffer,
+        recv_buffer: S::RecvBuffer,
+    ) -> Self {
+        Self {
+            detector,
+            rx_meta,
+            rx_buffer,
+            recv_buffer,
+        }
+    }
+}
+
+impl<S: DetectorStorage> core::fmt::Debug for DetectorResources<S> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        // The core state and socket buffers are large and would force a
+        // spurious `S: Debug` bound.
+        f.debug_struct("DetectorResources").finish_non_exhaustive()
+    }
+}
+
+#[cfg(feature = "alloc")]
+impl DetectorStorage for crate::HeapStorage {
+    type RxMeta = [PacketMetadata; 4];
+    type RxBuffer = alloc::vec::Vec<u8>;
+    type RecvBuffer = alloc::vec::Vec<u8>;
+}
+
+#[cfg(not(feature = "alloc"))]
+impl DetectorStorage for crate::HeapStorage {
+    type RxMeta = [PacketMetadata; 4];
+    type RxBuffer = [u8; crate::packet::MAX_PACKET_SIZE];
+    type RecvBuffer = [u8; crate::packet::MAX_PACKET_SIZE];
+}
+
+#[cfg(feature = "alloc")]
+impl Default for DetectorResources<crate::HeapStorage> {
+    fn default() -> Self {
+        Self::from_parts(
+            CoreDetectorResources::default(),
+            [PacketMetadata::EMPTY; 4],
+            alloc::vec![0u8; crate::packet::MAX_PACKET_SIZE],
+            alloc::vec![0u8; crate::packet::MAX_PACKET_SIZE],
+        )
+    }
+}
+
 /// Builds a fixed-capacity, allocation-free storage policy for the embassy
 /// modules.
 ///
@@ -531,6 +631,8 @@ impl Default for ReceiverResources<crate::HeapStorage> {
 /// | `rx_sync_addresses`        | synchronization addresses tracked by a receiver   |
 /// | `tx_universes`             | universes the source transmits on                 |
 /// | `tx_unicast_per_universe`  | unicast destinations configured on one universe   |
+/// | `det_sources`              | sources a detector tracks                         |
+/// | `det_universes_per_source` | universes one detected source may advertise       |
 ///
 /// Every other capacity used internally is derived from these.
 ///
@@ -564,6 +666,8 @@ impl Default for ReceiverResources<crate::HeapStorage> {
 ///         rx_sync_addresses: 4,
 ///         tx_universes: 4,
 ///         tx_unicast_per_universe: 4,
+///         det_sources: 0,
+///         det_universes_per_source: 0,
 ///     }
 /// }
 ///
@@ -587,6 +691,8 @@ macro_rules! embassy_static_storage {
             rx_sync_addresses: $rx_sync:expr,
             tx_universes: $tx_universes:expr,
             tx_unicast_per_universe: $unicast:expr,
+            det_sources: $det_sources:expr,
+            det_universes_per_source: $det_universes:expr,
             rx_meta: $rx_meta:expr,
             rx_buffer: $rx_buffer:expr,
             tx_meta: $tx_meta:expr,
@@ -641,6 +747,25 @@ macro_rules! embassy_static_storage {
                 $crate::embassy::JoinState,
                 { $rx_sync },
             >;
+        }
+
+        impl $crate::detector::DetectorStorage for $name {
+            type Sources = $crate::SortedVecMap<
+                $crate::Cid,
+                $crate::detector::DetectedSource<$name>,
+                { $det_sources },
+            >;
+            type Universes = $crate::heapless::Vec<u16, { $det_universes }>;
+            type EventBuffer = $crate::heapless::Vec<
+                $crate::detector::SourceDetectorPollEvent,
+                { $det_sources },
+            >;
+        }
+
+        impl $crate::embassy::DetectorStorage for $name {
+            type RxMeta = [$crate::embassy::PacketMetadata; { $rx_meta }];
+            type RxBuffer = [u8; { $rx_buffer }];
+            type RecvBuffer = [u8; $crate::packet::MAX_PACKET_SIZE];
         }
 
         impl $name {
@@ -708,6 +833,28 @@ macro_rules! embassy_static_storage {
                     [0u8; $crate::packet::MAX_PACKET_SIZE],
                 )
             }
+
+            /// Construct an empty
+            /// [`DetectorResources`](crate::embassy::DetectorResources)
+            /// in a const context.
+            ///
+            /// The returned value is large, so it's recommended to place it
+            /// directly in `const`/`static` storage - e.g. a `ConstStaticCell` -
+            /// rather than building it on the stack.
+            #[allow(dead_code)]
+            #[allow(clippy::large_stack_frames)]
+            $vis const fn embassy_detector_resources()
+            -> $crate::embassy::DetectorResources<$name> {
+                $crate::embassy::DetectorResources::from_parts(
+                    $crate::detector::SourceDetectorResources::from_parts(
+                        $crate::SortedVecMap::new(),
+                        $crate::heapless::Vec::new(),
+                    ),
+                    [$crate::embassy::PacketMetadata::EMPTY; { $rx_meta }],
+                    [0u8; { $rx_buffer }],
+                    [0u8; $crate::packet::MAX_PACKET_SIZE],
+                )
+            }
         }
     };
 
@@ -719,7 +866,9 @@ macro_rules! embassy_static_storage {
             rx_sources_per_universe: $rx_sources:expr,
             rx_sync_addresses: $rx_sync:expr,
             tx_universes: $tx_universes:expr,
-            tx_unicast_per_universe: $unicast:expr $(,)?
+            tx_unicast_per_universe: $unicast:expr,
+            det_sources: $det_sources:expr,
+            det_universes_per_source: $det_universes:expr $(,)?
         }
     ) => {
         $crate::embassy_static_storage! {
@@ -730,6 +879,8 @@ macro_rules! embassy_static_storage {
                 rx_sync_addresses: $rx_sync,
                 tx_universes: $tx_universes,
                 tx_unicast_per_universe: $unicast,
+                det_sources: $det_sources,
+                det_universes_per_source: $det_universes,
                 rx_meta: 4,
                 rx_buffer: $crate::packet::MAX_PACKET_SIZE,
                 tx_meta: 4,

@@ -96,6 +96,58 @@ impl<T> core::convert::From<T> for sacn::SourceDetectorEvent
 pub fn sacn::SourceDetectorEvent::from(T) -> T
 impl<T> tracing::instrument::Instrument for sacn::SourceDetectorEvent
 impl<T> tracing::instrument::WithSubscriber for sacn::SourceDetectorEvent
+#[non_exhaustive] pub enum sacn::detector::SourceDetectorEventRef<'a>
+pub sacn::detector::SourceDetectorEventRef::NoEvent
+pub sacn::detector::SourceDetectorEventRef::SourceExpired
+pub sacn::detector::SourceDetectorEventRef::SourceExpired::cid: sacn::Cid
+pub sacn::detector::SourceDetectorEventRef::SourceExpired::name: &'a str
+pub sacn::detector::SourceDetectorEventRef::SourceLimitExceeded
+pub sacn::detector::SourceDetectorEventRef::SourceUpdated
+pub sacn::detector::SourceDetectorEventRef::SourceUpdated::cid: sacn::Cid
+pub sacn::detector::SourceDetectorEventRef::SourceUpdated::name: &'a str
+pub sacn::detector::SourceDetectorEventRef::SourceUpdated::universes: &'a [u16]
+pub sacn::detector::SourceDetectorEventRef::UniverseLimitExceeded
+pub sacn::detector::SourceDetectorEventRef::UniverseLimitExceeded::cid: sacn::Cid
+impl<'a> core::clone::Clone for sacn::SourceDetectorEventRef<'a>
+pub fn sacn::SourceDetectorEventRef<'a>::clone(&self) -> sacn::SourceDetectorEventRef<'a>
+impl<'a> core::cmp::Eq for sacn::SourceDetectorEventRef<'a>
+impl<'a> core::cmp::PartialEq for sacn::SourceDetectorEventRef<'a>
+pub fn sacn::SourceDetectorEventRef<'a>::eq(&self, &sacn::SourceDetectorEventRef<'a>) -> bool
+impl<'a> core::fmt::Debug for sacn::SourceDetectorEventRef<'a>
+pub fn sacn::SourceDetectorEventRef<'a>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<'a> core::marker::Copy for sacn::SourceDetectorEventRef<'a>
+impl<'a> core::marker::StructuralPartialEq for sacn::SourceDetectorEventRef<'a>
+impl<'a> core::marker::Freeze for sacn::SourceDetectorEventRef<'a>
+impl<'a> core::marker::Send for sacn::SourceDetectorEventRef<'a>
+impl<'a> core::marker::Sync for sacn::SourceDetectorEventRef<'a>
+impl<'a> core::marker::Unpin for sacn::SourceDetectorEventRef<'a>
+impl<'a> core::marker::UnsafeUnpin for sacn::SourceDetectorEventRef<'a>
+impl<'a> core::panic::unwind_safe::RefUnwindSafe for sacn::SourceDetectorEventRef<'a>
+impl<'a> core::panic::unwind_safe::UnwindSafe for sacn::SourceDetectorEventRef<'a>
+impl<T, U> core::convert::Into<U> for sacn::SourceDetectorEventRef<'a> where U: core::convert::From<T>
+pub fn sacn::SourceDetectorEventRef<'a>::into(self) -> U
+impl<T, U> core::convert::TryFrom<U> for sacn::SourceDetectorEventRef<'a> where U: core::convert::Into<T>
+pub type sacn::SourceDetectorEventRef<'a>::Error = core::convert::Infallible
+pub fn sacn::SourceDetectorEventRef<'a>::try_from(U) -> core::result::Result<T, <T as core::convert::TryFrom<U>>::Error>
+impl<T, U> core::convert::TryInto<U> for sacn::SourceDetectorEventRef<'a> where U: core::convert::TryFrom<T>
+pub type sacn::SourceDetectorEventRef<'a>::Error = <U as core::convert::TryFrom<T>>::Error
+pub fn sacn::SourceDetectorEventRef<'a>::try_into(self) -> core::result::Result<U, <U as core::convert::TryFrom<T>>::Error>
+impl<T> alloc::borrow::ToOwned for sacn::SourceDetectorEventRef<'a> where T: core::clone::Clone
+pub type sacn::SourceDetectorEventRef<'a>::Owned = T
+pub fn sacn::SourceDetectorEventRef<'a>::clone_into(&self, &mut T)
+pub fn sacn::SourceDetectorEventRef<'a>::to_owned(&self) -> T
+impl<T> core::any::Any for sacn::SourceDetectorEventRef<'a> where T: 'static + ?core::marker::Sized
+pub fn sacn::SourceDetectorEventRef<'a>::type_id(&self) -> core::any::TypeId
+impl<T> core::borrow::Borrow<T> for sacn::SourceDetectorEventRef<'a> where T: ?core::marker::Sized
+pub fn sacn::SourceDetectorEventRef<'a>::borrow(&self) -> &T
+impl<T> core::borrow::BorrowMut<T> for sacn::SourceDetectorEventRef<'a> where T: ?core::marker::Sized
+pub fn sacn::SourceDetectorEventRef<'a>::borrow_mut(&mut self) -> &mut T
+impl<T> core::clone::CloneToUninit for sacn::SourceDetectorEventRef<'a> where T: core::clone::Clone
+pub unsafe fn sacn::SourceDetectorEventRef<'a>::clone_to_uninit(&self, *mut u8)
+impl<T> core::convert::From<T> for sacn::SourceDetectorEventRef<'a>
+pub fn sacn::SourceDetectorEventRef<'a>::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::SourceDetectorEventRef<'a>
+impl<T> tracing::instrument::WithSubscriber for sacn::SourceDetectorEventRef<'a>
 #[non_exhaustive] pub enum sacn::detector::SourceDetectorPollEvent
 pub sacn::detector::SourceDetectorPollEvent::SourceExpired
 pub sacn::detector::SourceDetectorPollEvent::SourceExpired::cid: sacn::Cid
@@ -523,6 +575,36 @@ impl<T> core::convert::From<T> for sacn::embassy::BasicReceiverResources<S>
 pub fn sacn::embassy::BasicReceiverResources<S>::from(T) -> T
 impl<T> tracing::instrument::Instrument for sacn::embassy::BasicReceiverResources<S>
 impl<T> tracing::instrument::WithSubscriber for sacn::embassy::BasicReceiverResources<S>
+pub struct sacn::embassy::DetectorResources<S: sacn::embassy::DetectorStorage>
+impl core::default::Default for sacn::embassy::DetectorResources<sacn::storage::HeapStorage>
+pub fn sacn::embassy::DetectorResources<sacn::storage::HeapStorage>::default() -> Self
+impl<S: sacn::embassy::DetectorStorage> core::fmt::Debug for sacn::embassy::DetectorResources<S>
+pub fn sacn::embassy::DetectorResources<S>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<S> core::marker::Freeze for sacn::embassy::DetectorResources<S> where <S as sacn::embassy::DetectorStorage>::RxMeta: core::marker::Freeze, <S as sacn::embassy::DetectorStorage>::RxBuffer: core::marker::Freeze, <S as sacn::embassy::DetectorStorage>::RecvBuffer: core::marker::Freeze, <S as sacn::detector::DetectorStorage>::Sources: core::marker::Freeze, <S as sacn::detector::DetectorStorage>::EventBuffer: core::marker::Freeze
+impl<S> core::marker::Send for sacn::embassy::DetectorResources<S> where <S as sacn::embassy::DetectorStorage>::RxMeta: core::marker::Send, <S as sacn::embassy::DetectorStorage>::RxBuffer: core::marker::Send, <S as sacn::embassy::DetectorStorage>::RecvBuffer: core::marker::Send, <S as sacn::detector::DetectorStorage>::Sources: core::marker::Send, <S as sacn::detector::DetectorStorage>::EventBuffer: core::marker::Send
+impl<S> core::marker::Sync for sacn::embassy::DetectorResources<S> where <S as sacn::embassy::DetectorStorage>::RxMeta: core::marker::Sync, <S as sacn::embassy::DetectorStorage>::RxBuffer: core::marker::Sync, <S as sacn::embassy::DetectorStorage>::RecvBuffer: core::marker::Sync, <S as sacn::detector::DetectorStorage>::Sources: core::marker::Sync, <S as sacn::detector::DetectorStorage>::EventBuffer: core::marker::Sync
+impl<S> core::marker::Unpin for sacn::embassy::DetectorResources<S> where <S as sacn::embassy::DetectorStorage>::RxMeta: core::marker::Unpin, <S as sacn::embassy::DetectorStorage>::RxBuffer: core::marker::Unpin, <S as sacn::embassy::DetectorStorage>::RecvBuffer: core::marker::Unpin, <S as sacn::detector::DetectorStorage>::Sources: core::marker::Unpin, <S as sacn::detector::DetectorStorage>::EventBuffer: core::marker::Unpin
+impl<S> core::marker::UnsafeUnpin for sacn::embassy::DetectorResources<S> where <S as sacn::embassy::DetectorStorage>::RxMeta: core::marker::UnsafeUnpin, <S as sacn::embassy::DetectorStorage>::RxBuffer: core::marker::UnsafeUnpin, <S as sacn::embassy::DetectorStorage>::RecvBuffer: core::marker::UnsafeUnpin, <S as sacn::detector::DetectorStorage>::Sources: core::marker::UnsafeUnpin, <S as sacn::detector::DetectorStorage>::EventBuffer: core::marker::UnsafeUnpin
+impl<S> core::panic::unwind_safe::RefUnwindSafe for sacn::embassy::DetectorResources<S> where <S as sacn::embassy::DetectorStorage>::RxMeta: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::embassy::DetectorStorage>::RxBuffer: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::embassy::DetectorStorage>::RecvBuffer: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::detector::DetectorStorage>::Sources: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::detector::DetectorStorage>::EventBuffer: core::panic::unwind_safe::RefUnwindSafe
+impl<S> core::panic::unwind_safe::UnwindSafe for sacn::embassy::DetectorResources<S> where <S as sacn::embassy::DetectorStorage>::RxMeta: core::panic::unwind_safe::UnwindSafe, <S as sacn::embassy::DetectorStorage>::RxBuffer: core::panic::unwind_safe::UnwindSafe, <S as sacn::embassy::DetectorStorage>::RecvBuffer: core::panic::unwind_safe::UnwindSafe, <S as sacn::detector::DetectorStorage>::Sources: core::panic::unwind_safe::UnwindSafe, <S as sacn::detector::DetectorStorage>::EventBuffer: core::panic::unwind_safe::UnwindSafe
+impl<T, U> core::convert::Into<U> for sacn::embassy::DetectorResources<S> where U: core::convert::From<T>
+pub fn sacn::embassy::DetectorResources<S>::into(self) -> U
+impl<T, U> core::convert::TryFrom<U> for sacn::embassy::DetectorResources<S> where U: core::convert::Into<T>
+pub type sacn::embassy::DetectorResources<S>::Error = core::convert::Infallible
+pub fn sacn::embassy::DetectorResources<S>::try_from(U) -> core::result::Result<T, <T as core::convert::TryFrom<U>>::Error>
+impl<T, U> core::convert::TryInto<U> for sacn::embassy::DetectorResources<S> where U: core::convert::TryFrom<T>
+pub type sacn::embassy::DetectorResources<S>::Error = <U as core::convert::TryFrom<T>>::Error
+pub fn sacn::embassy::DetectorResources<S>::try_into(self) -> core::result::Result<U, <U as core::convert::TryFrom<T>>::Error>
+impl<T> core::any::Any for sacn::embassy::DetectorResources<S> where T: 'static + ?core::marker::Sized
+pub fn sacn::embassy::DetectorResources<S>::type_id(&self) -> core::any::TypeId
+impl<T> core::borrow::Borrow<T> for sacn::embassy::DetectorResources<S> where T: ?core::marker::Sized
+pub fn sacn::embassy::DetectorResources<S>::borrow(&self) -> &T
+impl<T> core::borrow::BorrowMut<T> for sacn::embassy::DetectorResources<S> where T: ?core::marker::Sized
+pub fn sacn::embassy::DetectorResources<S>::borrow_mut(&mut self) -> &mut T
+impl<T> core::convert::From<T> for sacn::embassy::DetectorResources<S>
+pub fn sacn::embassy::DetectorResources<S>::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::embassy::DetectorResources<S>
+impl<T> tracing::instrument::WithSubscriber for sacn::embassy::DetectorResources<S>
 pub struct sacn::embassy::Receiver<'d, S: sacn::embassy::ReceiverStorage>
 impl<'d, S: sacn::embassy::ReceiverStorage> sacn::embassy::Receiver<'d, S>
 pub fn sacn::embassy::Receiver<'d, S>::bind(embassy_net::Stack<'d>, &'d mut sacn::embassy::ReceiverResources<S>, sacn::receiver::ReceiverConfig) -> core::result::Result<Self, sacn::embassy::EmbassyError>
@@ -641,6 +723,38 @@ impl<T> core::convert::From<T> for sacn::embassy::Source<'d, S>
 pub fn sacn::embassy::Source<'d, S>::from(T) -> T
 impl<T> tracing::instrument::Instrument for sacn::embassy::Source<'d, S>
 impl<T> tracing::instrument::WithSubscriber for sacn::embassy::Source<'d, S>
+pub struct sacn::embassy::SourceDetector<'d, S: sacn::embassy::DetectorStorage>
+impl<'d, S: sacn::embassy::DetectorStorage> sacn::embassy::SourceDetector<'d, S>
+pub fn sacn::embassy::SourceDetector<'d, S>::bind(embassy_net::Stack<'d>, &'d mut sacn::embassy::DetectorResources<S>, sacn::detector::SourceDetectorConfig) -> core::result::Result<Self, sacn::embassy::EmbassyError>
+pub fn sacn::embassy::SourceDetector<'d, S>::config(&self) -> &sacn::detector::SourceDetectorConfig
+pub async fn sacn::embassy::SourceDetector<'d, S>::next_event(&mut self) -> core::option::Option<sacn::SourceDetectorEventRef<'_>>
+impl<S: sacn::embassy::DetectorStorage> core::fmt::Debug for sacn::embassy::SourceDetector<'_, S>
+pub fn sacn::embassy::SourceDetector<'_, S>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<'d, S> core::marker::Freeze for sacn::embassy::SourceDetector<'d, S>
+impl<'d, S> !core::marker::Send for sacn::embassy::SourceDetector<'d, S>
+impl<'d, S> !core::marker::Sync for sacn::embassy::SourceDetector<'d, S>
+impl<'d, S> core::marker::Unpin for sacn::embassy::SourceDetector<'d, S> where S: core::marker::Unpin
+impl<'d, S> core::marker::UnsafeUnpin for sacn::embassy::SourceDetector<'d, S>
+impl<'d, S> !core::panic::unwind_safe::RefUnwindSafe for sacn::embassy::SourceDetector<'d, S>
+impl<'d, S> !core::panic::unwind_safe::UnwindSafe for sacn::embassy::SourceDetector<'d, S>
+impl<T, U> core::convert::Into<U> for sacn::embassy::SourceDetector<'d, S> where U: core::convert::From<T>
+pub fn sacn::embassy::SourceDetector<'d, S>::into(self) -> U
+impl<T, U> core::convert::TryFrom<U> for sacn::embassy::SourceDetector<'d, S> where U: core::convert::Into<T>
+pub type sacn::embassy::SourceDetector<'d, S>::Error = core::convert::Infallible
+pub fn sacn::embassy::SourceDetector<'d, S>::try_from(U) -> core::result::Result<T, <T as core::convert::TryFrom<U>>::Error>
+impl<T, U> core::convert::TryInto<U> for sacn::embassy::SourceDetector<'d, S> where U: core::convert::TryFrom<T>
+pub type sacn::embassy::SourceDetector<'d, S>::Error = <U as core::convert::TryFrom<T>>::Error
+pub fn sacn::embassy::SourceDetector<'d, S>::try_into(self) -> core::result::Result<U, <U as core::convert::TryFrom<T>>::Error>
+impl<T> core::any::Any for sacn::embassy::SourceDetector<'d, S> where T: 'static + ?core::marker::Sized
+pub fn sacn::embassy::SourceDetector<'d, S>::type_id(&self) -> core::any::TypeId
+impl<T> core::borrow::Borrow<T> for sacn::embassy::SourceDetector<'d, S> where T: ?core::marker::Sized
+pub fn sacn::embassy::SourceDetector<'d, S>::borrow(&self) -> &T
+impl<T> core::borrow::BorrowMut<T> for sacn::embassy::SourceDetector<'d, S> where T: ?core::marker::Sized
+pub fn sacn::embassy::SourceDetector<'d, S>::borrow_mut(&mut self) -> &mut T
+impl<T> core::convert::From<T> for sacn::embassy::SourceDetector<'d, S>
+pub fn sacn::embassy::SourceDetector<'d, S>::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::embassy::SourceDetector<'d, S>
+impl<T> tracing::instrument::WithSubscriber for sacn::embassy::SourceDetector<'d, S>
 pub struct sacn::embassy::SourceResources<S: sacn::embassy::SourceStorage>
 impl core::default::Default for sacn::embassy::SourceResources<sacn::storage::HeapStorage>
 pub fn sacn::embassy::SourceResources<sacn::storage::HeapStorage>::default() -> Self
@@ -678,6 +792,14 @@ pub type sacn::embassy::BasicReceiverStorage::RxBuffer: core::convert::AsMut<[u8
 pub type sacn::embassy::BasicReceiverStorage::RxMeta: core::convert::AsMut<[smoltcp::socket::udp::PacketMetadata]>
 impl sacn::embassy::BasicReceiverStorage for sacn::storage::HeapStorage
 pub type sacn::storage::HeapStorage::Joined = alloc::collections::btree::map::BTreeMap<sacn::Universe, JoinState>
+pub type sacn::storage::HeapStorage::RecvBuffer = alloc::vec::Vec<u8>
+pub type sacn::storage::HeapStorage::RxBuffer = alloc::vec::Vec<u8>
+pub type sacn::storage::HeapStorage::RxMeta = [smoltcp::storage::packet_buffer::PacketMetadata<smoltcp::socket::udp::UdpMetadata>; 4]
+pub trait sacn::embassy::DetectorStorage: sacn::detector::DetectorStorage
+pub type sacn::embassy::DetectorStorage::RecvBuffer: core::convert::AsMut<[u8]>
+pub type sacn::embassy::DetectorStorage::RxBuffer: core::convert::AsMut<[u8]>
+pub type sacn::embassy::DetectorStorage::RxMeta: core::convert::AsMut<[smoltcp::socket::udp::PacketMetadata]>
+impl sacn::embassy::DetectorStorage for sacn::storage::HeapStorage
 pub type sacn::storage::HeapStorage::RecvBuffer = alloc::vec::Vec<u8>
 pub type sacn::storage::HeapStorage::RxBuffer = alloc::vec::Vec<u8>
 pub type sacn::storage::HeapStorage::RxMeta = [smoltcp::storage::packet_buffer::PacketMetadata<smoltcp::socket::udp::UdpMetadata>; 4]
@@ -3185,6 +3307,10 @@ pub type sacn::storage::HeapStorage::Joined = alloc::collections::btree::map::BT
 pub type sacn::storage::HeapStorage::RecvBuffer = alloc::vec::Vec<u8>
 pub type sacn::storage::HeapStorage::RxBuffer = alloc::vec::Vec<u8>
 pub type sacn::storage::HeapStorage::RxMeta = [smoltcp::storage::packet_buffer::PacketMetadata<smoltcp::socket::udp::UdpMetadata>; 4]
+impl sacn::embassy::DetectorStorage for sacn::storage::HeapStorage
+pub type sacn::storage::HeapStorage::RecvBuffer = alloc::vec::Vec<u8>
+pub type sacn::storage::HeapStorage::RxBuffer = alloc::vec::Vec<u8>
+pub type sacn::storage::HeapStorage::RxMeta = [smoltcp::storage::packet_buffer::PacketMetadata<smoltcp::socket::udp::UdpMetadata>; 4]
 impl sacn::embassy::ReceiverStorage for sacn::storage::HeapStorage
 pub type sacn::storage::HeapStorage::SyncJoined = alloc::collections::btree::map::BTreeMap<sacn::Universe, JoinState>
 impl sacn::embassy::SourceStorage for sacn::storage::HeapStorage
@@ -4129,6 +4255,58 @@ impl<T> core::convert::From<T> for sacn::SourceDetectorEvent
 pub fn sacn::SourceDetectorEvent::from(T) -> T
 impl<T> tracing::instrument::Instrument for sacn::SourceDetectorEvent
 impl<T> tracing::instrument::WithSubscriber for sacn::SourceDetectorEvent
+#[non_exhaustive] pub enum sacn::SourceDetectorEventRef<'a>
+pub sacn::SourceDetectorEventRef::NoEvent
+pub sacn::SourceDetectorEventRef::SourceExpired
+pub sacn::SourceDetectorEventRef::SourceExpired::cid: sacn::Cid
+pub sacn::SourceDetectorEventRef::SourceExpired::name: &'a str
+pub sacn::SourceDetectorEventRef::SourceLimitExceeded
+pub sacn::SourceDetectorEventRef::SourceUpdated
+pub sacn::SourceDetectorEventRef::SourceUpdated::cid: sacn::Cid
+pub sacn::SourceDetectorEventRef::SourceUpdated::name: &'a str
+pub sacn::SourceDetectorEventRef::SourceUpdated::universes: &'a [u16]
+pub sacn::SourceDetectorEventRef::UniverseLimitExceeded
+pub sacn::SourceDetectorEventRef::UniverseLimitExceeded::cid: sacn::Cid
+impl<'a> core::clone::Clone for sacn::SourceDetectorEventRef<'a>
+pub fn sacn::SourceDetectorEventRef<'a>::clone(&self) -> sacn::SourceDetectorEventRef<'a>
+impl<'a> core::cmp::Eq for sacn::SourceDetectorEventRef<'a>
+impl<'a> core::cmp::PartialEq for sacn::SourceDetectorEventRef<'a>
+pub fn sacn::SourceDetectorEventRef<'a>::eq(&self, &sacn::SourceDetectorEventRef<'a>) -> bool
+impl<'a> core::fmt::Debug for sacn::SourceDetectorEventRef<'a>
+pub fn sacn::SourceDetectorEventRef<'a>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<'a> core::marker::Copy for sacn::SourceDetectorEventRef<'a>
+impl<'a> core::marker::StructuralPartialEq for sacn::SourceDetectorEventRef<'a>
+impl<'a> core::marker::Freeze for sacn::SourceDetectorEventRef<'a>
+impl<'a> core::marker::Send for sacn::SourceDetectorEventRef<'a>
+impl<'a> core::marker::Sync for sacn::SourceDetectorEventRef<'a>
+impl<'a> core::marker::Unpin for sacn::SourceDetectorEventRef<'a>
+impl<'a> core::marker::UnsafeUnpin for sacn::SourceDetectorEventRef<'a>
+impl<'a> core::panic::unwind_safe::RefUnwindSafe for sacn::SourceDetectorEventRef<'a>
+impl<'a> core::panic::unwind_safe::UnwindSafe for sacn::SourceDetectorEventRef<'a>
+impl<T, U> core::convert::Into<U> for sacn::SourceDetectorEventRef<'a> where U: core::convert::From<T>
+pub fn sacn::SourceDetectorEventRef<'a>::into(self) -> U
+impl<T, U> core::convert::TryFrom<U> for sacn::SourceDetectorEventRef<'a> where U: core::convert::Into<T>
+pub type sacn::SourceDetectorEventRef<'a>::Error = core::convert::Infallible
+pub fn sacn::SourceDetectorEventRef<'a>::try_from(U) -> core::result::Result<T, <T as core::convert::TryFrom<U>>::Error>
+impl<T, U> core::convert::TryInto<U> for sacn::SourceDetectorEventRef<'a> where U: core::convert::TryFrom<T>
+pub type sacn::SourceDetectorEventRef<'a>::Error = <U as core::convert::TryFrom<T>>::Error
+pub fn sacn::SourceDetectorEventRef<'a>::try_into(self) -> core::result::Result<U, <U as core::convert::TryFrom<T>>::Error>
+impl<T> alloc::borrow::ToOwned for sacn::SourceDetectorEventRef<'a> where T: core::clone::Clone
+pub type sacn::SourceDetectorEventRef<'a>::Owned = T
+pub fn sacn::SourceDetectorEventRef<'a>::clone_into(&self, &mut T)
+pub fn sacn::SourceDetectorEventRef<'a>::to_owned(&self) -> T
+impl<T> core::any::Any for sacn::SourceDetectorEventRef<'a> where T: 'static + ?core::marker::Sized
+pub fn sacn::SourceDetectorEventRef<'a>::type_id(&self) -> core::any::TypeId
+impl<T> core::borrow::Borrow<T> for sacn::SourceDetectorEventRef<'a> where T: ?core::marker::Sized
+pub fn sacn::SourceDetectorEventRef<'a>::borrow(&self) -> &T
+impl<T> core::borrow::BorrowMut<T> for sacn::SourceDetectorEventRef<'a> where T: ?core::marker::Sized
+pub fn sacn::SourceDetectorEventRef<'a>::borrow_mut(&mut self) -> &mut T
+impl<T> core::clone::CloneToUninit for sacn::SourceDetectorEventRef<'a> where T: core::clone::Clone
+pub unsafe fn sacn::SourceDetectorEventRef<'a>::clone_to_uninit(&self, *mut u8)
+impl<T> core::convert::From<T> for sacn::SourceDetectorEventRef<'a>
+pub fn sacn::SourceDetectorEventRef<'a>::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::SourceDetectorEventRef<'a>
+impl<T> tracing::instrument::WithSubscriber for sacn::SourceDetectorEventRef<'a>
 pub struct sacn::BasicReceiver<S: sacn::receiver::BasicReceiverStorage>
 impl sacn::BasicReceiver<sacn::storage::HeapStorage>
 pub fn sacn::BasicReceiver<sacn::storage::HeapStorage>::new(sacn::receiver::ReceiverConfig) -> Self
@@ -4347,6 +4525,10 @@ pub type sacn::storage::HeapStorage::Sources = alloc::collections::btree::map::B
 pub type sacn::storage::HeapStorage::Universes = alloc::vec::Vec<u16>
 impl sacn::embassy::BasicReceiverStorage for sacn::storage::HeapStorage
 pub type sacn::storage::HeapStorage::Joined = alloc::collections::btree::map::BTreeMap<sacn::Universe, JoinState>
+pub type sacn::storage::HeapStorage::RecvBuffer = alloc::vec::Vec<u8>
+pub type sacn::storage::HeapStorage::RxBuffer = alloc::vec::Vec<u8>
+pub type sacn::storage::HeapStorage::RxMeta = [smoltcp::storage::packet_buffer::PacketMetadata<smoltcp::socket::udp::UdpMetadata>; 4]
+impl sacn::embassy::DetectorStorage for sacn::storage::HeapStorage
 pub type sacn::storage::HeapStorage::RecvBuffer = alloc::vec::Vec<u8>
 pub type sacn::storage::HeapStorage::RxBuffer = alloc::vec::Vec<u8>
 pub type sacn::storage::HeapStorage::RxMeta = [smoltcp::storage::packet_buffer::PacketMetadata<smoltcp::socket::udp::UdpMetadata>; 4]

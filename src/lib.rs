@@ -81,7 +81,7 @@ pub use types::{Cid, NetintId, Priority, SequenceNumber, SourceName, StartCode, 
 pub use detector::SourceDetectorEvent;
 pub use detector::{
     DetectorStorage, SourceDetector, SourceDetectorConfig, SourceDetectorCore,
-    SourceDetectorResources,
+    SourceDetectorEventRef, SourceDetectorResources,
 };
 
 pub use merger::{DmxMerger, MergeOutput, MergerStorage, SlotOwner, SourceId};

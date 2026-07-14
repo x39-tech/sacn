@@ -60,6 +60,8 @@ const MULTICAST_HOP_LIMIT: u8 = 64;
 ///         rx_sync_addresses: 0,
 ///         tx_universes: 4,
 ///         tx_unicast_per_universe: 2,
+///         det_sources: 0,
+///         det_universes_per_source: 0,
 ///     }
 /// }
 ///

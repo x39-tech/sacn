@@ -197,6 +197,8 @@ async fn sacn_task(stack: Stack<'static>, button: Input<'static>, mut leds: Leds
             // TODO: only one universe should be required here (#17)
             tx_universes: 2,
             tx_unicast_per_universe: 0,
+            det_sources: 0,
+            det_universes_per_source: 0,
         }
     }
 
