@@ -225,15 +225,15 @@ pub fn sacn::detector::SourceDetector<S>::config(&self) -> &sacn::detector::Sour
 pub fn sacn::detector::SourceDetector<S>::handle_packet<'d>(&'d mut self, sacn::time::Instant, &sacn::packet::Packet<'_>) -> sacn::detector::DetectorPacketOutcome<'d>
 pub fn sacn::detector::SourceDetector<S>::poll(&mut self, sacn::time::Instant) -> sacn::detector::DetectorPollOutcome<'_>
 pub fn sacn::detector::SourceDetector<S>::with_config(sacn::detector::SourceDetectorConfig) -> Self
-impl<S: core::fmt::Debug + sacn::detector::DetectorStorage> core::fmt::Debug for sacn::detector::SourceDetector<S> where <S as sacn::detector::DetectorStorage>::Sources: core::fmt::Debug, <S as sacn::detector::DetectorStorage>::EventBuffer: core::fmt::Debug
+impl<S: core::fmt::Debug + sacn::detector::DetectorStorage> core::fmt::Debug for sacn::detector::SourceDetector<S>
 pub fn sacn::detector::SourceDetector<S>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
 impl<S> core::marker::Freeze for sacn::detector::SourceDetector<S> where <S as sacn::detector::DetectorStorage>::Sources: core::marker::Freeze, <S as sacn::detector::DetectorStorage>::EventBuffer: core::marker::Freeze
-impl<S> core::marker::Send for sacn::detector::SourceDetector<S> where <S as sacn::detector::DetectorStorage>::Sources: core::marker::Send, <S as sacn::detector::DetectorStorage>::EventBuffer: core::marker::Send
-impl<S> core::marker::Sync for sacn::detector::SourceDetector<S> where <S as sacn::detector::DetectorStorage>::Sources: core::marker::Sync, <S as sacn::detector::DetectorStorage>::EventBuffer: core::marker::Sync
-impl<S> core::marker::Unpin for sacn::detector::SourceDetector<S> where <S as sacn::detector::DetectorStorage>::Sources: core::marker::Unpin, <S as sacn::detector::DetectorStorage>::EventBuffer: core::marker::Unpin
+impl<S> core::marker::Send for sacn::detector::SourceDetector<S> where <S as sacn::detector::DetectorStorage>::Sources: core::marker::Send, <S as sacn::detector::DetectorStorage>::EventBuffer: core::marker::Send, S: core::marker::Send
+impl<S> core::marker::Sync for sacn::detector::SourceDetector<S> where <S as sacn::detector::DetectorStorage>::Sources: core::marker::Sync, <S as sacn::detector::DetectorStorage>::EventBuffer: core::marker::Sync, S: core::marker::Sync
+impl<S> core::marker::Unpin for sacn::detector::SourceDetector<S> where <S as sacn::detector::DetectorStorage>::Sources: core::marker::Unpin, <S as sacn::detector::DetectorStorage>::EventBuffer: core::marker::Unpin, S: core::marker::Unpin
 impl<S> core::marker::UnsafeUnpin for sacn::detector::SourceDetector<S> where <S as sacn::detector::DetectorStorage>::Sources: core::marker::UnsafeUnpin, <S as sacn::detector::DetectorStorage>::EventBuffer: core::marker::UnsafeUnpin
-impl<S> core::panic::unwind_safe::RefUnwindSafe for sacn::detector::SourceDetector<S> where <S as sacn::detector::DetectorStorage>::Sources: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::detector::DetectorStorage>::EventBuffer: core::panic::unwind_safe::RefUnwindSafe
-impl<S> core::panic::unwind_safe::UnwindSafe for sacn::detector::SourceDetector<S> where <S as sacn::detector::DetectorStorage>::Sources: core::panic::unwind_safe::UnwindSafe, <S as sacn::detector::DetectorStorage>::EventBuffer: core::panic::unwind_safe::UnwindSafe
+impl<S> core::panic::unwind_safe::RefUnwindSafe for sacn::detector::SourceDetector<S> where <S as sacn::detector::DetectorStorage>::Sources: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::detector::DetectorStorage>::EventBuffer: core::panic::unwind_safe::RefUnwindSafe, S: core::panic::unwind_safe::RefUnwindSafe
+impl<S> core::panic::unwind_safe::UnwindSafe for sacn::detector::SourceDetector<S> where <S as sacn::detector::DetectorStorage>::Sources: core::panic::unwind_safe::UnwindSafe, <S as sacn::detector::DetectorStorage>::EventBuffer: core::panic::unwind_safe::UnwindSafe, S: core::panic::unwind_safe::UnwindSafe
 impl<T, U> core::convert::Into<U> for sacn::detector::SourceDetector<S> where U: core::convert::From<T>
 pub fn sacn::detector::SourceDetector<S>::into(self) -> U
 impl<T, U> core::convert::TryFrom<U> for sacn::detector::SourceDetector<S> where U: core::convert::Into<T>
@@ -300,6 +300,69 @@ impl<T> core::convert::From<T> for sacn::detector::SourceDetectorConfig
 pub fn sacn::detector::SourceDetectorConfig::from(T) -> T
 impl<T> tracing::instrument::Instrument for sacn::detector::SourceDetectorConfig
 impl<T> tracing::instrument::WithSubscriber for sacn::detector::SourceDetectorConfig
+pub struct sacn::detector::SourceDetectorCore<S: sacn::detector::DetectorStorage>
+impl<S: sacn::detector::DetectorStorage> sacn::detector::SourceDetectorCore<S>
+pub fn sacn::detector::SourceDetectorCore<S>::config(&self) -> &sacn::detector::SourceDetectorConfig
+pub fn sacn::detector::SourceDetectorCore<S>::handle_packet<'d>(&self, &'d mut sacn::detector::SourceDetectorResources<S>, sacn::time::Instant, &sacn::packet::Packet<'_>) -> sacn::detector::DetectorPacketOutcome<'d>
+pub fn sacn::detector::SourceDetectorCore<S>::poll<'a>(&self, &'a mut sacn::detector::SourceDetectorResources<S>, sacn::time::Instant) -> sacn::detector::DetectorPollOutcome<'a>
+pub fn sacn::detector::SourceDetectorCore<S>::with_config(sacn::detector::SourceDetectorConfig) -> Self
+impl<S: core::fmt::Debug + sacn::detector::DetectorStorage> core::fmt::Debug for sacn::detector::SourceDetectorCore<S>
+pub fn sacn::detector::SourceDetectorCore<S>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<S> core::marker::Freeze for sacn::detector::SourceDetectorCore<S>
+impl<S> core::marker::Send for sacn::detector::SourceDetectorCore<S> where S: core::marker::Send
+impl<S> core::marker::Sync for sacn::detector::SourceDetectorCore<S> where S: core::marker::Sync
+impl<S> core::marker::Unpin for sacn::detector::SourceDetectorCore<S> where S: core::marker::Unpin
+impl<S> core::marker::UnsafeUnpin for sacn::detector::SourceDetectorCore<S>
+impl<S> core::panic::unwind_safe::RefUnwindSafe for sacn::detector::SourceDetectorCore<S> where S: core::panic::unwind_safe::RefUnwindSafe
+impl<S> core::panic::unwind_safe::UnwindSafe for sacn::detector::SourceDetectorCore<S> where S: core::panic::unwind_safe::UnwindSafe
+impl<T, U> core::convert::Into<U> for sacn::detector::SourceDetectorCore<S> where U: core::convert::From<T>
+pub fn sacn::detector::SourceDetectorCore<S>::into(self) -> U
+impl<T, U> core::convert::TryFrom<U> for sacn::detector::SourceDetectorCore<S> where U: core::convert::Into<T>
+pub type sacn::detector::SourceDetectorCore<S>::Error = core::convert::Infallible
+pub fn sacn::detector::SourceDetectorCore<S>::try_from(U) -> core::result::Result<T, <T as core::convert::TryFrom<U>>::Error>
+impl<T, U> core::convert::TryInto<U> for sacn::detector::SourceDetectorCore<S> where U: core::convert::TryFrom<T>
+pub type sacn::detector::SourceDetectorCore<S>::Error = <U as core::convert::TryFrom<T>>::Error
+pub fn sacn::detector::SourceDetectorCore<S>::try_into(self) -> core::result::Result<U, <U as core::convert::TryFrom<T>>::Error>
+impl<T> core::any::Any for sacn::detector::SourceDetectorCore<S> where T: 'static + ?core::marker::Sized
+pub fn sacn::detector::SourceDetectorCore<S>::type_id(&self) -> core::any::TypeId
+impl<T> core::borrow::Borrow<T> for sacn::detector::SourceDetectorCore<S> where T: ?core::marker::Sized
+pub fn sacn::detector::SourceDetectorCore<S>::borrow(&self) -> &T
+impl<T> core::borrow::BorrowMut<T> for sacn::detector::SourceDetectorCore<S> where T: ?core::marker::Sized
+pub fn sacn::detector::SourceDetectorCore<S>::borrow_mut(&mut self) -> &mut T
+impl<T> core::convert::From<T> for sacn::detector::SourceDetectorCore<S>
+pub fn sacn::detector::SourceDetectorCore<S>::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::detector::SourceDetectorCore<S>
+impl<T> tracing::instrument::WithSubscriber for sacn::detector::SourceDetectorCore<S>
+pub struct sacn::detector::SourceDetectorResources<S: sacn::detector::DetectorStorage>
+impl<S: core::fmt::Debug + sacn::detector::DetectorStorage> core::fmt::Debug for sacn::detector::SourceDetectorResources<S> where <S as sacn::detector::DetectorStorage>::Sources: core::fmt::Debug, <S as sacn::detector::DetectorStorage>::EventBuffer: core::fmt::Debug
+pub fn sacn::detector::SourceDetectorResources<S>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<S: sacn::detector::DetectorStorage> core::default::Default for sacn::detector::SourceDetectorResources<S>
+pub fn sacn::detector::SourceDetectorResources<S>::default() -> Self
+impl<S> core::marker::Freeze for sacn::detector::SourceDetectorResources<S> where <S as sacn::detector::DetectorStorage>::Sources: core::marker::Freeze, <S as sacn::detector::DetectorStorage>::EventBuffer: core::marker::Freeze
+impl<S> core::marker::Send for sacn::detector::SourceDetectorResources<S> where <S as sacn::detector::DetectorStorage>::Sources: core::marker::Send, <S as sacn::detector::DetectorStorage>::EventBuffer: core::marker::Send
+impl<S> core::marker::Sync for sacn::detector::SourceDetectorResources<S> where <S as sacn::detector::DetectorStorage>::Sources: core::marker::Sync, <S as sacn::detector::DetectorStorage>::EventBuffer: core::marker::Sync
+impl<S> core::marker::Unpin for sacn::detector::SourceDetectorResources<S> where <S as sacn::detector::DetectorStorage>::Sources: core::marker::Unpin, <S as sacn::detector::DetectorStorage>::EventBuffer: core::marker::Unpin
+impl<S> core::marker::UnsafeUnpin for sacn::detector::SourceDetectorResources<S> where <S as sacn::detector::DetectorStorage>::Sources: core::marker::UnsafeUnpin, <S as sacn::detector::DetectorStorage>::EventBuffer: core::marker::UnsafeUnpin
+impl<S> core::panic::unwind_safe::RefUnwindSafe for sacn::detector::SourceDetectorResources<S> where <S as sacn::detector::DetectorStorage>::Sources: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::detector::DetectorStorage>::EventBuffer: core::panic::unwind_safe::RefUnwindSafe
+impl<S> core::panic::unwind_safe::UnwindSafe for sacn::detector::SourceDetectorResources<S> where <S as sacn::detector::DetectorStorage>::Sources: core::panic::unwind_safe::UnwindSafe, <S as sacn::detector::DetectorStorage>::EventBuffer: core::panic::unwind_safe::UnwindSafe
+impl<T, U> core::convert::Into<U> for sacn::detector::SourceDetectorResources<S> where U: core::convert::From<T>
+pub fn sacn::detector::SourceDetectorResources<S>::into(self) -> U
+impl<T, U> core::convert::TryFrom<U> for sacn::detector::SourceDetectorResources<S> where U: core::convert::Into<T>
+pub type sacn::detector::SourceDetectorResources<S>::Error = core::convert::Infallible
+pub fn sacn::detector::SourceDetectorResources<S>::try_from(U) -> core::result::Result<T, <T as core::convert::TryFrom<U>>::Error>
+impl<T, U> core::convert::TryInto<U> for sacn::detector::SourceDetectorResources<S> where U: core::convert::TryFrom<T>
+pub type sacn::detector::SourceDetectorResources<S>::Error = <U as core::convert::TryFrom<T>>::Error
+pub fn sacn::detector::SourceDetectorResources<S>::try_into(self) -> core::result::Result<U, <U as core::convert::TryFrom<T>>::Error>
+impl<T> core::any::Any for sacn::detector::SourceDetectorResources<S> where T: 'static + ?core::marker::Sized
+pub fn sacn::detector::SourceDetectorResources<S>::type_id(&self) -> core::any::TypeId
+impl<T> core::borrow::Borrow<T> for sacn::detector::SourceDetectorResources<S> where T: ?core::marker::Sized
+pub fn sacn::detector::SourceDetectorResources<S>::borrow(&self) -> &T
+impl<T> core::borrow::BorrowMut<T> for sacn::detector::SourceDetectorResources<S> where T: ?core::marker::Sized
+pub fn sacn::detector::SourceDetectorResources<S>::borrow_mut(&mut self) -> &mut T
+impl<T> core::convert::From<T> for sacn::detector::SourceDetectorResources<S>
+pub fn sacn::detector::SourceDetectorResources<S>::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::detector::SourceDetectorResources<S>
+impl<T> tracing::instrument::WithSubscriber for sacn::detector::SourceDetectorResources<S>
 #[non_exhaustive] pub struct sacn::detector::SourceUpdateRef<'a>
 pub sacn::detector::SourceUpdateRef::cid: sacn::Cid
 pub sacn::detector::SourceUpdateRef::name: &'a str
@@ -5112,15 +5175,15 @@ pub fn sacn::detector::SourceDetector<S>::config(&self) -> &sacn::detector::Sour
 pub fn sacn::detector::SourceDetector<S>::handle_packet<'d>(&'d mut self, sacn::time::Instant, &sacn::packet::Packet<'_>) -> sacn::detector::DetectorPacketOutcome<'d>
 pub fn sacn::detector::SourceDetector<S>::poll(&mut self, sacn::time::Instant) -> sacn::detector::DetectorPollOutcome<'_>
 pub fn sacn::detector::SourceDetector<S>::with_config(sacn::detector::SourceDetectorConfig) -> Self
-impl<S: core::fmt::Debug + sacn::detector::DetectorStorage> core::fmt::Debug for sacn::detector::SourceDetector<S> where <S as sacn::detector::DetectorStorage>::Sources: core::fmt::Debug, <S as sacn::detector::DetectorStorage>::EventBuffer: core::fmt::Debug
+impl<S: core::fmt::Debug + sacn::detector::DetectorStorage> core::fmt::Debug for sacn::detector::SourceDetector<S>
 pub fn sacn::detector::SourceDetector<S>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
 impl<S> core::marker::Freeze for sacn::detector::SourceDetector<S> where <S as sacn::detector::DetectorStorage>::Sources: core::marker::Freeze, <S as sacn::detector::DetectorStorage>::EventBuffer: core::marker::Freeze
-impl<S> core::marker::Send for sacn::detector::SourceDetector<S> where <S as sacn::detector::DetectorStorage>::Sources: core::marker::Send, <S as sacn::detector::DetectorStorage>::EventBuffer: core::marker::Send
-impl<S> core::marker::Sync for sacn::detector::SourceDetector<S> where <S as sacn::detector::DetectorStorage>::Sources: core::marker::Sync, <S as sacn::detector::DetectorStorage>::EventBuffer: core::marker::Sync
-impl<S> core::marker::Unpin for sacn::detector::SourceDetector<S> where <S as sacn::detector::DetectorStorage>::Sources: core::marker::Unpin, <S as sacn::detector::DetectorStorage>::EventBuffer: core::marker::Unpin
+impl<S> core::marker::Send for sacn::detector::SourceDetector<S> where <S as sacn::detector::DetectorStorage>::Sources: core::marker::Send, <S as sacn::detector::DetectorStorage>::EventBuffer: core::marker::Send, S: core::marker::Send
+impl<S> core::marker::Sync for sacn::detector::SourceDetector<S> where <S as sacn::detector::DetectorStorage>::Sources: core::marker::Sync, <S as sacn::detector::DetectorStorage>::EventBuffer: core::marker::Sync, S: core::marker::Sync
+impl<S> core::marker::Unpin for sacn::detector::SourceDetector<S> where <S as sacn::detector::DetectorStorage>::Sources: core::marker::Unpin, <S as sacn::detector::DetectorStorage>::EventBuffer: core::marker::Unpin, S: core::marker::Unpin
 impl<S> core::marker::UnsafeUnpin for sacn::detector::SourceDetector<S> where <S as sacn::detector::DetectorStorage>::Sources: core::marker::UnsafeUnpin, <S as sacn::detector::DetectorStorage>::EventBuffer: core::marker::UnsafeUnpin
-impl<S> core::panic::unwind_safe::RefUnwindSafe for sacn::detector::SourceDetector<S> where <S as sacn::detector::DetectorStorage>::Sources: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::detector::DetectorStorage>::EventBuffer: core::panic::unwind_safe::RefUnwindSafe
-impl<S> core::panic::unwind_safe::UnwindSafe for sacn::detector::SourceDetector<S> where <S as sacn::detector::DetectorStorage>::Sources: core::panic::unwind_safe::UnwindSafe, <S as sacn::detector::DetectorStorage>::EventBuffer: core::panic::unwind_safe::UnwindSafe
+impl<S> core::panic::unwind_safe::RefUnwindSafe for sacn::detector::SourceDetector<S> where <S as sacn::detector::DetectorStorage>::Sources: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::detector::DetectorStorage>::EventBuffer: core::panic::unwind_safe::RefUnwindSafe, S: core::panic::unwind_safe::RefUnwindSafe
+impl<S> core::panic::unwind_safe::UnwindSafe for sacn::detector::SourceDetector<S> where <S as sacn::detector::DetectorStorage>::Sources: core::panic::unwind_safe::UnwindSafe, <S as sacn::detector::DetectorStorage>::EventBuffer: core::panic::unwind_safe::UnwindSafe, S: core::panic::unwind_safe::UnwindSafe
 impl<T, U> core::convert::Into<U> for sacn::detector::SourceDetector<S> where U: core::convert::From<T>
 pub fn sacn::detector::SourceDetector<S>::into(self) -> U
 impl<T, U> core::convert::TryFrom<U> for sacn::detector::SourceDetector<S> where U: core::convert::Into<T>
@@ -5187,6 +5250,69 @@ impl<T> core::convert::From<T> for sacn::detector::SourceDetectorConfig
 pub fn sacn::detector::SourceDetectorConfig::from(T) -> T
 impl<T> tracing::instrument::Instrument for sacn::detector::SourceDetectorConfig
 impl<T> tracing::instrument::WithSubscriber for sacn::detector::SourceDetectorConfig
+pub struct sacn::SourceDetectorCore<S: sacn::detector::DetectorStorage>
+impl<S: sacn::detector::DetectorStorage> sacn::detector::SourceDetectorCore<S>
+pub fn sacn::detector::SourceDetectorCore<S>::config(&self) -> &sacn::detector::SourceDetectorConfig
+pub fn sacn::detector::SourceDetectorCore<S>::handle_packet<'d>(&self, &'d mut sacn::detector::SourceDetectorResources<S>, sacn::time::Instant, &sacn::packet::Packet<'_>) -> sacn::detector::DetectorPacketOutcome<'d>
+pub fn sacn::detector::SourceDetectorCore<S>::poll<'a>(&self, &'a mut sacn::detector::SourceDetectorResources<S>, sacn::time::Instant) -> sacn::detector::DetectorPollOutcome<'a>
+pub fn sacn::detector::SourceDetectorCore<S>::with_config(sacn::detector::SourceDetectorConfig) -> Self
+impl<S: core::fmt::Debug + sacn::detector::DetectorStorage> core::fmt::Debug for sacn::detector::SourceDetectorCore<S>
+pub fn sacn::detector::SourceDetectorCore<S>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<S> core::marker::Freeze for sacn::detector::SourceDetectorCore<S>
+impl<S> core::marker::Send for sacn::detector::SourceDetectorCore<S> where S: core::marker::Send
+impl<S> core::marker::Sync for sacn::detector::SourceDetectorCore<S> where S: core::marker::Sync
+impl<S> core::marker::Unpin for sacn::detector::SourceDetectorCore<S> where S: core::marker::Unpin
+impl<S> core::marker::UnsafeUnpin for sacn::detector::SourceDetectorCore<S>
+impl<S> core::panic::unwind_safe::RefUnwindSafe for sacn::detector::SourceDetectorCore<S> where S: core::panic::unwind_safe::RefUnwindSafe
+impl<S> core::panic::unwind_safe::UnwindSafe for sacn::detector::SourceDetectorCore<S> where S: core::panic::unwind_safe::UnwindSafe
+impl<T, U> core::convert::Into<U> for sacn::detector::SourceDetectorCore<S> where U: core::convert::From<T>
+pub fn sacn::detector::SourceDetectorCore<S>::into(self) -> U
+impl<T, U> core::convert::TryFrom<U> for sacn::detector::SourceDetectorCore<S> where U: core::convert::Into<T>
+pub type sacn::detector::SourceDetectorCore<S>::Error = core::convert::Infallible
+pub fn sacn::detector::SourceDetectorCore<S>::try_from(U) -> core::result::Result<T, <T as core::convert::TryFrom<U>>::Error>
+impl<T, U> core::convert::TryInto<U> for sacn::detector::SourceDetectorCore<S> where U: core::convert::TryFrom<T>
+pub type sacn::detector::SourceDetectorCore<S>::Error = <U as core::convert::TryFrom<T>>::Error
+pub fn sacn::detector::SourceDetectorCore<S>::try_into(self) -> core::result::Result<U, <U as core::convert::TryFrom<T>>::Error>
+impl<T> core::any::Any for sacn::detector::SourceDetectorCore<S> where T: 'static + ?core::marker::Sized
+pub fn sacn::detector::SourceDetectorCore<S>::type_id(&self) -> core::any::TypeId
+impl<T> core::borrow::Borrow<T> for sacn::detector::SourceDetectorCore<S> where T: ?core::marker::Sized
+pub fn sacn::detector::SourceDetectorCore<S>::borrow(&self) -> &T
+impl<T> core::borrow::BorrowMut<T> for sacn::detector::SourceDetectorCore<S> where T: ?core::marker::Sized
+pub fn sacn::detector::SourceDetectorCore<S>::borrow_mut(&mut self) -> &mut T
+impl<T> core::convert::From<T> for sacn::detector::SourceDetectorCore<S>
+pub fn sacn::detector::SourceDetectorCore<S>::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::detector::SourceDetectorCore<S>
+impl<T> tracing::instrument::WithSubscriber for sacn::detector::SourceDetectorCore<S>
+pub struct sacn::SourceDetectorResources<S: sacn::detector::DetectorStorage>
+impl<S: core::fmt::Debug + sacn::detector::DetectorStorage> core::fmt::Debug for sacn::detector::SourceDetectorResources<S> where <S as sacn::detector::DetectorStorage>::Sources: core::fmt::Debug, <S as sacn::detector::DetectorStorage>::EventBuffer: core::fmt::Debug
+pub fn sacn::detector::SourceDetectorResources<S>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<S: sacn::detector::DetectorStorage> core::default::Default for sacn::detector::SourceDetectorResources<S>
+pub fn sacn::detector::SourceDetectorResources<S>::default() -> Self
+impl<S> core::marker::Freeze for sacn::detector::SourceDetectorResources<S> where <S as sacn::detector::DetectorStorage>::Sources: core::marker::Freeze, <S as sacn::detector::DetectorStorage>::EventBuffer: core::marker::Freeze
+impl<S> core::marker::Send for sacn::detector::SourceDetectorResources<S> where <S as sacn::detector::DetectorStorage>::Sources: core::marker::Send, <S as sacn::detector::DetectorStorage>::EventBuffer: core::marker::Send
+impl<S> core::marker::Sync for sacn::detector::SourceDetectorResources<S> where <S as sacn::detector::DetectorStorage>::Sources: core::marker::Sync, <S as sacn::detector::DetectorStorage>::EventBuffer: core::marker::Sync
+impl<S> core::marker::Unpin for sacn::detector::SourceDetectorResources<S> where <S as sacn::detector::DetectorStorage>::Sources: core::marker::Unpin, <S as sacn::detector::DetectorStorage>::EventBuffer: core::marker::Unpin
+impl<S> core::marker::UnsafeUnpin for sacn::detector::SourceDetectorResources<S> where <S as sacn::detector::DetectorStorage>::Sources: core::marker::UnsafeUnpin, <S as sacn::detector::DetectorStorage>::EventBuffer: core::marker::UnsafeUnpin
+impl<S> core::panic::unwind_safe::RefUnwindSafe for sacn::detector::SourceDetectorResources<S> where <S as sacn::detector::DetectorStorage>::Sources: core::panic::unwind_safe::RefUnwindSafe, <S as sacn::detector::DetectorStorage>::EventBuffer: core::panic::unwind_safe::RefUnwindSafe
+impl<S> core::panic::unwind_safe::UnwindSafe for sacn::detector::SourceDetectorResources<S> where <S as sacn::detector::DetectorStorage>::Sources: core::panic::unwind_safe::UnwindSafe, <S as sacn::detector::DetectorStorage>::EventBuffer: core::panic::unwind_safe::UnwindSafe
+impl<T, U> core::convert::Into<U> for sacn::detector::SourceDetectorResources<S> where U: core::convert::From<T>
+pub fn sacn::detector::SourceDetectorResources<S>::into(self) -> U
+impl<T, U> core::convert::TryFrom<U> for sacn::detector::SourceDetectorResources<S> where U: core::convert::Into<T>
+pub type sacn::detector::SourceDetectorResources<S>::Error = core::convert::Infallible
+pub fn sacn::detector::SourceDetectorResources<S>::try_from(U) -> core::result::Result<T, <T as core::convert::TryFrom<U>>::Error>
+impl<T, U> core::convert::TryInto<U> for sacn::detector::SourceDetectorResources<S> where U: core::convert::TryFrom<T>
+pub type sacn::detector::SourceDetectorResources<S>::Error = <U as core::convert::TryFrom<T>>::Error
+pub fn sacn::detector::SourceDetectorResources<S>::try_into(self) -> core::result::Result<U, <U as core::convert::TryFrom<T>>::Error>
+impl<T> core::any::Any for sacn::detector::SourceDetectorResources<S> where T: 'static + ?core::marker::Sized
+pub fn sacn::detector::SourceDetectorResources<S>::type_id(&self) -> core::any::TypeId
+impl<T> core::borrow::Borrow<T> for sacn::detector::SourceDetectorResources<S> where T: ?core::marker::Sized
+pub fn sacn::detector::SourceDetectorResources<S>::borrow(&self) -> &T
+impl<T> core::borrow::BorrowMut<T> for sacn::detector::SourceDetectorResources<S> where T: ?core::marker::Sized
+pub fn sacn::detector::SourceDetectorResources<S>::borrow_mut(&mut self) -> &mut T
+impl<T> core::convert::From<T> for sacn::detector::SourceDetectorResources<S>
+pub fn sacn::detector::SourceDetectorResources<S>::from(T) -> T
+impl<T> tracing::instrument::Instrument for sacn::detector::SourceDetectorResources<S>
+impl<T> tracing::instrument::WithSubscriber for sacn::detector::SourceDetectorResources<S>
 pub struct sacn::SourceId(_)
 impl sacn::merger::SourceId
 pub fn sacn::merger::SourceId::index(self) -> SourceIndex

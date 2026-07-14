@@ -554,6 +554,25 @@ macro_rules! static_storage {
                 { $det_sources },
             >;
         }
+
+        impl $name {
+            /// Construct a
+            /// [`SourceDetectorResources`](sacn::detector::SourceDetectorResources)
+            /// in a const context.
+            ///
+            /// The returned value is large, so it's recommended to place it
+            /// directly in `const`/`static` storage - e.g. a `ConstStaticCell` -
+            /// rather than building it on the stack.
+            #[allow(dead_code)]
+            #[allow(clippy::large_stack_frames)]
+            $vis const fn detector_resources()
+            -> $crate::detector::SourceDetectorResources<$name> {
+                $crate::detector::SourceDetectorResources::from_parts(
+                    $crate::SortedVecMap::new(),
+                    $crate::heapless::Vec::new(),
+                )
+            }
+        }
     };
 }
 
