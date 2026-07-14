@@ -9,6 +9,65 @@ use alloc::vec::Vec;
 use crate::time::Instant;
 use crate::types::{Cid, SourceName};
 
+// --- Borrowed event used by adapter layers ----------------------------------
+
+/// A notification emitted by a [`SourceDetector`](super::SourceDetector).
+///
+/// This is the borrowed form, gathering the events produced by
+/// [`handle_packet`](super::SourceDetector::handle_packet) and
+/// [`poll`](super::SourceDetector::poll) into one enum. It is typically
+/// constructed and emitted by adapter layers.
+#[non_exhaustive]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum SourceDetectorEventRef<'a> {
+    /// A source was newly discovered, or an already-known source changed the
+    /// list of universes it advertises. Carries the source's current, complete
+    /// universe list.
+    ///
+    /// There is no separate "new source" event: the first `SourceUpdated` for
+    /// a source announces its discovery.
+    SourceUpdated {
+        /// The source's Component Identifier.
+        cid: Cid,
+        /// The source's human-readable name (empty if it sent an invalid one).
+        name: &'a str,
+        /// The universes the source is currently transmitting, in ascending
+        /// order. Empty if the source advertises no universes.
+        universes: &'a [u16],
+    },
+
+    /// A source stopped sending universe discovery packets for long enough to be
+    /// considered gone.
+    SourceExpired {
+        /// The expired source's Component Identifier.
+        cid: Cid,
+        /// The expired source's last known name.
+        name: &'a str,
+    },
+
+    /// The source limit was reached, so a newly seen source could not be tracked.
+    ///
+    /// Rate-limited: emitted once when the limit is first hit and not again until
+    /// a tracked source expires and the limit is reached again.
+    SourceLimitExceeded,
+
+    /// A tracked source advertised more universes than the per-source limit, so
+    /// its list was truncated.
+    ///
+    /// Rate-limited per source: emitted once when a source first overflows and
+    /// not again until its universe count drops below the limit and reaches it
+    /// again.
+    UniverseLimitExceeded {
+        /// The source whose advertised universe list was truncated.
+        cid: Cid,
+    },
+
+    /// No notification this time - the detector processed input but has nothing
+    /// to report. Simply call the function you previously called again.
+    /// Surfacing this from some adapters is necessary due to their internals.
+    NoEvent,
+}
+
 // --- Owned event used by adapter layers -------------------------------------
 
 /// A notification emitted by a [`SourceDetector`](super::SourceDetector).

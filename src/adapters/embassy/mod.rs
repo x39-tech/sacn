@@ -9,6 +9,8 @@
 //! - [`Receiver`] wraps the merging [`crate::receiver::Receiver`] and delivers
 //!   merged universe data.
 //! - [`Source`] wraps [`crate::source::Source`] and transmits sACN.
+//! - [`SourceDetector`] wraps [`crate::detector::SourceDetector`] and reports the
+//!   sources present on the network and the universes each one transmits.
 //!
 //! Each owns an `embassy_net::udp::UdpSocket`, treats `embassy_time`'s clock as
 //! the core's monotonic epoch, and runs an async loop over the socket and the
@@ -23,6 +25,7 @@
 //! [`embassy_static_storage!`](crate::embassy_static_storage!).
 
 mod basic;
+mod detector;
 mod error;
 mod merging;
 mod sending;
@@ -30,14 +33,15 @@ mod source;
 mod storage;
 
 pub use basic::BasicReceiver;
+pub use detector::SourceDetector;
 pub use error::EmbassyError;
 pub use merging::Receiver;
 pub use source::Source;
 #[doc(hidden)]
 pub use storage::JoinState;
 pub use storage::{
-    BasicReceiverResources, BasicReceiverStorage, Destinations, ReceiverResources, ReceiverStorage,
-    SourceResources, SourceStorage,
+    BasicReceiverResources, BasicReceiverStorage, Destinations, DetectorResources, DetectorStorage,
+    ReceiverResources, ReceiverStorage, SourceResources, SourceStorage,
 };
 
 // Re-exported so the `embassy_static_storage!` macro can name these through

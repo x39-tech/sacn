@@ -13,8 +13,8 @@ mod event;
 #[cfg(feature = "alloc")]
 pub use event::SourceDetectorEvent;
 pub use event::{
-    DetectorPacketOutcome, DetectorPollOutcome, LimitExceeded, SourceDetectorPollEvent,
-    SourceUpdateRef,
+    DetectorPacketOutcome, DetectorPollOutcome, LimitExceeded, SourceDetectorEventRef,
+    SourceDetectorPollEvent, SourceUpdateRef,
 };
 
 #[cfg(test)]
@@ -416,6 +416,12 @@ impl<S: DetectorStorage> SourceDetectorResources<S> {
     fn next_deadline(&self) -> Option<Instant> {
         self.sources.values().map(|source| source.expiry).min()
     }
+
+    /// The expiry events produced by the most recent poll.
+    #[cfg(feature = "embassy")]
+    fn poll_events(&self) -> &[SourceDetectorPollEvent] {
+        self.event_buffer.as_slice()
+    }
 }
 
 impl<S: DetectorStorage> Default for SourceDetectorResources<S> {
@@ -609,5 +615,17 @@ impl<S: DetectorStorage> SourceDetectorCore<S> {
         });
 
         DetectorPollOutcome::new(store.next_deadline(), store.event_buffer.as_slice())
+    }
+
+    /// The expiry events produced by the most recent
+    /// [`poll`](SourceDetectorCore::poll), still buffered here until the next
+    /// poll clears them. Valid after the [`DetectorPollOutcome`] has been
+    /// dropped.
+    #[cfg(feature = "embassy")]
+    pub(crate) fn poll_events<'a>(
+        &self,
+        store: &'a SourceDetectorResources<S>,
+    ) -> &'a [SourceDetectorPollEvent] {
+        store.poll_events()
     }
 }

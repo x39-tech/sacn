@@ -52,6 +52,8 @@ mod tests;
 ///         rx_sync_addresses: 4,
 ///         tx_universes: 0,
 ///         tx_unicast_per_universe: 0,
+///         det_sources: 0,
+///         det_universes_per_source: 0,
 ///     }
 /// }
 ///

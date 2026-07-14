@@ -9,7 +9,7 @@
 //!   merged universe data.
 //! - [`Source`] wraps [`crate::source::Source`] and transmits sACN.
 //! - [`SourceDetector`] wraps [`crate::detector::SourceDetector`] and reports the
-//!   sources present on the network.
+//!   sources present on the network and the universes each one transmits.
 //!
 //! Each owns a `tokio::net::UdpSocket` and the tokio clock, runs an async loop
 //! over the socket and the core's timers, and performs the real multicast joins
