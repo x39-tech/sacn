@@ -1,5 +1,9 @@
 # sACN
 
+[![Crates.io](https://img.shields.io/crates/v/x39-sacn.svg)](https://crates.io/crates/x39-sacn)
+[![Docs.rs](https://docs.rs/x39-sacn/badge.svg)](https://docs.rs/x39-sacn)
+[![License](https://img.shields.io/crates/l/x39-sacn.svg)](https://github.com/x39-tech/sacn/blob/main/LICENSE)
+
 A full-featured, production-ready, embedded-friendly Rust implementation of the "Streaming ACN" (sACN, ANSI E1.31) protocol for sending and receiving DMX data over IP networks. The sACN protocol is ubiquitous in live entertainment and some building automation applications, usually used to control lighting equipment.
 
 ## Quick start
