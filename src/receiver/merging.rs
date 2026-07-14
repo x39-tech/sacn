@@ -21,7 +21,7 @@ mod event;
 pub use event::{MergedData, MergedSource, ReceiverEvent};
 pub use event::{
     MergedDataRef, MergedLostSource, MergedPacketOutcome, MergedPollOutcome, MergedSourceRef,
-    ReceiverPollEvent, SyncRelease,
+    ReceiverEventRef, ReceiverPollEvent, SyncRelease,
 };
 
 #[cfg(test)]
@@ -650,8 +650,15 @@ impl<S: ReceiverStorage> ReceiverResources<S> {
     /// The universes latched by the most recent synchronization packet, borrowed
     /// from the receiver's reusable scratch. Resolves the frames yielded by
     /// [`SyncRelease::merged_frames`](event::SyncRelease::merged_frames).
-    pub(super) fn sync_release(&self) -> &[Universe] {
+    fn sync_release(&self) -> &[Universe] {
         self.sync_release.as_slice()
+    }
+
+    /// The loss list of the poll `SourcesLost` most recently drained, borrowed
+    /// from the receiver's reusable merge-loss scratch.
+    #[cfg(feature = "embassy")]
+    fn merge_loss_sources(&self) -> &[MergedLostSource] {
+        self.loss_scratch.as_slice()
     }
 }
 
@@ -690,6 +697,26 @@ impl<S: ReceiverStorage> ReceiverCore<S> {
     /// Get the config with which this receiver was created.
     pub fn config(&self) -> &ReceiverConfig {
         self.basic.config()
+    }
+
+    /// The current merged result for a universe, or `None` if it is not listened
+    /// to or is still sampling.
+    #[cfg(feature = "embassy")]
+    pub(crate) fn merged<'a>(
+        &self,
+        store: &'a ReceiverResources<S>,
+        universe: Universe,
+    ) -> Option<MergedDataRef<'a, S>> {
+        merged(&store.universes, universe)
+    }
+
+    /// The enriched loss list of the poll `SourcesLost` most recently drained.
+    #[cfg(feature = "embassy")]
+    pub(crate) fn merge_loss_sources<'a>(
+        &self,
+        store: &'a ReceiverResources<S>,
+    ) -> &'a [MergedLostSource] {
+        store.merge_loss_sources()
     }
 
     /// The synchronization universes the receiver is currently interested in.

@@ -22,8 +22,8 @@ use static_cell::ConstStaticCell;
 
 static_storage! {
     struct TestCaps {
-        // Only one universe per test
-        rx_universes: 1,
+        // re-poll tests use two universes
+        rx_universes: 2,
         // Grouped source-loss tests exercise two competing sources timing out
         // together
         rx_sources_per_universe: 2,
@@ -1095,4 +1095,141 @@ fn split_core_and_resources_track_a_source() {
         panic!("expected a data outcome");
     };
     assert_eq!(data.expect("first frame delivered").values, &[1, 2, 3]);
+}
+
+// --- Re-poll safety ---------------------------------------------------------
+
+// Some adapters want to poll events one at a time rather than draining all
+// available events at once. They rely on already-drained events not spuriously
+// recurring. These tests ensure that.
+
+/// Feeds a NULL-start-code frame into a two-universe receiver.
+fn feed_rc(rx: &mut BasicReceiver, ms: u64, source: Cid, universe: u16, seq: u8) {
+    feed(
+        rx,
+        ms,
+        source,
+        universe,
+        seq,
+        DMX_NULL_START_CODE,
+        &[1, 2, 3],
+        false,
+        false,
+    );
+}
+
+/// Builds a receiver in which sources A (universe 1) and B (universe 2) are
+/// about to be lost at t = 4500ms, while source C (universe 1) is refreshed at
+/// that same instant and must survive. The final `feed` puts C online so
+/// that the poll at 4500ms sees it as online on its first pass and (after the
+/// first poll clears the flag) as silent on any re-poll.
+fn repoll_scenario() -> BasicReceiver {
+    let (a, b, c) = (cid(1), cid(2), cid(3));
+    let mut rx = BasicReceiver::with_config(ReceiverConfig::default());
+    rx.listen(instant(0), uni(1)).unwrap();
+    rx.listen(instant(0), uni(2)).unwrap();
+
+    // Deliver every source during the sampling period so each is established.
+    feed_rc(&mut rx, 100, a, 1, 0);
+    feed_rc(&mut rx, 100, c, 1, 0);
+    feed_rc(&mut rx, 100, b, 2, 0);
+
+    let mut poll = rx.poll(instant(1500));
+    while poll.next_event().is_some() {}
+
+    // Refresh all sources post-sampling (expiry pushed to 4500ms).
+    feed_rc(&mut rx, 2000, a, 1, 1);
+    feed_rc(&mut rx, 2000, c, 1, 1);
+    feed_rc(&mut rx, 2000, b, 2, 1);
+
+    // A and B fall silent; C is refreshed at the exact instant A and B expire,
+    // so it is online when the loss poll runs.
+    feed_rc(&mut rx, 4500, c, 1, 2);
+    rx
+}
+
+/// Fully drains a single `poll` into owned events.
+fn drain_full(rx: &mut BasicReceiver, now: Instant) -> Vec<BasicReceiverEvent> {
+    let mut poll = rx.poll(now);
+    let mut events = Vec::new();
+    while let Some(event) = poll.next_event() {
+        events.push(event.into());
+    }
+    events
+}
+
+/// Drains events one event per `poll`, with a fresh `poll` at the same `now`
+/// between events.
+fn drain_by_repoll(rx: &mut BasicReceiver, now: Instant) -> Vec<BasicReceiverEvent> {
+    let mut events = Vec::new();
+    for _ in 0..64 {
+        let mut poll = rx.poll(now);
+        match poll.next_event() {
+            Some(event) => events.push(event.into()),
+            None => return events,
+        }
+    }
+    // Nice test failure instead of hang
+    panic!("re-poll drain did not terminate");
+}
+
+#[test]
+fn repoll_drain_matches_single_drain() {
+    let expected = drain_full(&mut repoll_scenario(), instant(4500));
+    let actual = drain_by_repoll(&mut repoll_scenario(), instant(4500));
+    assert_eq!(actual, expected);
+
+    // The two losses, one per universe, and nothing else.
+    assert_eq!(
+        expected,
+        vec![
+            BasicReceiverEvent::SourcesLost {
+                universe: uni(1),
+                sources: vec![LostSource {
+                    cid: cid(1),
+                    terminated: false,
+                }],
+            },
+            BasicReceiverEvent::SourcesLost {
+                universe: uni(2),
+                sources: vec![LostSource {
+                    cid: cid(2),
+                    terminated: false,
+                }],
+            },
+        ]
+    );
+}
+
+#[test]
+fn repoll_drain_does_not_lose_a_live_source() {
+    let mut rx = repoll_scenario();
+    let events = drain_by_repoll(&mut rx, instant(4500));
+
+    // Source C (cid 3) is online at 4500ms and must never be reported lost, even
+    // though re-polling sees it as silent after the first poll clears its flag.
+    for event in &events {
+        if let BasicReceiverEvent::SourcesLost { sources, .. } = event {
+            assert!(
+                sources.iter().all(|s| s.cid != cid(3)),
+                "live source C was spuriously reported lost: {events:?}"
+            );
+        }
+    }
+
+    // It is still alive: a further poll before C's own expiry (7000ms) produces
+    // no loss for it either.
+    assert!(drain_by_repoll(&mut rx, instant(4600)).is_empty());
+
+    // C later times out as expected.
+    assert_eq!(
+        drain_by_repoll(&mut rx, instant(7000)),
+        vec![BasicReceiverEvent::SourcesLost {
+            universe: uni(1),
+            sources: vec![LostSource {
+                cid: cid(3),
+                terminated: false
+            }]
+        }]
+    )
 }

@@ -15,7 +15,9 @@ To flash this application to your NUCLEO-F439ZI development board and run it:
 5. Run `cargo build --release` in this directory to build the firmware.
 6. Run `cargo run --release` in this directory to flash the firmware to the device with `probe-rs`, and begin running.
 
-You will see logs in the `probe-rs` console via `defmt`, and the device will begin sending sACN on universe 1. Cycle through different patterns of sACN being sent by pressing the user button B1.
+You will see logs in the `probe-rs` console via `defmt`. The device boots into a **mirror mode**: it receives sACN on universe 1, re-sources the merged result on universe 2, and displays the level of the first three slots of universe 1 on the onboard LEDs LD1, LD2 and LD3 (dimmed via PWM from off to full).
+
+**Long-pressing** the user button B1 (hold for about a second) switches to **pattern mode**, where the device instead sources a set of animated patterns on universe 1 and shows the pattern's first three slots on the LEDs. A **short press** of B1 cycles through the patterns. Long-press again to return to mirror mode.
 
 If you're looking for a tool to verify the sACN output, [sACNView](https://sacnview.org) is the go-to choice.
 

@@ -55,6 +55,9 @@ const MULTICAST_HOP_LIMIT: u8 = 64;
 /// // A fixed-capacity storage policy, plus a const constructor for its memory.
 /// sacn::embassy_static_storage! {
 ///     pub struct Caps {
+///         rx_universes: 0,
+///         rx_sources_per_universe: 0,
+///         rx_sync_addresses: 0,
 ///         tx_universes: 4,
 ///         tx_unicast_per_universe: 2,
 ///     }
@@ -63,9 +66,15 @@ const MULTICAST_HOP_LIMIT: u8 = 64;
 /// static RESOURCES: ConstStaticCell<SourceResources<Caps>> =
 ///     ConstStaticCell::new(Caps::embassy_source_resources());
 ///
+/// # fn my_cid() -> Cid {
+/// #     Cid::from_bytes([1; 16])
+/// # }
+/// #
 /// # async fn demo(stack: embassy_net::Stack<'static>) -> Result<(), sacn::embassy::EmbassyError> {
 /// let resources = RESOURCES.take();
-/// let config = SourceConfig::new(Cid::from_bytes([1; 16]), "demo");
+/// // my_cid() should return a CID that is stable over your device's lifetime
+/// // (i.e. through power cycles, etc).
+/// let config = SourceConfig::new(my_cid(), "demo");
 /// // `stack` is your already-initialized `embassy_net::Stack`.
 /// let mut source = Source::new(stack, resources, config)?;
 ///
@@ -115,16 +124,14 @@ impl<'d, S: SourceStorage> Source<'d, S> {
             source: core_store,
             destinations,
             in_flight,
-            rx_meta,
-            rx_buffer,
             tx_meta,
             tx_buffer,
         } = resources;
 
         let mut socket = UdpSocket::new(
             stack,
-            rx_meta.as_mut(),
-            rx_buffer.as_mut(),
+            &mut [],
+            &mut [],
             tx_meta.as_mut(),
             tx_buffer.as_mut(),
         );

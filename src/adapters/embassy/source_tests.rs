@@ -20,6 +20,9 @@ use super::super::{
 
 crate::embassy_static_storage! {
     struct Caps {
+        rx_universes: 0,
+        rx_sources_per_universe: 0,
+        rx_sync_addresses: 0,
         tx_universes: 4,
         tx_unicast_per_universe: 4,
     }
@@ -246,7 +249,5 @@ fn resources_are_const_constructible_for_static_storage() {
     static RESOURCES: static_cell::ConstStaticCell<SourceResources<Caps>> =
         static_cell::ConstStaticCell::new(Caps::embassy_source_resources());
     let resources = RESOURCES.take();
-    // The receive/transmit payload buffers default to a single max-size packet.
-    assert_eq!(resources.rx_buffer.len(), crate::packet::MAX_PACKET_SIZE);
     assert_eq!(resources.tx_buffer.len(), crate::packet::MAX_PACKET_SIZE);
 }

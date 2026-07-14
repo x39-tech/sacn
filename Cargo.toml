@@ -24,7 +24,7 @@ std = ["alloc", "thiserror/std"]
 # The tokio runtime adapter.
 tokio = ["std", "dep:tokio", "dep:socket2", "dep:if-addrs"]
 # The embassy runtime adapter.
-embassy = ["dep:embassy-net", "dep:embassy-time", "embassy-net/medium-ethernet"]
+embassy = ["dep:embassy-net", "dep:embassy-time", "dep:embassy-futures"]
 # Structured logging via the `tracing` crate.
 tracing = ["dep:tracing"]
 # Logging via the `log` crate facade.
@@ -58,8 +58,11 @@ embassy-net = { version = "0.9.1", default-features = false, features = [
     "udp",
     "proto-ipv4",
     "proto-ipv6",
+    "medium-ethernet",
+    "multicast",
 ], optional = true }
 embassy-time = { version = "0.5.1", default-features = false, optional = true }
+embassy-futures = { version = "0.1.2", optional = true }
 
 [dev-dependencies]
 fastrand = "2.3.0"

@@ -21,7 +21,78 @@ use crate::types::{Cid, SourceName, Universe};
 
 use super::ReceiverResources;
 
-// --- Owned events used by adapter layers ------------------------------------
+// --- Events used by adapter layers ------------------------------------------
+
+/// A notification emitted by a [`Receiver`](super::Receiver).
+///
+/// This is the borrowed form, representing a combination of the events produced
+/// by [`poll`](super::Receiver::poll), [`handle_packet`](super::Receiver::handle_packet)
+/// and [`listen`](super::Receiver::listen), all gathered into one handy enum.
+/// This is typically constructed and emitted by adapter layers.
+#[non_exhaustive]
+#[derive_where::derive_where(Clone, Copy, Debug)]
+pub enum ReceiverEventRef<'a, S: ReceiverStorage> {
+    /// A sampling period began for a universe. No merged data is emitted until
+    /// the matching [`SamplingEnded`](Self::SamplingEnded).
+    SamplingStarted {
+        /// The universe whose sampling period began.
+        universe: Universe,
+    },
+
+    /// A sampling period ended for a universe. The first live
+    /// [`MergedData`](Self::MergedData), if any sources are present, follows.
+    SamplingEnded {
+        /// The universe whose sampling period ended.
+        universe: Universe,
+    },
+
+    /// A new merged result for a universe, borrowing the receiver's merge
+    /// buffers.
+    MergedData(MergedDataRef<'a, S>),
+
+    /// A new set of merged results for synchronized universes.
+    SyncMergedData(SyncRelease<'a, S>),
+
+    /// Data carrying a START code other than NULL (levels) or per-address
+    /// priority, forwarded untouched from a single source, borrowing the
+    /// datagram buffer.
+    UniverseData(UniverseDataRef<'a>),
+
+    /// One or more sources stopped transmitting on a universe. Grouped the same
+    /// way as the basic receiver groups near-simultaneous losses.
+    SourcesLost {
+        /// The universe the sources were lost on.
+        universe: Universe,
+        /// The sources that were lost, borrowed from the receiver's loss scratch.
+        sources: &'a [MergedLostSource],
+    },
+
+    /// A source stopped sending per-address priority while still sending levels;
+    /// its priority has reverted to its universe priority in the merge.
+    SourcePapLost {
+        /// The universe on which per-address priority was lost.
+        universe: Universe,
+        /// The source that stopped sending per-address priority.
+        source: SourceInfoRef<'a>,
+    },
+
+    /// The receiver ran out of room to track a new source on a universe.
+    SourceLimitExceeded {
+        /// The universe on which a source could not be tracked.
+        universe: Universe,
+    },
+
+    /// The receiver ran out of room to track a new synchronization address.
+    SyncLimitExceeded {
+        /// The synchronization address that could not be tracked.
+        sync_address: u16,
+    },
+
+    /// No notification this time - the receiver processed input but has nothing
+    /// to report. Simply call the function you previously called again.
+    /// Surfacing this from some adapters is necessary due to their internals.
+    NoEvent,
+}
 
 /// A notification emitted by a [`Receiver`](super::Receiver).
 ///

@@ -11,7 +11,89 @@ use crate::types::{Cid, Universe};
 
 use super::{BasicReceiverCore, BasicReceiverResources, BasicReceiverStorage};
 
-// --- Owned events used by adapter layers ------------------------------------
+// --- Events used by adapter layers ------------------------------------------
+
+/// A notification emitted by a [`BasicReceiver`](super::BasicReceiver).
+///
+/// This is the borrowed form, representing a combination of the events produced
+/// by [`poll`](super::BasicReceiver::poll), [`handle_packet`](super::BasicReceiver::handle_packet),
+/// and [`listen`](super::BasicReceiver::listen), all gathered into one handy
+/// enum. This is typically constructed and emitted by adapter layers.
+#[non_exhaustive]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum BasicReceiverEventRef<'a> {
+    /// A sampling period began for a universe. Data reported during the period
+    /// carries [`UniverseDataRef::is_sampling`]` == true`; an application that
+    /// wants a flicker-free first frame should wait for the matching
+    /// [`SamplingEnded`](BasicReceiverEvent::SamplingEnded) before acting on it.
+    SamplingStarted {
+        /// The universe whose sampling period began.
+        universe: Universe,
+    },
+
+    /// A sampling period ended for a universe; level data received from all
+    /// sources on this universe should now be reconciled and acted upon.
+    SamplingEnded {
+        /// The universe whose sampling period ended.
+        universe: Universe,
+    },
+
+    /// A data packet was accepted from a source. Note that there is no "new
+    /// source" event - this event will be sent on the first data packet from
+    /// a new source. Carries the per-source levels or alternate start code
+    /// data for the universe.
+    UniverseData(UniverseDataRef<'a>),
+
+    /// One or more sources stopped transmitting on a universe (by timing out or
+    /// by sending a terminated stream). Sources lost in quick succession are
+    /// grouped into a single notification so the application can react to them
+    /// together.
+    SourcesLost {
+        /// The universe the sources were lost on.
+        universe: Universe,
+        /// The sources that were lost.
+        sources: &'a [LostSource],
+    },
+
+    /// A source that had been sending per-address priority (`0xDD`) data stopped
+    /// sending it while still sending levels. Priority resolution for that
+    /// source should fall back to its packet (universe) priority.
+    SourcePapLost {
+        /// The universe on which per-address priority was lost.
+        universe: Universe,
+        /// The source that stopped sending per-address priority.
+        source: SourceInfoRef<'a>,
+    },
+
+    /// The receiver ran out of room to track a new source on a universe. Emitted
+    /// at most once until the number of tracked sources drops below the limit
+    /// and is exceeded again.
+    SourceLimitExceeded {
+        /// The universe on which a source could not be tracked.
+        universe: Universe,
+    },
+
+    /// A universe synchronization packet was received. An application driving a
+    /// basic receiver that wants conformant synchronization holds the data it
+    /// has buffered for every universe whose
+    /// [`sync_address`](crate::receiver::UniverseData::sync_address) equals this
+    /// [`sync_address`](Self::SyncReceived::sync_address) and releases it now.
+    /// Only emitted when synchronization is enabled
+    /// ([`ReceiverConfig::with_synchronization`](crate::receiver::ReceiverConfig::with_synchronization)).
+    /// Merging receiver implementations handle this automatically.
+    SyncReceived {
+        /// The synchronization universe the packet was sent on: the address
+        /// whose held data it releases.
+        sync_address: u16,
+        /// The source that sent the synchronization packet.
+        cid: Cid,
+    },
+
+    /// No notification this time - the receiver processed input but has nothing
+    /// to report. Simply call the function you previously called again.
+    /// Surfacing this from some adapters is necessary due to their internals.
+    NoEvent,
+}
 
 /// A notification emitted by a [`BasicReceiver`](super::BasicReceiver).
 ///

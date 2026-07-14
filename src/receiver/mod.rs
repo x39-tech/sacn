@@ -26,8 +26,8 @@ use crate::types::{Cid, Universe};
 #[cfg(feature = "alloc")]
 pub use basic::BasicReceiverEvent;
 pub use basic::{
-    BasicReceiver, BasicReceiverCore, BasicReceiverPollEvent, BasicReceiverResources,
-    BasicUniverseState, LostSource, PacketOutcome, PollOutcome,
+    BasicReceiver, BasicReceiverCore, BasicReceiverEventRef, BasicReceiverPollEvent,
+    BasicReceiverResources, BasicUniverseState, LostSource, PacketOutcome, PollOutcome,
 };
 pub use event::{ListenOutcome, SourceInfoRef, StopOutcome, UniverseDataRef};
 #[cfg(feature = "alloc")]
@@ -38,7 +38,7 @@ pub use merging::{MergeSource, UniverseMerge};
 pub use merging::{MergedData, MergedSource, ReceiverEvent};
 pub use merging::{
     MergedDataRef, MergedLostSource, MergedPacketOutcome, MergedPollOutcome, MergedSourceRef,
-    Receiver, ReceiverCore, ReceiverPollEvent, ReceiverResources, SyncRelease,
+    Receiver, ReceiverCore, ReceiverEventRef, ReceiverPollEvent, ReceiverResources, SyncRelease,
 };
 pub use source::TrackedSource;
 
