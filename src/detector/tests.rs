@@ -1,11 +1,41 @@
 //! Unit tests for the source detector.
+//!
+//! The tests use a fixed-capacity policy sized to the maximum resources any one
+//! test reaches, so the boundary conditions for the fixed-capacity storage are
+//! exercised alongside the actual test logic.
 
 use super::*;
 use crate::packet::{Packet, Payload, UniverseDiscoveryPacket, UniverseList};
+use crate::static_storage;
 use crate::time::Duration;
 
 use alloc::vec;
 use alloc::vec::Vec;
+
+use static_cell::ConstStaticCell;
+
+// --- test storage policy -----------------------------------------------------
+
+static_storage! {
+    struct TestCaps {
+        rx_universes: 0,
+        rx_sources_per_universe: 0,
+        rx_sync_addresses: 0,
+        tx_universes: 0,
+        // Two sources are tracked at once when they are timed out independently.
+        det_sources: 2,
+        // 6 universes used by multi_page_list_is_reassembled_on_last_page
+        det_universes_per_source: 6,
+    }
+}
+
+type SourceDetector = super::SourceDetector<TestCaps>;
+
+impl SourceDetector {
+    fn new(config: SourceDetectorConfig) -> Self {
+        Self::with_config(config)
+    }
+}
 
 // --- Helpers -----------------------------------------------------------------
 
@@ -436,4 +466,21 @@ fn universe_limit_names_the_overflowing_source_independently() {
             }
         ]
     );
+}
+
+#[test]
+fn split_core_and_resources_track_a_source() {
+    static STORE: ConstStaticCell<SourceDetectorResources<TestCaps>> =
+        ConstStaticCell::new(TestCaps::detector_resources());
+    let store = STORE.take();
+    let core = SourceDetectorCore::<TestCaps>::with_config(SourceDetectorConfig::new());
+
+    let bytes = universe_bytes(&[1, 2, 3]);
+    let packet = discovery(cid(1), "src", 0, 0, &bytes);
+    let update = core
+        .handle_packet(store, instant(0), &packet)
+        .updated
+        .expect("a new source is reported");
+    assert_eq!(update.cid, cid(1));
+    assert_eq!(update.universes, &[1, 2, 3]);
 }

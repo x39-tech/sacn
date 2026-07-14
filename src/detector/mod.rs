@@ -1,5 +1,7 @@
 //! The sACN source detector.
 
+use core::marker::PhantomData;
+
 use crate::log::{debug, warning};
 use crate::packet::{Packet, Payload};
 use crate::storage::{HeapStorage, MapLike, VecLike, coherence_check};
@@ -282,7 +284,51 @@ fn is_ascending(list: &[u16]) -> bool {
 /// ```
 #[derive(Debug)]
 pub struct SourceDetector<S: DetectorStorage = HeapStorage> {
+    core: SourceDetectorCore<S>,
+    store: SourceDetectorResources<S>,
+}
+
+/// The sACN source detector state machine: the discovery-tracking logic,
+/// separated from its working memory.
+///
+/// [`SourceDetector`] contains one of these as well as a
+/// [`SourceDetectorResources`]. Usually, just using [`SourceDetector`] is the
+/// right choice. Use this type alongside [`SourceDetectorResources`] if you need
+/// maximum control of your memory layout; [`SourceDetectorResources`] contains
+/// all of the bulk memory associated with a detector, and can be
+/// const-initialized statically.
+///
+/// This has all the same functionality as [`SourceDetector`]; the only difference
+/// is that each method takes a mutable reference to a separate
+/// [`SourceDetectorResources`]. Each [`SourceDetectorCore`] should be associated
+/// with exactly one [`SourceDetectorResources`] and you should pass the same
+/// [`SourceDetectorResources`] instance to every call to a [`SourceDetectorCore`]
+/// method.
+#[derive(Debug)]
+pub struct SourceDetectorCore<S: DetectorStorage = HeapStorage> {
     config: SourceDetectorConfig,
+    _marker: PhantomData<S>,
+}
+
+/// The mutable working memory a [`SourceDetectorCore`] operates on.
+///
+/// This struct holds everything about a detector that scales with the number of
+/// tracked sources and their universe lists, so it is the potentially large
+/// allocation. It can be constructed in a const expression with
+/// statically-allocated storage (see below).
+///
+/// Most users should just use [`SourceDetector`] rather than
+/// [`SourceDetectorCore`] and [`SourceDetectorResources`].
+///
+/// To construct:
+///
+/// - **Heap:** construct with [`SourceDetectorResources::default`].
+/// - **Fixed-capacity:** use the [`static_storage!`](crate::static_storage!)
+///   macro, which emits a `const fn` `detector_resources()` returning an empty
+///   `SourceDetectorResources`, suitable for static allocation in a const
+///   context.
+#[derive(Debug)]
+pub struct SourceDetectorResources<S: DetectorStorage = HeapStorage> {
     sources: S::Sources,
     /// Whether a source-limit-exceeded notification has already been emitted and
     /// should be suppressed until a tracked source expires.
@@ -306,18 +352,15 @@ impl<S: DetectorStorage> SourceDetector<S> {
     /// Creates a detector with the given configuration, backed by the storage
     /// policy `S`.
     pub fn with_config(config: SourceDetectorConfig) -> Self {
-        let () = AssertCoherent::<S>::CHECK;
         Self {
-            config,
-            sources: S::Sources::default(),
-            suppress_source_limit_exceeded: false,
-            event_buffer: S::EventBuffer::default(),
+            core: SourceDetectorCore::with_config(config),
+            store: SourceDetectorResources::default(),
         }
     }
 
     /// Get the config with which this detector was created.
     pub fn config(&self) -> &SourceDetectorConfig {
-        &self.config
+        self.core.config()
     }
 
     /// Feeds in a parsed packet, returning the events it produced.
@@ -333,6 +376,88 @@ impl<S: DetectorStorage> SourceDetector<S> {
         now: Instant,
         packet: &Packet<'_>,
     ) -> DetectorPacketOutcome<'d> {
+        self.core.handle_packet(&mut self.store, now, packet)
+    }
+
+    /// Advances time to `now`, expiring any source that has been silent past its
+    /// timeout, and enqueuing a
+    /// [`SourceExpired`](SourceDetectorPollEvent::SourceExpired) for each.
+    ///
+    /// Returns the earliest instant at which calling `poll` again could produce a
+    /// different result (the next source-expiry deadline), or `None` if no
+    /// sources are being tracked. Calling it earlier is harmless; calling it
+    /// later only delays notifications.
+    pub fn poll(&mut self, now: Instant) -> DetectorPollOutcome<'_> {
+        self.core.poll(&mut self.store, now)
+    }
+
+    /// The earliest source-expiry deadline, or `None` if no sources are tracked.
+    #[cfg(test)]
+    fn next_deadline(&self) -> Option<Instant> {
+        self.store.next_deadline()
+    }
+}
+
+impl<S: DetectorStorage> SourceDetectorResources<S> {
+    /// Assembles resources from already-constructed (empty) collections.
+    ///
+    /// Not used directly; used only from [`static_storage!`](crate::static_storage!)
+    /// or [`Default::default()`].
+    #[doc(hidden)]
+    pub const fn from_parts(sources: S::Sources, event_buffer: S::EventBuffer) -> Self {
+        Self {
+            sources,
+            suppress_source_limit_exceeded: false,
+            event_buffer,
+        }
+    }
+
+    /// The earliest source-expiry deadline, or `None` if no sources are tracked.
+    fn next_deadline(&self) -> Option<Instant> {
+        self.sources.values().map(|source| source.expiry).min()
+    }
+}
+
+impl<S: DetectorStorage> Default for SourceDetectorResources<S> {
+    /// Empty resources with empty collections. For a fixed-capacity policy this
+    /// builds the value at runtime; prefer the macro-generated
+    /// `detector_resources()` `const fn` to place it in static memory without a
+    /// stack copy.
+    fn default() -> Self {
+        Self::from_parts(S::Sources::default(), S::EventBuffer::default())
+    }
+}
+
+impl<S: DetectorStorage> SourceDetectorCore<S> {
+    /// Creates a detector controller with the given configuration, backed by the
+    /// storage policy `S`.
+    ///
+    /// The controller holds only the configuration; its working memory lives in
+    /// a separate [`SourceDetectorResources`] passed to each method. Most users
+    /// should use [`SourceDetector`] instead of [`SourceDetectorCore`] and
+    /// [`SourceDetectorResources`].
+    pub fn with_config(config: SourceDetectorConfig) -> Self {
+        let () = AssertCoherent::<S>::CHECK;
+        Self {
+            config,
+            _marker: PhantomData,
+        }
+    }
+
+    /// Get the config with which this detector was created.
+    pub fn config(&self) -> &SourceDetectorConfig {
+        &self.config
+    }
+
+    /// Feeds in a parsed packet, returning the events it produced.
+    ///
+    /// See [`SourceDetector::handle_packet`].
+    pub fn handle_packet<'d>(
+        &self,
+        store: &'d mut SourceDetectorResources<S>,
+        now: Instant,
+        packet: &Packet<'_>,
+    ) -> DetectorPacketOutcome<'d> {
         let Payload::UniverseDiscovery(disco) = &packet.payload else {
             return DetectorPacketOutcome::IGNORED;
         };
@@ -343,19 +468,19 @@ impl<S: DetectorStorage> SourceDetector<S> {
 
         {
             // Find or add the source, enforcing the source limit for new ones.
-            if !self.sources.contains_key(&cid) {
+            if !store.sources.contains_key(&cid) {
                 let expiry = now.saturating_add(self.config.source_timeout);
                 let refused = self
                     .config
                     .source_limit
-                    .is_some_and(|max| self.sources.len() >= max)
-                    || self
+                    .is_some_and(|max| store.sources.len() >= max)
+                    || store
                         .sources
                         .upsert(cid, DetectedSource::new(disco.source_name, expiry))
                         .is_err();
                 if refused {
-                    if !self.suppress_source_limit_exceeded {
-                        self.suppress_source_limit_exceeded = true;
+                    if !store.suppress_source_limit_exceeded {
+                        store.suppress_source_limit_exceeded = true;
                         limit_exceeded = Some(LimitExceeded::Source);
                         warning!("source detector source limit exceeded");
                     }
@@ -368,7 +493,7 @@ impl<S: DetectorStorage> SourceDetector<S> {
             }
 
             let config = &self.config;
-            let source = self.sources.get_mut(&cid).expect("source just ensured");
+            let source = store.sources.get_mut(&cid).expect("source just ensured");
             source.set_name(disco.source_name);
             // Any parseable page from the source refreshes its expiry.
             source.expiry = now.saturating_add(config.source_timeout);
@@ -436,7 +561,7 @@ impl<S: DetectorStorage> SourceDetector<S> {
         }
 
         let updated = updated_cid.map(|cid| {
-            let source = self.sources.get(&cid).expect("updated source present");
+            let source = store.sources.get(&cid).expect("updated source present");
             SourceUpdateRef {
                 cid,
                 name: source.name.as_str(),
@@ -450,24 +575,23 @@ impl<S: DetectorStorage> SourceDetector<S> {
     }
 
     /// Advances time to `now`, expiring any source that has been silent past its
-    /// timeout, and enqueuing a
-    /// [`SourceExpired`](SourceDetectorPollEvent::SourceExpired) for each.
+    /// timeout.
     ///
-    /// Returns the earliest instant at which calling `poll` again could produce a
-    /// different result (the next source-expiry deadline), or `None` if no
-    /// sources are being tracked. Calling it earlier is harmless; calling it
-    /// later only delays notifications.
-    pub fn poll(&mut self, now: Instant) -> DetectorPollOutcome<'_> {
-        self.event_buffer.clear();
+    /// See [`SourceDetector::poll`].
+    pub fn poll<'a>(
+        &self,
+        store: &'a mut SourceDetectorResources<S>,
+        now: Instant,
+    ) -> DetectorPollOutcome<'a> {
+        store.event_buffer.clear();
 
         // A source expires once it has been silent past its timeout. Retain the
         // live sources, emitting an event for each expired one as it is dropped.
-        let Self {
+        let SourceDetectorResources {
             sources,
             event_buffer,
             suppress_source_limit_exceeded,
-            ..
-        } = self;
+        } = &mut *store;
         sources.retain(|&cid, source| {
             if now >= source.expiry {
                 // A tracked source left, so allow a fresh source-limit
@@ -484,11 +608,6 @@ impl<S: DetectorStorage> SourceDetector<S> {
             }
         });
 
-        DetectorPollOutcome::new(self.next_deadline(), self.event_buffer.as_slice())
-    }
-
-    /// The earliest source-expiry deadline, or `None` if no sources are tracked.
-    fn next_deadline(&self) -> Option<Instant> {
-        self.sources.values().map(|source| source.expiry).min()
+        DetectorPollOutcome::new(store.next_deadline(), store.event_buffer.as_slice())
     }
 }
