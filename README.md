@@ -6,7 +6,7 @@ A full-featured, production-ready, embedded-friendly Rust implementation of the 
 
 ```toml
 [dependencies]
-x39-sacn = "0.1"
+x39-sacn = "0.2"
 ```
 
 In a [tokio](https://tokio.rs/) application, to receive merged DMX for a universe:
