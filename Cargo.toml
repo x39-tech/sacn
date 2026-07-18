@@ -3,7 +3,7 @@ members = ["extras/merge-lab", "xtask"]
 
 [package]
 name = "x39-sacn"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2024"
 rust-version = "1.91"
 description = "A full-featured, production-ready, no_std-friendly implementation of the sACN (ANSI E1.31) protocol."
