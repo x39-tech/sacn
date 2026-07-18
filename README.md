@@ -89,6 +89,21 @@ This also means that this crate is obsessively tested, with a full suite of unit
 
 Embedded users should check out the [Embassy example](/examples/embassy/README.md) for a starting point.
 
+## License
+
+Licensed under either of
+
+- Apache License, Version 2.0
+  ([LICENSE-APACHE](LICENSE-APACHE) or <http://www.apache.org/licenses/LICENSE-2.0>)
+- MIT license
+  ([LICENSE-MIT](LICENSE-MIT) or <http://opensource.org/licenses/MIT>)
+
+at your option.
+
+## Contribution
+
+Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in the work by you, as defined in the Apache-2.0 license, shall be dual licensed as above, without any additional terms or conditions.
+
 ## Acknowledgments
 
 This sACN implementation takes some algorithmic inspiration from the [implementation by ETC](https://github.com/ETCLabs/sACN), which is as good a reference implementation of sACN as exists in the open-source world. **Nick Ballhorn-Wagner** created most of the original algorithms in that implementation, and **Christian Reese** has been its steward and maintainer.
