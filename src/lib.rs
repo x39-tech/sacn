@@ -29,6 +29,7 @@
 //! | `log`     | no             | Logging via the `log` crate facade.                                                                                  |
 //! | `defmt`   | no             | Logging via `defmt`, for embedded targets.                                                                           |
 //! | `uuid`    | no             | `From`/`Into` conversions between [`Cid`] and `uuid::Uuid`.                                                          |
+//! | `pathway-secure` | no      | Proof-of-concept Pathway Secure sACN authentication (keyed BLAKE2s); adds the `secure` module. Implies `alloc`.       |
 //!
 //! # Internal architecture
 //!
@@ -60,6 +61,8 @@ pub mod time;
 pub mod detector;
 pub mod merger;
 pub mod receiver;
+#[cfg(feature = "pathway-secure")]
+pub mod secure;
 pub mod source;
 pub mod storage;
 

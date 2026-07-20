@@ -53,6 +53,7 @@ const ACN_PREAMBLE: [u8; 16] = [
 
 const VECTOR_ROOT_E131_DATA: u32 = 0x0000_0004;
 const VECTOR_ROOT_E131_EXTENDED: u32 = 0x0000_0008;
+pub(crate) const VECTOR_ROOT_E131_PATHWAY_SECURE: u32 = 0x5043_0001;
 
 const VECTOR_E131_DATA_PACKET: u32 = 0x0000_0002;
 const VECTOR_E131_EXTENDED_SYNCHRONIZATION: u32 = 0x0000_0001;
@@ -295,7 +296,11 @@ impl<'a> Packet<'a> {
     pub fn parse(buf: &'a [u8]) -> Result<Self, CodecError> {
         let mut r = Reader::new(buf);
 
-        if r.bytes(ACN_PREAMBLE.len())? != ACN_PREAMBLE {
+        let preamble = r.bytes(ACN_PREAMBLE.len())?;
+        // The post-amble size (bytes 2..4) is not validated: base E1.31 sets it
+        // to zero, while the Pathway Secure extension sets it to 28. The preamble
+        // size and the ACN packet identifier around it are fixed.
+        if preamble[..2] != ACN_PREAMBLE[..2] || preamble[4..] != ACN_PREAMBLE[4..] {
             return Err(err(0, CodecErrorKind::InvalidPreamble));
         }
         // Root-layer flags-and-length is not relied upon; the per-PDU layers
@@ -306,7 +311,9 @@ impl<'a> Packet<'a> {
         let cid = Cid::from_bytes(r.array::<16>()?);
 
         let payload = match root_vector {
-            VECTOR_ROOT_E131_DATA => Payload::Data(parse_data(&mut r)?),
+            VECTOR_ROOT_E131_DATA | VECTOR_ROOT_E131_PATHWAY_SECURE => {
+                Payload::Data(parse_data(&mut r)?)
+            }
             VECTOR_ROOT_E131_EXTENDED => parse_extended(&mut r)?,
             other => {
                 return Err(err(

@@ -199,6 +199,33 @@ fn options_byte_maps_each_flag_to_its_documented_bit() {
     }
 }
 
+#[test]
+fn secure_marked_data_packet_parses_as_plain() {
+    let values: [u8; 4] = [10, 20, 30, 40];
+    let plain = data_packet(&values, "Secure Source");
+
+    let mut buf = [0u8; MAX_PACKET_SIZE];
+    let n = plain.serialize(&mut buf).expect("serialize");
+
+    // Apply the Pathway Secure header markers and append a dummy 28-byte
+    // post-amble (contents are ignored by the base parser).
+    buf[2..4].copy_from_slice(&28u16.to_be_bytes());
+    buf[18..22].copy_from_slice(&VECTOR_ROOT_E131_PATHWAY_SECURE.to_be_bytes());
+    let secure_len = n + 28;
+
+    let parsed = Packet::parse(&buf[..secure_len]).expect("secure-marked packet parses");
+    assert_eq!(
+        parsed, plain,
+        "secure markers and post-amble are transparent"
+    );
+
+    // And it re-serializes to the plain form, which re-parses identically.
+    let reserialized = roundtrip_bytes(&parsed);
+    let reparsed = Packet::parse(&reserialized[..parsed.serialized_len()])
+        .expect("re-serialized packet parses");
+    assert_eq!(reparsed, plain);
+}
+
 // --- Parse error cases -------------------------------------------------------
 
 #[test]

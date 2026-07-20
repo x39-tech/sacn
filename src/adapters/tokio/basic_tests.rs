@@ -181,3 +181,147 @@ async fn stop_listening_reports_whether_it_was_listening() {
     assert!(rx.stop_listening(universe).await.unwrap());
     assert!(!rx.stop_listening(universe).await.unwrap());
 }
+
+#[cfg(feature = "pathway-secure")]
+mod secure {
+    use super::*;
+    use crate::secure::{POSTAMBLE_SIZE, SecureKey, SequenceType, secure_in_place};
+
+    /// Signs a NULL-start-code data packet with `key`, stamping `secure_seq` as
+    /// the (Volatile) replay-protection sequence.
+    fn secure_data_packet(
+        source: Cid,
+        universe: u16,
+        e131_seq: u8,
+        values: &[u8],
+        key: &SecureKey,
+        secure_seq: u64,
+    ) -> Vec<u8> {
+        let mut buf = data_packet(source, universe, e131_seq, values);
+        let base = buf.len();
+        buf.resize(base + POSTAMBLE_SIZE, 0);
+        let len = secure_in_place(&mut buf, base, key, SequenceType::Volatile, secure_seq);
+        buf.truncate(len);
+        buf
+    }
+
+    async fn bind_secure(keys: Vec<SecureKey>) -> BasicReceiver {
+        BasicReceiver::bind_to("127.0.0.1:0".parse().unwrap(), ReceiverConfig::new())
+            .await
+            .expect("bind loopback receiver")
+            .with_pathway_secure_keys(keys)
+    }
+
+    /// A packet signed with a key the receiver holds is validated and delivered.
+    #[tokio::test]
+    async fn accepts_valid_secure_packet() {
+        let key = SecureKey::new(b"showtime");
+        let mut rx = bind_secure(vec![key]).await;
+        let universe = Universe::new(1).unwrap();
+        listen_without_network(&mut rx, universe);
+        let addr = rx.socket.local_addr().unwrap();
+        assert_eq!(
+            next_event(&mut rx).await,
+            BasicReceiverEvent::SamplingStarted { universe }
+        );
+
+        let sender = UdpSocket::bind("127.0.0.1:0").await.unwrap();
+        sender
+            .send_to(
+                &secure_data_packet(cid(1), 1, 0, &[10, 20, 30], &key, 1),
+                addr,
+            )
+            .await
+            .unwrap();
+
+        match next_event(&mut rx).await {
+            BasicReceiverEvent::UniverseData(data) => {
+                assert_eq!(data.source.cid, cid(1));
+                assert_eq!(data.values, [10, 20, 30]);
+            }
+            other => panic!("expected universe data, got {other:?}"),
+        }
+    }
+
+    /// A secure receiver drops an unauthenticated (plain) packet, then delivers a
+    /// following authentic one: the plain packet never surfaces.
+    #[tokio::test]
+    async fn drops_unsecured_packet() {
+        let key = SecureKey::new(b"showtime");
+        let mut rx = bind_secure(vec![key]).await;
+        let universe = Universe::new(1).unwrap();
+        listen_without_network(&mut rx, universe);
+        let addr = rx.socket.local_addr().unwrap();
+        assert_eq!(
+            next_event(&mut rx).await,
+            BasicReceiverEvent::SamplingStarted { universe }
+        );
+
+        let sender = UdpSocket::bind("127.0.0.1:0").await.unwrap();
+        // An unsecured packet (dropped) followed by a valid secure one.
+        sender
+            .send_to(&data_packet(cid(2), 1, 0, &[1, 1, 1]), addr)
+            .await
+            .unwrap();
+        sender
+            .send_to(&secure_data_packet(cid(3), 1, 0, &[9, 9, 9], &key, 1), addr)
+            .await
+            .unwrap();
+
+        match next_event(&mut rx).await {
+            BasicReceiverEvent::UniverseData(data) => {
+                assert_eq!(
+                    data.source.cid,
+                    cid(3),
+                    "the unsecured packet must be dropped"
+                );
+                assert_eq!(data.values, [9, 9, 9]);
+            }
+            other => panic!("expected universe data, got {other:?}"),
+        }
+    }
+
+    /// A packet signed with a key the receiver does not hold is dropped; one
+    /// signed with a held key is delivered.
+    #[tokio::test]
+    async fn drops_packet_signed_with_unknown_key() {
+        let held = SecureKey::new(b"correct-horse");
+        let other = SecureKey::new(b"battery-staple");
+        let mut rx = bind_secure(vec![held]).await;
+        let universe = Universe::new(1).unwrap();
+        listen_without_network(&mut rx, universe);
+        let addr = rx.socket.local_addr().unwrap();
+        assert_eq!(
+            next_event(&mut rx).await,
+            BasicReceiverEvent::SamplingStarted { universe }
+        );
+
+        let sender = UdpSocket::bind("127.0.0.1:0").await.unwrap();
+        sender
+            .send_to(
+                &secure_data_packet(cid(4), 1, 0, &[2, 2, 2], &other, 1),
+                addr,
+            )
+            .await
+            .unwrap();
+        sender
+            .send_to(
+                &secure_data_packet(cid(5), 1, 0, &[3, 3, 3], &held, 1),
+                addr,
+            )
+            .await
+            .unwrap();
+
+        match next_event(&mut rx).await {
+            BasicReceiverEvent::UniverseData(data) => {
+                assert_eq!(
+                    data.source.cid,
+                    cid(5),
+                    "the wrong-key packet must be dropped"
+                );
+                assert_eq!(data.values, [3, 3, 3]);
+            }
+            other => panic!("expected universe data, got {other:?}"),
+        }
+    }
+}

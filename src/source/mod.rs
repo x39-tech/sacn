@@ -127,6 +127,8 @@ pub struct SourceConfig {
     keep_alive: Duration,
     pap_keep_alive: Duration,
     sync_delay: Duration,
+    #[cfg(feature = "pathway-secure")]
+    secure_key: Option<crate::secure::SecureKey>,
 }
 
 impl SourceConfig {
@@ -141,7 +143,23 @@ impl SourceConfig {
             keep_alive: DEFAULT_KEEP_ALIVE,
             pap_keep_alive: DEFAULT_PAP_KEEP_ALIVE,
             sync_delay: Duration::from_millis(5),
+            #[cfg(feature = "pathway-secure")]
+            secure_key: None,
         }
+    }
+
+    /// Enables Pathway Secure sACN transmission, signing every data packet with
+    /// `key`.
+    ///
+    /// Synchronization and universe-discovery packets are not signed.
+    ///
+    /// This is a proof-of-concept extension and is off by default. See
+    /// [`crate::secure`].
+    #[cfg(feature = "pathway-secure")]
+    #[must_use]
+    pub fn with_pathway_secure(mut self, key: crate::secure::SecureKey) -> Self {
+        self.secure_key = Some(key);
+        self
     }
 
     /// Sets the interval between keep-alive level packets sent while a universe's
@@ -642,6 +660,12 @@ pub struct SourceResources<S: SourceStorage = HeapStorage> {
     removed: S::Removed,
     /// When the next discovery packet should be sent.
     discovery_next_send: Instant,
+    /// The next Pathway Secure sACN sequence value, shared across all universes
+    /// of this source (the sequence is per-transmitter, identified by CID).
+    /// Starts at 1 per the Volatile sequence type and increments per signed
+    /// packet. Unused unless a signing key is configured.
+    #[cfg(feature = "pathway-secure")]
+    secure_seq: u64,
 }
 
 #[cfg(feature = "alloc")]
@@ -872,6 +896,8 @@ impl<S: SourceStorage> SourceResources<S> {
             packet_len: 0,
             removed,
             discovery_next_send: Instant::EPOCH,
+            #[cfg(feature = "pathway-secure")]
+            secure_seq: 1,
         }
     }
 
@@ -1322,6 +1348,40 @@ impl<S: SourceStorage> SourceCore<S> {
         next
     }
 
+    /// Records the length of a freshly serialized packet held in `packet_buf`,
+    /// first applying Pathway Secure signing when a key is configured and the
+    /// packet is a data packet. Returns the final on-the-wire length. Without the
+    /// `pathway-secure` feature (or a key), this just stores and returns
+    /// `base_len` unchanged.
+    fn finalize_serialized(
+        &self,
+        store: &mut SourceResources<S>,
+        base_len: usize,
+        is_data: bool,
+    ) -> usize {
+        #[cfg(feature = "pathway-secure")]
+        let n = if is_data && let Some(key) = self.config.secure_key.as_ref() {
+            let seq = store.secure_seq;
+            store.secure_seq = store.secure_seq.wrapping_add(1);
+            crate::secure::secure_in_place(
+                &mut store.packet_buf,
+                base_len,
+                key,
+                crate::secure::SequenceType::Volatile,
+                seq,
+            )
+        } else {
+            base_len
+        };
+        #[cfg(not(feature = "pathway-secure"))]
+        let n = {
+            let _ = is_data;
+            base_len
+        };
+        store.packet_len = n;
+        n
+    }
+
     /// Serializes the queued transmission at `idx` into the reusable packet
     /// buffer and returns it. The sequence number for a level or per-address-
     /// priority packet is assigned here (not when queued). The serialized bytes
@@ -1330,70 +1390,76 @@ impl<S: SourceStorage> SourceCore<S> {
     fn serialize_at<'a>(&self, store: &'a mut SourceResources<S>, idx: usize) -> Transmission<'a> {
         let pending = store.pending.as_slice()[idx];
 
-        let config = &self.config;
-        let SourceResources {
-            universes,
-            packet_buf,
-            packet_len: last_len,
-            ..
-        } = store;
+        let is_data;
+        let base_len;
+        {
+            let config = &self.config;
+            let SourceResources {
+                universes,
+                packet_buf,
+                ..
+            } = &mut *store;
 
-        let mut disc_page: heapless::Vec<u8, { MAX_UNIVERSES_PER_PAGE * 2 }> = heapless::Vec::new();
+            let mut disc_page: heapless::Vec<u8, { MAX_UNIVERSES_PER_PAGE * 2 }> =
+                heapless::Vec::new();
 
-        let packet = match pending.emission {
-            Emission::Level {
-                universe,
-                terminated,
-            } => {
-                let state = universes
-                    .get_mut(&universe)
-                    .expect("queued universe is present");
-                let seq = state.take_seq();
-                let values = state.levels.get().expect("level packet has levels");
-                data_packet(
-                    config,
-                    state,
+            let packet = match pending.emission {
+                Emission::Level {
                     universe,
-                    seq,
-                    DMX_NULL_START_CODE,
                     terminated,
-                    values,
-                )
-            }
-            Emission::Pap { universe } => {
-                let state = universes
-                    .get_mut(&universe)
-                    .expect("queued universe is present");
-                let seq = state.take_seq();
-                let pap = state.pap.get().expect("pap packet has pap data");
-                data_packet(config, state, universe, seq, PAP_START_CODE, false, pap)
-            }
-            Emission::Discovery { page, last_page } => {
-                build_discovery_page(universes, page, &mut disc_page);
-                Packet {
-                    cid: config.cid,
-                    payload: Payload::UniverseDiscovery(UniverseDiscoveryPacket {
-                        source_name: config.name.as_str(),
-                        page,
-                        last_page,
-                        universes: UniverseList::from_bytes(&disc_page),
-                    }),
+                } => {
+                    let state = universes
+                        .get_mut(&universe)
+                        .expect("queued universe is present");
+                    let seq = state.take_seq();
+                    let values = state.levels.get().expect("level packet has levels");
+                    data_packet(
+                        config,
+                        state,
+                        universe,
+                        seq,
+                        DMX_NULL_START_CODE,
+                        terminated,
+                        values,
+                    )
                 }
-            }
-            Emission::Sync { sync_universe, seq } => Packet {
-                cid: config.cid,
-                payload: Payload::Sync(SyncPacket {
-                    sequence_number: seq,
-                    sync_address: sync_universe.get(),
-                }),
-            },
-        };
+                Emission::Pap { universe } => {
+                    let state = universes
+                        .get_mut(&universe)
+                        .expect("queued universe is present");
+                    let seq = state.take_seq();
+                    let pap = state.pap.get().expect("pap packet has pap data");
+                    data_packet(config, state, universe, seq, PAP_START_CODE, false, pap)
+                }
+                Emission::Discovery { page, last_page } => {
+                    build_discovery_page(universes, page, &mut disc_page);
+                    Packet {
+                        cid: config.cid,
+                        payload: Payload::UniverseDiscovery(UniverseDiscoveryPacket {
+                            source_name: config.name.as_str(),
+                            page,
+                            last_page,
+                            universes: UniverseList::from_bytes(&disc_page),
+                        }),
+                    }
+                }
+                Emission::Sync { sync_universe, seq } => Packet {
+                    cid: config.cid,
+                    payload: Payload::Sync(SyncPacket {
+                        sequence_number: seq,
+                        sync_address: sync_universe.get(),
+                    }),
+                },
+            };
 
-        let n = serialize_into(packet_buf, &packet);
-        *last_len = n;
+            is_data = matches!(packet.payload, Payload::Data(_));
+            base_len = serialize_into(packet_buf, &packet);
+        }
+
+        let n = self.finalize_serialized(store, base_len, is_data);
         Transmission {
             route: pending.route,
-            data: &packet_buf[..n],
+            data: &store.packet_buf[..n],
         }
     }
 
@@ -1422,28 +1488,31 @@ impl<S: SourceStorage> SourceCore<S> {
             }));
         }
 
-        let config = &self.config;
-        let SourceResources {
-            universes,
-            packet_buf,
-            packet_len: last_len,
-            ..
-        } = store;
+        let base_len;
+        {
+            let config = &self.config;
+            let SourceResources {
+                universes,
+                packet_buf,
+                ..
+            } = &mut *store;
 
-        let state = universes
-            .get_mut(&universe)
-            .filter(|state| !state.is_finished())
-            .ok_or(Error::NoSuchUniverse {
-                universe: universe.get(),
-            })?;
-        let seq = state.take_seq();
-        let packet = data_packet(config, state, universe, seq, start_code.get(), false, data);
+            let state = universes
+                .get_mut(&universe)
+                .filter(|state| !state.is_finished())
+                .ok_or(Error::NoSuchUniverse {
+                    universe: universe.get(),
+                })?;
+            let seq = state.take_seq();
+            let packet = data_packet(config, state, universe, seq, start_code.get(), false, data);
 
-        let n = serialize_into(packet_buf, &packet);
-        *last_len = n;
+            base_len = serialize_into(packet_buf, &packet);
+        }
+
+        let n = self.finalize_serialized(store, base_len, true);
         Ok(Transmission {
             route: Route::Universe(universe),
-            data: &packet_buf[..n],
+            data: &store.packet_buf[..n],
         })
     }
 

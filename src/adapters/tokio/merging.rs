@@ -44,6 +44,9 @@ pub struct Receiver {
     interfaces: HashMap<Universe, Vec<MulticastInterface>>,
     /// The multicast interfaces currently joined per synchronization universe.
     sync_joined: HashMap<Universe, Vec<MulticastInterface>>,
+    /// The Pathway Secure sACN validator.
+    #[cfg(feature = "pathway-secure")]
+    validator: Option<crate::secure::SecureValidator>,
 }
 
 impl Receiver {
@@ -81,7 +84,29 @@ impl Receiver {
             pending: VecDeque::new(),
             interfaces: HashMap::new(),
             sync_joined: HashMap::new(),
+            #[cfg(feature = "pathway-secure")]
+            validator: None,
         })
+    }
+
+    /// Enables Pathway Secure sACN validation with the given candidate keys.
+    ///
+    /// With secure mode enabled, every received datagram must be a Pathway Secure
+    /// packet whose keyed digest verifies against one of `keys` and whose
+    /// sequence has not been replayed; all other datagrams (unauthenticated,
+    /// forged, or replayed) are silently dropped. A source's replay state is
+    /// reset when it is lost, so a rebooted transmitter is accepted again.
+    ///
+    /// This is a proof-of-concept extension and is off by default. See
+    /// [`crate::secure`].
+    #[cfg(feature = "pathway-secure")]
+    #[must_use]
+    pub fn with_pathway_secure_keys(
+        mut self,
+        keys: impl IntoIterator<Item = crate::secure::SecureKey>,
+    ) -> Self {
+        self.validator = Some(crate::secure::SecureValidator::new(keys));
+        self
     }
 
     /// The local address the receiver is bound to.
@@ -206,7 +231,7 @@ impl Receiver {
     /// signal. It is cancel-safe.
     pub async fn next_event(&mut self) -> Option<ReceiverEvent> {
         loop {
-            if let Some(event) = self.pending.pop_front() {
+            if let Some(event) = self.next_pending() {
                 return Some(event);
             }
 
@@ -241,7 +266,7 @@ impl Receiver {
 
             self.reconcile_sync_groups();
 
-            if let Some(event) = self.pending.pop_front() {
+            if let Some(event) = self.next_pending() {
                 return Some(event);
             }
 
@@ -257,6 +282,17 @@ impl Receiver {
                 result = self.socket.recv_from(&mut self.recv_buf) => {
                     if let Ok((len, from)) = result {
                         let now = self.now();
+                        // In secure mode, drop any datagram that is not an
+                        // authentic, non-replayed Pathway Secure packet before it
+                        // reaches the parser or the core.
+                        #[cfg(feature = "pathway-secure")]
+                        if let Some(validator) = self.validator.as_mut()
+                            && validator.check(&self.recv_buf[..len])
+                                != crate::secure::SecureOutcome::Accepted
+                        {
+                            continue;
+                        }
+
                         if let Ok(packet) = Packet::parse(&self.recv_buf[..len]) {
                             // The borrowed outcome points into `recv_buf` and the
                             // core's merge buffers; convert to owned form straight
@@ -271,6 +307,28 @@ impl Receiver {
                 () = sleep => {}
             }
         }
+    }
+
+    /// Pops the next buffered event, resetting the secure replay state of any
+    /// sources reported lost so a rebooted transmitter (whose sequence restarts)
+    /// is accepted again.
+    #[cfg(feature = "pathway-secure")]
+    fn next_pending(&mut self) -> Option<ReceiverEvent> {
+        let event = self.pending.pop_front()?;
+        if let Some(validator) = self.validator.as_mut()
+            && let ReceiverEvent::SourcesLost { sources, .. } = &event
+        {
+            for lost in sources {
+                validator.forget_source(&lost.cid);
+            }
+        }
+        Some(event)
+    }
+
+    /// Pops the next buffered event.
+    #[cfg(not(feature = "pathway-secure"))]
+    fn next_pending(&mut self) -> Option<ReceiverEvent> {
+        self.pending.pop_front()
     }
 
     /// Automatically implements the core's current interest in synchronization
